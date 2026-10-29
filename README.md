@@ -61,10 +61,8 @@ What the plugin gives every session in that project, without any CLAUDE.md editi
 | Hook: validate on save | After any edit under `docs/plan/`, format errors go straight back to Claude |
 | Hook: session briefing | Every new session starts with the plan status and where the rules are |
 
-Update: `claude plugin update thinkmap@thinkmap`, then `/reload-plugins`. Try it without
-installing: `claude --plugin-dir path/to/ThinkMap`. Installed with npx first and the plugin
-later? The `docs/plan/FORMAT.md` that npx created is a copy from that version; the next
-session briefing (or `thinkmap validate`) says so, and `thinkmap format --write` refreshes it.
+Updating the plugin: see [Updating](#updating). Try it without installing:
+`claude --plugin-dir path/to/ThinkMap`.
 
 ### With npx (no Claude Code needed)
 
@@ -152,8 +150,37 @@ the ID in brackets: `feat: signup endpoint [P1-T03]`.
 
 ## Updating
 
-Thinkmap does not update itself: `npx` keeps the first copy it fetched, `npm i -D github:…`
-pins a commit, a clone waits for `git pull`. One command handles all three:
+Thinkmap does not update itself, whichever way it was installed. Two steps every time:
+update the tool, then refresh the format copy in each project (explained below).
+
+### The plugin (inside a Claude session)
+
+1. **Update the plugin** — type this in any Claude Code session:
+   ```
+   claude plugin update thinkmap@thinkmap
+   ```
+   (`thinkmap@thinkmap` is *plugin name* @ *marketplace name*.) The same command works in a
+   normal terminal, or use the menu: `/plugin` → **Manage** → thinkmap → **Update**.
+2. **Load the new version:** `/reload-plugins`, or just start a new session.
+3. **Check:** `claude plugin list` shows the new version number.
+4. **In each project**, the first new session says when `docs/plan/FORMAT.md` is an older
+   copy and prints the `format --write` command. Run it, or let Claude run it.
+
+If step 1 says there is nothing new although GitHub has a newer version, refresh the
+marketplace listing first, then update again:
+
+```
+claude plugin marketplace update thinkmap
+claude plugin update thinkmap@thinkmap
+```
+
+Telling the team: one message with the two commands from steps 1–2 is enough; step 4
+happens on its own in every project they open.
+
+### npx, project dependency or clone
+
+`npx` keeps the first copy it fetched, `npm i -D github:…` pins a commit, a clone waits for
+`git pull`. One command handles all three:
 
 ```bash
 thinkmap update            # or: npx github:dsngeu/ThinkMap update
@@ -164,17 +191,19 @@ thinkmap update --check    # just compare with GitHub
 when a newer version exists (one GET of `package.json`; nothing about your project is sent).
 Skip it with `--no-update-check` or `THINKMAP_NO_UPDATE_CHECK=1`.
 
-**After any update, refresh the format copy.** `init` leaves `docs/plan/FORMAT.md` in your
-project for people and sessions without Thinkmap, but the validator and the plugin follow
-the rules bundled with the tool, so the copy falls behind with every update (and when you
-move from npx to the plugin). `thinkmap validate`, the session briefing and `thinkmap format`
-all say when that happens; one command fixes it:
+### After any update: refresh the format copy
+
+`init` leaves `docs/plan/FORMAT.md` in your project for people and sessions without
+Thinkmap, but the validator and the plugin follow the rules bundled with the tool, so the
+copy falls behind with every update (and when you move from npx to the plugin — the copy
+npx created stays at that version). `thinkmap validate`, the session briefing and
+`thinkmap format` all say when that happens; one command fixes it:
 
 ```bash
 thinkmap format --write    # plugin: node "~/.claude/plugins/cache/thinkmap/thinkmap/<version>/bin/thinkmap.js" format --write
 ```
 
-**First update from 0.1.0** (which had no `update` command): run it from a fresh fetch once;
+**First npx update from 0.1.0** (which had no `update` command): run it from a fresh fetch once;
 it refreshes every cached copy, including the plain `npx github:dsngeu/ThinkMap` one:
 
 ```bash
