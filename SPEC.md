@@ -59,12 +59,12 @@ updates live. Works for **any** project that follows the format (`thinkmap init`
 - `status: auto` roll-ups; progress = settled points + done tickets; git commit links.
 
 ### Claude Code integration (pending)
-| Piece | Type | Ticket |
+| Piece | Type | When |
 |---|---|---|
-| `thinkmap-format` — teaches the format; triggers when planning/discussing | Skill (auto) | P0-T04 |
-| `/thinkmap-init`, `/thinkmap`, `/thinkmap-status`, `/thinkmap-ticket <ID>` | Skills (commands) | P0-T04 |
-| Validate on save (PostToolUse) · session briefing (SessionStart) | Hooks | P0-T05 |
-| Plugin + company marketplace | Plugin | P0-T06 |
+| `thinkmap-format` — teaches the format; triggers when planning/discussing | Skill (auto) | next |
+| `/thinkmap-init`, `/thinkmap`, `/thinkmap-status`, `/thinkmap-ticket <ID>` | Skills (commands) | next |
+| Validate on save (PostToolUse) · session briefing (SessionStart) | Hooks | after skills |
+| Plugin + company marketplace | Plugin | after hooks |
 
 ## 5. How the company gets it (distribution)
 
@@ -81,13 +81,15 @@ updates live. Works for **any** project that follows the format (`thinkmap init`
 - Server: Node `http` + `fs.watch` + Server-Sent Events; polls git HEAD every 3 s.
 - Security: binds 127.0.0.1; rejects non-localhost Host headers; `/api/file` serves only `.md` inside the plan folder.
 
-## 7. Open questions (tracked as points under P0-F02 in docs/plan)
+## 7. Open questions
 
-- Q1 Kanban column view — later. Q2 Read-only viewer — chosen for v1; "Open in editor" as middle ground.
-- Q3 Separate repo — when packaging the plugin. Q4 Live "who is on this ticket" — owner + status first.
-- Q5 Hosted URL — export now, GitHub Pages later. Q6 Import plan tickets into Tracklane — Phase 5.
+- Q1 Kanban column view for tickets — later, once a project has 20+ tickets.
+- Q2 Read-only viewer — chosen for v1; "Open in editor" and "Preview file" are the middle ground.
+- Q3 Live "who is on this ticket" indicator — owner + status first; a session heartbeat if needed.
+- Q4 Hosted URL for people without the tool — `export` now; a CI job publishing to GitHub Pages later.
+- Q5 Multiple plan folders in one map (monorepos) — not yet asked for.
 
 ## 8. Build order
 
 1. Format spec ✅  2. Engine ✅  3. Viewer ✅ (four iterations)  4. `init` + adoption guide ✅
-5. Skills (P0-T04)  6. Hooks (P0-T05)  7. Plugin + marketplace (P0-T06)
+5. Own public repo ✅  6. Skills  7. Hooks  8. Plugin + company marketplace
