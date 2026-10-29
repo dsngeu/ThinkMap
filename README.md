@@ -23,6 +23,15 @@ The files are the source of truth. People and AI coding assistants (it was built
 
 Zero dependencies. Node 20+. One HTML file. Nothing leaves your machine.
 
+## See it in action
+
+One minute: open the map, expand a phase, click a decision, read its story.
+
+<!-- GitHub-hosted video. To replace: edit this file on github.com, drag ThinkMap-demo.mp4
+     into the editor, and paste the https://github.com/user-attachments/assets/... URL it
+     produces on the line below (on its own line, no Markdown around it). -->
+PASTE_VIDEO_URL_HERE
+
 ## Install and open
 
 Nothing to install: `npx` fetches Thinkmap from GitHub the first time (say **y** when

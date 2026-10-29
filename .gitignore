@@ -4,3 +4,7 @@ node_modules/
 thinkmap.html
 plan.html
 .claude/settings.local.json
+
+# demo recordings (upload to GitHub, do not commit)
+*.mov
+*.mp4

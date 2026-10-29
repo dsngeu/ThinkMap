@@ -68,3 +68,14 @@ updated: 2026-10-29
   > Why: It is project-agnostic; the plugin and marketplace need independent versioning;
   > public so any team can use it.
   > Built: Repo, MIT license, README, this plan.
+
+- [decided 2026-10-29] P0-F01-09: The README opens with a one-minute demo video hosted by GitHub
+  > What: `ThinkMap.mov` (76 MB, Retina) is compressed to 720p H.264 (`ThinkMap-demo.mp4`,
+  > 9 MB) and uploaded through the github.com README editor; the resulting
+  > `github.com/user-attachments/...` URL goes under "See it in action" and renders as an
+  > inline player. Both video files are git-ignored.
+  > Why: GitHub only plays videos it hosts itself, with a 10 MB cap on free plans. A 76 MB
+  > file in git would bloat every `npx github:` fetch; a GIF of a minute of UI would be larger
+  > than the MP4 and look worse.
+  > Expected: A visitor sees the map in motion before reading any text.
+  > Built: README section with a placeholder; the upload is a manual step on github.com.
