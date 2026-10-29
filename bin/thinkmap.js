@@ -7,6 +7,7 @@ import { buildGraph } from '../src/graph.js';
 import { formatStatus, formatIssues } from '../src/status.js';
 import { startServer, exportHtml } from '../src/server.js';
 import { initPlan, CLAUDE_SNIPPET } from '../src/init.js';
+import { currentVersion, detectInstall, howToUpdate, checkLatest, runUpdate } from '../src/update.js';
 
 const HELP = `Thinkmap — live planning map for docs/plan/*.md
 
@@ -17,8 +18,11 @@ Usage:
   thinkmap validate [dir] [--quiet]                check format (exit 1 on errors)
   thinkmap export   [dir] [--out thinkmap.html]    single static HTML file
   thinkmap json     [dir]                          graph as JSON
+  thinkmap update   [--check]                      fetch the newest version (npx cache, node_modules or clone)
+  thinkmap version                                 show version and where Thinkmap runs from
 
-dir defaults to ./docs/plan`;
+dir defaults to ./docs/plan
+"serve" checks GitHub once for a newer version (set THINKMAP_NO_UPDATE_CHECK=1 or pass --no-update-check to skip).`;
 
 const args = process.argv.slice(2);
 const cmd = args.shift();
@@ -55,8 +59,11 @@ switch (cmd) {
     break;
   }
   case 'serve': {
-    const srv = await startServer({ planDir: dir, port: Number(flags.port ?? 4400) });
-    console.log(`📍 Thinkmap serving ${path.resolve(dir)}\n   ${srv.url}   (Ctrl+C to stop)`);
+    const version = currentVersion();
+    const checkUpdate = flags['no-update-check'] ? null : () => checkLatest({ current: version });
+    const updateHint = howToUpdate(detectInstall());
+    const srv = await startServer({ planDir: dir, port: Number(flags.port ?? 4400), version, checkUpdate, updateHint, onUpdate: (u) => console.log(`⬆ Thinkmap ${u.latest} is available (you have ${u.current}). Update: ${updateHint}`) });
+    console.log(`📍 Thinkmap ${version} serving ${path.resolve(dir)}\n   ${srv.url}   (Ctrl+C to stop)`);
     if (flags.open) execFile(process.platform === 'darwin' ? 'open' : 'xdg-open', [srv.url], () => {});
     const stop = () => { srv.close(); process.exit(0); };
     process.on('SIGINT', stop);
@@ -81,6 +88,21 @@ switch (cmd) {
   case 'json':
     console.log(JSON.stringify(buildGraph(dir), null, 2));
     break;
+  case 'version': {
+    const info = detectInstall();
+    console.log(`thinkmap ${currentVersion()}  (${info.kind === 'npx' ? 'npx cache' : info.kind === 'dependency' ? 'project dependency' : info.kind}: ${info.dir})`);
+    break;
+  }
+  case 'update': {
+    const u = await checkLatest({ current: currentVersion() });
+    if (u) console.log(u.newer ? `⬆ ${u.latest} is available (you have ${u.current})` : `✓ ${u.current} is the newest version on GitHub`);
+    else console.log('(could not reach GitHub to compare versions)');
+    if (flags.check) break;
+    if (u && !u.newer && !flags.force) { console.log('Nothing to do. Use --force to re-install anyway.'); break; }
+    const r = runUpdate();
+    process.exit(r.ok ? 0 : 1);
+    break;
+  }
   default:
     console.log(HELP);
     process.exit(cmd && cmd !== 'help' && cmd !== '--help' ? 1 : 0);

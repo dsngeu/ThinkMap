@@ -40,11 +40,15 @@ Package everything as one Claude Code plugin and distribute it through a plugin 
   > this repo (simplest for a single plugin).
   > Next: (b) first to test the flow, (a) when a second plugin exists.
 
-- [open 2026-10-29] P1-F03-05: How do people who already installed Thinkmap get updates?
-  > What: Today there is no update path or notice. `npx github:dsngeu/ThinkMap` caches the
-  > first fetch and keeps using it; `npm i -D github:…` pins a commit in the lockfile; a clone
-  > needs `git pull`.
-  > Options: (a) Tag releases (`v0.2.0`) and document `npx github:dsngeu/ThinkMap#v0.2.0` —
-  > a new spec forces a fresh fetch. (b) Publish to npm (P1-F03-03) so `npx thinkmap@latest`
-  > just works. (c) Plugin marketplace `/plugin update` once P1-F03-02 ships.
-  > Next: (a) now, it costs nothing; (b) and (c) follow the existing plan.
+- [decided 2026-10-29] P1-F03-05: `thinkmap update` + an "update available" banner — Thinkmap tells you and updates itself
+  > What: `thinkmap update` detects how it was installed (npx cache `~/.npm/_npx/<hash>`,
+  > `node_modules/thinkmap`, or a clone) and runs the matching update; in npx mode it refreshes
+  > every cached copy so the plain `npx github:dsngeu/ThinkMap` entry is fixed too. `serve`
+  > does one GET of `package.json` on GitHub at start and shows **⬆ Update available** with
+  > the exact command; `THINKMAP_NO_UPDATE_CHECK=1` / `--no-update-check` disables it.
+  > Why: Nobody re-runs an install they think is fine; without a notice the team stays on
+  > 0.1.0 forever. Tags alone would not help the npx cache.
+  > Expected: A teammate opens the map, sees the banner, runs one command, restarts, sees
+  > the Tooling tab. Copies installed as 0.1.0 (no `update` yet) run
+  > `npx github:dsngeu/ThinkMap#master update` once.
+  > Built: Ticket P1-T04 — `src/update.js`, `update` / `version` commands, banner in the viewer.

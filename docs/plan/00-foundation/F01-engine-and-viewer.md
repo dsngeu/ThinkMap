@@ -79,3 +79,10 @@ updated: 2026-10-29
   > than the MP4 and look worse.
   > Expected: A visitor sees the map in motion before reading any text.
   > Built: README section with a placeholder; the upload is a manual step on github.com.
+
+- [decided 2026-10-29] P0-F01-10: A folder without project.md shows how to fix it — the viewer never sits on "connecting…"
+  > What: When the graph has no project node, the map shows "No plan found in <folder>" with
+  > the `init` command and the `serve <path>` form, plus any format errors.
+  > Why: Pointing `thinkmap serve` at an empty or wrong folder used to crash the layout
+  > before the first render, so the page stayed on "connecting…" and looked broken.
+  > Built: `renderMap()` empty state in `web/index.html`.

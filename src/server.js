@@ -14,20 +14,23 @@ export function exportHtml(graph) {
   return fs.readFileSync(VIEWER, 'utf8').replace('<!--PLAN_DATA-->', `<script>window.__PLAN__=${data};</script>`);
 }
 
-export function startServer({ planDir, port = 4400, host = '127.0.0.1', log = console.log }) {
+export function startServer({ planDir, port = 4400, host = '127.0.0.1', log = console.log, version = null, checkUpdate = null, onUpdate = null, updateHint = null }) {
   const absDir = path.resolve(planDir);
   const repoRoot = findRepoRoot(absDir);
   const clients = new Set();
   let graph;
   let json = '';
   let key = '';
+  // Viewer-facing app info: version now, "newer version exists" once the check (if any) returns.
+  const app = { version, latest: null, updateAvailable: false, updateHint };
+  const serialize = () => { json = JSON.stringify({ ...graph, app }); };
 
   const rebuild = () => {
     graph = buildGraph(absDir, { repoRoot });
     const nextKey = JSON.stringify({ ...graph, generatedAt: null });
     if (nextKey === key) return false;
     key = nextKey;
-    json = JSON.stringify(graph);
+    serialize();
     return true;
   };
   rebuild();
@@ -35,6 +38,15 @@ export function startServer({ planDir, port = 4400, host = '127.0.0.1', log = co
   const broadcast = () => {
     for (const res of clients) res.write(`event: graph\ndata: ${json}\n\n`);
   };
+  if (checkUpdate) {
+    Promise.resolve().then(checkUpdate).then((u) => {
+      if (!u) return;
+      app.latest = u.latest; app.updateAvailable = Boolean(u.newer);
+      serialize();
+      broadcast();
+      if (u.newer && onUpdate) onUpdate(u);
+    }).catch(() => { /* offline: no banner */ });
+  }
 
   let timer = null;
   const scheduleRebuild = () => {

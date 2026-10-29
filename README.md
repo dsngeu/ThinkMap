@@ -21,7 +21,8 @@ The files are the source of truth. People and AI coding assistants (it was built
 [Project] ─► [Phase 1] ─► [Topic: Signup] ─► [✅ We decided (7)] ─► [note] ─► full story panel
 ```
 
-Zero dependencies. Node 20+. One HTML file. Nothing leaves your machine.
+Zero dependencies. Node 20+. One HTML file. Nothing about your project leaves your machine
+(the only network call is an optional version check against GitHub).
 
 ## See it in action
 
@@ -110,9 +111,32 @@ Expected · Discussed · Options · Pending · Built · Risk · Next`. Full spec
 | `thinkmap validate [dir] [--quiet]` | Check the format; exit 1 on errors (use in hooks and CI) |
 | `thinkmap export [dir] [--out plan.html]` | One static HTML file to share |
 | `thinkmap json [dir]` | The graph as JSON |
+| `thinkmap update [--check] [--force]` | Fetch the newest version — works for the npx cache, a project dependency and a clone |
+| `thinkmap version` | Version and where Thinkmap runs from |
 
 `dir` defaults to `./docs/plan`. Commits are linked to tickets when the message contains
 the ID in brackets: `feat: signup endpoint [P1-T03]`.
+
+## Updating
+
+Thinkmap does not update itself: `npx` keeps the first copy it fetched, `npm i -D github:…`
+pins a commit, a clone waits for `git pull`. One command handles all three:
+
+```bash
+thinkmap update            # or: npx github:dsngeu/ThinkMap update
+thinkmap update --check    # just compare with GitHub
+```
+
+`thinkmap serve` checks GitHub once at start and shows **⬆ Update available** in the header
+when a newer version exists (one GET of `package.json`; nothing about your project is sent).
+Skip it with `--no-update-check` or `THINKMAP_NO_UPDATE_CHECK=1`.
+
+**First update from 0.1.0** (which had no `update` command): run it from a fresh fetch once;
+it refreshes every cached copy, including the plain `npx github:dsngeu/ThinkMap` one:
+
+```bash
+npx github:dsngeu/ThinkMap#master update
+```
 
 ## Working with an AI assistant
 
