@@ -1,0 +1,42 @@
+{
+  "name": "thinkmap",
+  "version": "0.1.0",
+  "description": "Know your project: what's decided, what's open, what's built. A live mind map built from Markdown planning files.",
+  "type": "module",
+  "bin": {
+    "thinkmap": "bin/thinkmap.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "web",
+    "template"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "start": "node bin/thinkmap.js serve --open",
+    "validate": "node bin/thinkmap.js validate"
+  },
+  "keywords": [
+    "mind-map",
+    "planning",
+    "decision-log",
+    "markdown",
+    "claude-code",
+    "project-management",
+    "developer-tools"
+  ],
+  "author": "Deepak Singh",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dsngeu/ThinkMap.git"
+  },
+  "homepage": "https://github.com/dsngeu/ThinkMap#readme",
+  "bugs": {
+    "url": "https://github.com/dsngeu/ThinkMap/issues"
+  }
+}

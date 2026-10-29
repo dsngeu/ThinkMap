@@ -1,0 +1,864 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thinkmap</title>
+<style>
+:root {
+  --bg: #f5f6f8; --surface: #ffffff; --surface-2: #eef0f3; --text: #111827; --muted: #6b7280;
+  --border: #e3e6eb; --accent: #2563eb; --line: #c9d0da;
+  --k-discussed: #8b5cf6; --k-decided: #16a34a; --k-open: #f59e0b; --k-suggestion: #2563eb; --k-caution: #dc2626; --k-work: #0891b2; --k-dropped: #6b7280;
+  --s-planned: #0891b2; --s-in-progress: #f59e0b; --s-blocked: #dc2626; --s-done: #16a34a; --s-dropped: #6b7280; --s-to-discuss: #9ca3af; --s-discussing: #8b5cf6; --s-decided: #2563eb;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1117; --surface: #161b22; --surface-2: #1f2630; --text: #e6edf3; --muted: #8b949e;
+    --border: #2a313c; --accent: #58a6ff; --line: #3a4452;
+    --k-decided: #22c55e; --k-caution: #ef4444; --k-suggestion: #60a5fa; --k-discussed: #a78bfa; --k-work: #22d3ee; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d1117; --surface: #161b22; --surface-2: #1f2630; --text: #e6edf3; --muted: #8b949e;
+  --border: #2a313c; --accent: #58a6ff; --line: #3a4452;
+  --k-decided: #22c55e; --k-caution: #ef4444; --k-suggestion: #60a5fa; --k-discussed: #a78bfa; --k-work: #22d3ee; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body { background: var(--bg); color: var(--text); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; overflow: hidden; }
+a { color: var(--accent); }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; white-space: nowrap; }
+button { font: inherit; color: inherit; cursor: pointer; }
+h1, h2, h3, h4 { margin: 0; line-height: 1.3; }
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+
+header { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; padding: 10px 16px; background: var(--surface); border-bottom: 1px solid var(--border); }
+.brand { font-weight: 700; font-size: 16px; }
+.tagline { font-size: 12px; color: var(--muted); margin-left: -6px; }
+.proj { font-weight: 600; padding-left: 12px; border-left: 1px solid var(--border); }
+.live { font-size: 12px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
+.live i { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); display: inline-block; }
+.live.on i { background: var(--k-decided); }
+.live.off i { background: var(--k-caution); }
+.spacer { flex: 1; }
+.help { font-size: 12px; color: var(--muted); }
+.hbtn { font-size: 12px; border: 1px solid var(--border); background: var(--surface-2); border-radius: 6px; padding: 4px 10px; }
+.warn { border: 1px solid var(--k-caution); color: var(--k-caution); background: transparent; border-radius: 999px; padding: 3px 10px; font-size: 12px; }
+input[type=search] { font: inherit; color: var(--text); background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 5px 10px; width: 210px; }
+
+main { flex: 1; display: flex; min-height: 0; }
+#stage { flex: 1; min-width: 0; overflow: auto; position: relative; }
+#canvas { position: relative; }
+#links { position: absolute; left: 0; top: 0; pointer-events: none; overflow: visible; }
+#links path { fill: none; stroke: var(--line); stroke-width: 2; transition: opacity .25s; }
+#links path.c { stroke: var(--c); opacity: .6; }
+#links path.ghost { opacity: 0; }
+
+/* mind-map cards */
+.card { position: absolute; display: flex; align-items: flex-start; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 10px 12px; text-align: left; box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 12px rgba(0,0,0,.05); transition: left .38s cubic-bezier(.2,.8,.2,1), top .38s cubic-bezier(.2,.8,.2,1), opacity .25s, box-shadow .15s, transform .15s; opacity: 1; will-change: left, top; cursor: pointer; }
+.card.ghost { opacity: 0; pointer-events: none; }
+.card:hover { box-shadow: 0 2px 4px rgba(0,0,0,.06), 0 10px 24px rgba(0,0,0,.12); z-index: 2; transform: translateY(-1px); }
+.card.open { border-color: color-mix(in srgb, var(--c, var(--accent)) 60%, var(--border)); }
+.card.sel { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent), 0 10px 24px rgba(0,0,0,.12); }
+.card .body { flex: 1; min-width: 0; }
+.card .t { font-weight: 600; line-height: 1.3; font-size: 13.5px; }
+.card .s { font-size: 11.5px; color: var(--muted); margin-top: 3px; line-height: 1.35; }
+.card .clamp { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.card .icw { flex: none; width: 30px; height: 30px; border-radius: 50%; background: color-mix(in srgb, var(--c) 14%, var(--surface)); display: flex; align-items: center; justify-content: center; font-size: 15px; margin-top: 1px; }
+.card .more { flex: none; align-self: center; min-width: 24px; height: 24px; padding: 0 7px; border-radius: 99px; border: 1.5px solid color-mix(in srgb, var(--c, var(--accent)) 45%, var(--border)); background: var(--surface); font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; color: var(--c, var(--accent)); }
+.card.open .more { background: var(--c, var(--accent)); color: #fff; border-color: transparent; }
+.card .info { position: absolute; top: 6px; right: 6px; width: 20px; height: 20px; border-radius: 50%; border: 0; background: var(--surface-2); color: var(--muted); font-size: 11px; font-weight: 700; padding: 0; opacity: 0; transition: opacity .15s; }
+.card:hover .info { opacity: 1; }
+.card .info:hover { background: var(--accent); color: #fff; }
+.kindtag { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--c); margin-bottom: 2px; display: flex; gap: 6px; align-items: center; }
+.kindtag .dt { color: var(--muted); font-weight: 500; letter-spacing: 0; text-transform: none; }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.chip { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; line-height: 1; padding: 3px 7px; border-radius: 99px; background: color-mix(in srgb, var(--c) 12%, var(--surface)); color: color-mix(in srgb, var(--c) 80%, var(--text)); white-space: nowrap; }
+.chip b { font-weight: 700; }
+.chip.ask { background: color-mix(in srgb, var(--k-open) 16%, var(--surface)); color: color-mix(in srgb, var(--k-open) 70%, var(--text)); }
+.pbar { display: flex; height: 5px; border-radius: 99px; overflow: hidden; background: var(--surface-2); margin-top: 7px; }
+.pbar i { display: block; height: 100%; }
+.pbar .ok { background: var(--k-decided); }
+.pbar .no { background: var(--k-open); }
+.pbar2 { margin-top: 4px; }
+.pbar2 .ok { background: var(--k-work); }
+.plabel { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--muted); margin-top: 3px; }
+.card.project { border: 2px solid var(--accent); border-radius: 18px; padding: 14px 16px; background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 7%, var(--surface)), var(--surface)); }
+.card.project .t { font-size: 18px; }
+.card.phase { border-left: 5px solid var(--c); }
+.card.phase .num { flex: none; width: 30px; height: 30px; border-radius: 50%; background: var(--c); color: #fff; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+.card.phase.current::after { content: "current"; position: absolute; top: -9px; left: 12px; font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; background: var(--c); color: #fff; padding: 2px 7px; border-radius: 99px; }
+.card.feature { border-left: 5px solid var(--c); }
+.card.bucket { background: color-mix(in srgb, var(--c) 7%, var(--surface)); border-color: color-mix(in srgb, var(--c) 30%, var(--border)); padding: 8px 12px; align-items: center; }
+.card.bucket .t { color: var(--c); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+.card.bucket .s { margin-top: 1px; }
+.card.point .t, .card.ticket .t { font-weight: 500; }
+.card.point.dropped .t { text-decoration: line-through; color: var(--muted); }
+.pill { font-size: 11px; padding: 1px 8px; border-radius: 99px; border: 1px solid var(--c); color: var(--c); white-space: nowrap; flex: none; }
+.tmeta { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 11px; color: var(--muted); flex-wrap: wrap; }
+.avatar { width: 18px; height: 18px; border-radius: 50%; background: var(--surface-2); border: 1px solid var(--border); font-size: 10px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; color: var(--text); }
+.tbar { flex: 1; min-width: 50px; height: 4px; background: var(--surface-2); border-radius: 99px; overflow: hidden; }
+.tbar i { display: block; height: 100%; background: var(--k-work); }
+
+.hidden { display: none !important; }
+/* legend popover */
+.legend { position: absolute; right: 16px; top: 52px; z-index: 20; width: 340px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 12px 32px rgba(0,0,0,.18); padding: 12px 14px; font-size: 13px; }
+.legend h4 { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 8px 0 6px; }
+.legend h4:first-child { margin-top: 0; }
+.legend .row { display: flex; gap: 10px; align-items: flex-start; padding: 4px 0; }
+.legend .row .k { flex: none; width: 112px; font-weight: 600; }
+.legend .row .k.c { color: var(--c); }
+.hint { position: absolute; color: var(--muted); font-size: 12px; white-space: nowrap; transition: opacity .3s; }
+.hint.ghost { opacity: 0; }
+
+/* timeline */
+footer { border-top: 1px solid var(--border); background: var(--surface); padding: 8px 16px; display: flex; gap: 12px; align-items: center; overflow-x: auto; flex: none; }
+footer .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); flex: none; }
+.day { flex: none; border: 1px solid var(--border); border-radius: 10px; padding: 5px 10px; background: var(--surface-2); text-align: left; min-width: 110px; }
+.day.on { border-color: var(--accent); }
+.day .d { font-weight: 600; font-size: 12px; }
+.day .c { font-size: 11px; color: var(--muted); display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* panel — slides in to half the screen; the map scrolls left to keep the clicked card in view */
+aside { width: 0; flex: none; overflow: hidden; background: var(--surface); border-left: 0 solid var(--border); transition: width .42s cubic-bezier(.2,.8,.2,1), border-left-width .42s; }
+aside.open { width: 50%; border-left-width: 1px; }
+.pin { width: 50vw; min-width: 420px; height: 100%; overflow: auto; opacity: 0; transform: translateX(24px); transition: opacity .3s .12s, transform .42s cubic-bezier(.2,.8,.2,1); }
+aside.open .pin { opacity: 1; transform: none; }
+.ptop { position: sticky; top: 0; background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 20px; display: flex; align-items: center; gap: 8px; z-index: 1; }
+.pbody { padding: 14px 20px 30px; }
+aside h2 { font-size: 19px; margin: 0 0 4px; }
+aside .lead { color: var(--muted); font-size: 13px; margin-bottom: 14px; }
+aside h3 { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 20px 0 8px; display: flex; align-items: center; gap: 8px; }
+aside h3::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+aside h4 { margin: 10px 0 4px; font-size: 13px; }
+aside p { margin: 4px 0; }
+aside ul { margin: 4px 0; padding-left: 18px; }
+aside li.cb { list-style: none; margin-left: -18px; }
+aside blockquote { margin: 6px 0; padding: 4px 10px; border-left: 3px solid var(--border); color: var(--muted); }
+aside pre { background: var(--surface-2); padding: 8px; border-radius: 6px; overflow: auto; font-size: 12px; }
+.close { border: 1px solid var(--border); background: var(--surface-2); border-radius: 6px; padding: 4px 10px; margin-left: auto; }
+.facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+.fact { background: var(--surface-2); border-radius: 8px; padding: 6px 10px; min-width: 0; }
+.fact .k { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.fact .v { font-size: 13px; font-weight: 500; overflow-wrap: anywhere; }
+.fact code { white-space: normal; overflow-wrap: anywhere; }
+.why { background: color-mix(in srgb, var(--c) 8%, transparent); border-left: 3px solid var(--c); border-radius: 0 8px 8px 0; padding: 8px 12px; margin-top: 6px; }
+.why p { margin: 2px 0; }
+.rel { display: flex; align-items: flex-start; gap: 10px; text-decoration: none; color: var(--text); padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 6px; background: var(--surface); }
+.rel:hover { background: var(--surface-2); }
+.rel .ic { flex: none; width: 18px; text-align: center; }
+.rel .t { font-weight: 500; }
+.rel .s { display: block; font-size: 11px; color: var(--muted); }
+.rel .pill { margin-left: auto; }
+.tag { font-size: 11px; background: var(--surface-2); border-radius: 4px; padding: 1px 6px; }
+.kind { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: color-mix(in srgb, var(--c) 15%, transparent); color: var(--c); white-space: nowrap; }
+.progress { display: flex; align-items: center; gap: 10px; font-size: 13px; margin: 6px 0; }
+.progress .track { flex: 1; height: 8px; background: var(--surface-2); border-radius: 99px; overflow: hidden; display: block; }
+.progress .fill { display: block; height: 100%; background: var(--c); }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.actions a, .actions button { font-size: 12px; border: 1px solid var(--border); background: var(--surface-2); border-radius: 6px; padding: 4px 10px; text-decoration: none; color: var(--text); }
+.actions a:hover, .actions button:hover { border-color: var(--accent); }
+.commit { display: flex; gap: 10px; align-items: baseline; padding: 6px 0; border-bottom: 1px dashed var(--border); font-size: 13px; }
+.commit .s { color: var(--muted); font-size: 11px; display: block; }
+.log { border-left: 2px solid var(--border); margin-left: 6px; padding-left: 14px; }
+.log div { position: relative; padding: 2px 0 8px; font-size: 13px; }
+.log div::before { content: ""; position: absolute; left: -19px; top: 8px; width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+.issue { font-size: 13px; padding: 6px 0; border-bottom: 1px solid var(--border); }
+.bad { color: var(--k-caution); }
+
+/* file preview inside the panel */
+.ftabs { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-left: auto; }
+.ftabs button { border: 0; background: transparent; padding: 4px 12px; font-size: 12px; }
+.ftabs button.on { background: var(--accent); color: #fff; }
+.back { border: 1px solid var(--border); background: var(--surface-2); border-radius: 6px; padding: 4px 10px; font-size: 12px; }
+.fm { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px; margin: 10px 0 16px; }
+.fm div { background: var(--surface-2); border-radius: 6px; padding: 4px 8px; font-size: 12px; }
+.fm b { color: var(--muted); font-weight: 500; margin-right: 6px; }
+.rendered h2 { font-size: 17px; margin: 18px 0 6px; }
+.rendered ul { padding-left: 20px; }
+.rendered li { margin: 6px 0; }
+.rendered blockquote { margin: 4px 0 4px 6px; }
+.rendered blockquote + blockquote { margin-top: -2px; }
+mark.hl { background: color-mix(in srgb, var(--k-open) 28%, transparent); color: inherit; border-radius: 4px; padding: 1px 3px; box-shadow: 0 0 0 2px color-mix(in srgb, var(--k-open) 28%, transparent); }
+.raw { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; line-height: 1.55; background: var(--surface-2); border-radius: 8px; padding: 10px 0; overflow: auto; }
+.raw div { display: flex; white-space: pre; padding: 0 12px; }
+.raw .ln { width: 36px; flex: none; text-align: right; color: var(--muted); margin-right: 14px; user-select: none; }
+.raw .hlrow { background: color-mix(in srgb, var(--k-open) 22%, transparent); }
+
+@media (max-width: 760px) {
+  input[type=search] { width: 140px; }
+  aside { position: fixed; left: 0; right: 0; bottom: 0; width: auto; height: 0; border-left: 0; border-top: 0 solid var(--border); z-index: 10; box-shadow: 0 -8px 24px rgba(0,0,0,.25); transition: height .42s cubic-bezier(.2,.8,.2,1); }
+  aside.open { width: auto; height: 70vh; border-top-width: 1px; }
+  .pin { width: 100vw; min-width: 0; transform: translateY(24px); }
+}
+</style>
+<!--PLAN_DATA-->
+</head>
+<body>
+<header>
+  <span class="brand">Thinkmap</span><span class="tagline">Know your project.</span><span class="proj" id="title"></span>
+  <span class="live" id="live"><i></i><span>connecting…</span></span>
+  <span class="spacer"></span>
+  <span class="help" id="help">Click a card to expand it · click a note for details</span>
+  <input type="search" id="q" placeholder="Search notes…  ( / )">
+  <button class="hbtn" id="collapseBtn" title="Collapse everything">⊖ Collapse all</button>
+  <button class="hbtn" id="legendBtn" title="What do the icons mean?">? Legend</button>
+  <button class="warn" id="issuesBtn" hidden></button>
+</header>
+<div class="legend hidden" id="legend">
+  <h4>Six buckets per topic</h4>
+  <div class="row"><span class="k c" style="--c:var(--k-discussed)">💬 We discussed</span><span>Things we talked through. No action needed.</span></div>
+  <div class="row"><span class="k c" style="--c:var(--k-decided)">✅ We decided</span><span>Agreements, each with the reason written down.</span></div>
+  <div class="row"><span class="k c" style="--c:var(--k-open)">❓ Still open</span><span>Questions nobody has answered yet.</span></div>
+  <div class="row"><span class="k c" style="--c:var(--k-suggestion)">💡 Suggested</span><span>Ideas (usually from Claude) waiting for a yes/no.</span></div>
+  <div class="row"><span class="k c" style="--c:var(--k-caution)">⚠️ Take care of</span><span>Rules and risks we must not forget while building.</span></div>
+  <div class="row"><span class="k c" style="--c:var(--k-work)">🔨 Work</span><span>Tickets: what is being built, by whom, how far.</span></div>
+  <h4>Counters on a card</h4>
+  <div class="row"><span class="k">7 decided</span><span>Decisions inside that card.</span></div>
+  <div class="row"><span class="k">3 open · 1 idea</span><span>Still need your answer. Shown as "needs decision".</span></div>
+  <div class="row"><span class="k">2 cautions</span><span>Rules to keep in mind.</span></div>
+  <div class="row"><span class="k">2/6 built</span><span>Tickets done out of total.</span></div>
+  <div class="row"><span class="k">Green / amber bar</span><span>Share of points settled vs still open.</span></div>
+  <div class="row"><span class="k">Teal bar</span><span>Tickets done.</span></div>
+  <h4>How to use</h4>
+  <div class="row"><span class="k">Click a card</span><span>Opens the next level. Click again to fold.</span></div>
+  <div class="row"><span class="k">Click a note</span><span>Full story in the side panel.</span></div>
+  <div class="row"><span class="k">i · / · Esc</span><span>Details of any card · search · close.</span></div>
+</div>
+<main>
+  <div id="stage"><div id="canvas"><svg id="links"></svg><div id="content"></div></div></div>
+  <aside id="panel"></aside>
+</main>
+<footer id="timeline"></footer>
+
+<script>
+(() => {
+  const KINDS = ['discussed', 'decided', 'open', 'suggestion', 'caution', 'dropped'];
+  const BUCKETS = ['discussed', 'decided', 'open', 'suggestion', 'caution', 'work'];
+  const BUCKET = {
+    discussed: { icon: '💬', title: 'We discussed', hint: 'things we talked about' },
+    decided: { icon: '✅', title: 'We decided', hint: 'agreements, with reasons' },
+    open: { icon: '❓', title: 'Still open', hint: 'questions nobody answered yet' },
+    suggestion: { icon: '💡', title: 'Suggested', hint: 'ideas waiting for a yes/no' },
+    caution: { icon: '⚠️', title: 'Take care of', hint: 'rules and risks to remember' },
+    work: { icon: '🔨', title: 'Work', hint: 'tickets: what is being built' },
+  };
+  const TICKET = { planned: { icon: '◻', label: 'ready' }, 'in-progress': { icon: '🔨', label: 'in progress' }, blocked: { icon: '⛔', label: 'blocked' }, done: { icon: '✅', label: 'done' }, dropped: { icon: '✖', label: 'dropped' }, 'to-discuss': { icon: '◻', label: 'not ready' }, discussing: { icon: '◻', label: 'not ready' }, decided: { icon: '◻', label: 'not ready' } };
+  const PHASE_COLORS = ['#f59e0b', '#8b5cf6', '#0891b2', '#16a34a', '#db2777', '#2563eb', '#64748b', '#ea580c'];
+  const WIDTH = { project: 250, phase: 250, feature: 270, bucket: 210, point: 350, ticket: 350 };
+  const GAP_X = 70; const GAP_Y = 10; const PAD = 28;
+  const $ = (s) => document.querySelector(s);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const cssVar = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const kcolor = (k) => cssVar(`--k-${k}`) || '#999';
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(`thinkmap:${k}`); return v === null ? d : JSON.parse(v); } catch { return d; } },
+    set(k, v) { try { localStorage.setItem(`thinkmap:${k}`, JSON.stringify(v)); } catch { /* storage unavailable */ } },
+  };
+  const state = { g: null, byId: new Map(), expanded: new Set(store.get('expanded', [])), sel: null, issues: false, day: null, phaseColor: new Map(), q: '', pos: new Map() };
+  const fmtDate = (d) => { if (!d) return ''; const [y, m, dd] = d.split('-'); return `${Number(dd)} ${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][Number(m) - 1]}${y !== String(new Date().getFullYear()) ? ` ${y}` : ''}`; };
+
+  // ---------- data ----------
+  const realChildren = (n) => (n.children || []).map((id) => state.byId.get(id)).filter(Boolean);
+  const pointsOf = (f) => realChildren(f).filter((c) => c.type === 'point');
+  const ticketsOf = (f) => realChildren(f).filter((c) => c.type === 'ticket');
+  const topicOf = (n) => { let p = n; while (p && p.type !== 'feature') p = state.byId.get(p.parent); return p; };
+  const matches = (n) => !state.q || `${n.id} ${n.title} ${(n.notes || []).join(' ')}`.toLowerCase().includes(state.q);
+  function counts(f) {
+    const c = Object.fromEntries(KINDS.map((k) => [k, 0]));
+    for (const p of pointsOf(f)) c[p.kind]++;
+    const t = ticketsOf(f);
+    return { ...c, work: t.length, done: t.filter((x) => x.status === 'done').length };
+  }
+  const addCounts = (a, b) => { for (const k of Object.keys(b)) a[k] = (a[k] || 0) + b[k]; return a; };
+  const chip = (k, icon, n, label, title) => (n ? `<span class="chip" style="--c:${kcolor(k)}" title="${title}">${icon} <b>${n}</b> ${label}</span>` : '');
+  const countsHtml = (c) => [
+    chip('decided', '✅', c.decided, 'decided', 'Decisions, each with a reason'),
+    chip('open', '❓', c.open, 'open', 'Questions still waiting for an answer'),
+    chip('suggestion', '💡', c.suggestion, c.suggestion === 1 ? 'idea' : 'ideas', 'Suggestions waiting for a yes/no'),
+    chip('caution', '⚠️', c.caution, c.caution === 1 ? 'caution' : 'cautions', 'Rules and risks to remember'),
+    c.work ? `<span class="chip" style="--c:${kcolor('work')}" title="Tickets done out of total">🔨 <b>${c.done}/${c.work}</b> built</span>` : '',
+  ].join('');
+  // Two thin bars: settled vs open points, and tickets done.
+  const barsHtml = (c) => {
+    const settled = c.decided + c.caution; const open = c.open + c.suggestion; const tot = settled + open;
+    if (!tot && !c.work) return '';
+    const p1 = tot ? `<div class="pbar" title="${settled} settled · ${open} still open"><i class="ok" style="width:${Math.round((settled / tot) * 100)}%"></i><i class="no" style="width:${Math.round((open / tot) * 100)}%"></i></div>` : '';
+    const p2 = c.work ? `<div class="pbar pbar2" title="${c.done} of ${c.work} tickets done"><i class="ok" style="width:${Math.round((c.done / c.work) * 100)}%"></i></div>` : '';
+    return p1 + p2;
+  };
+
+  // Virtual bucket node: "<featureId>#<kind>"
+  const isBucket = (id) => id.includes('#');
+  function getNode(id) {
+    if (!isBucket(id)) return state.byId.get(id);
+    const [fid, kind] = id.split('#');
+    const f = state.byId.get(fid);
+    if (!f) return null;
+    return { id, type: 'bucket', kind, parent: fid, title: BUCKET[kind].title, feature: f };
+  }
+  // Children shown in the map for a node
+  function kids(n) {
+    if (n.type === 'project') return state.g.nodes.filter((x) => x.type === 'phase');
+    if (n.type === 'phase') return state.g.nodes.filter((x) => x.type === 'feature' && x.phase === n.id);
+    if (n.type === 'feature') {
+      const c = counts(n);
+      return BUCKETS.filter((k) => (k === 'decided' ? c.decided + c.dropped : c[k]) > 0).map((k) => getNode(`${n.id}#${k}`));
+    }
+    if (n.type === 'bucket') {
+      if (n.kind === 'work') return ticketsOf(n.feature);
+      const list = pointsOf(n.feature).filter((p) => p.kind === n.kind || (n.kind === 'decided' && p.kind === 'dropped'));
+      return list;
+    }
+    return [];
+  }
+  const subtreeMatches = (n) => matches(n) || kids(n).some(subtreeMatches);
+
+  function setGraph(g) {
+    state.g = g;
+    state.byId = new Map(g.nodes.map((n) => [n.id, n]));
+    const name = g.project?.title || 'Plan';
+    document.title = `${name} · Thinkmap`;
+    $('#title').textContent = name;
+    g.nodes.filter((n) => n.type === 'phase').forEach((p, i) => state.phaseColor.set(p.id, PHASE_COLORS[i % PHASE_COLORS.length]));
+    if (state.sel && !state.byId.has(state.sel)) state.sel = null;
+    const btn = $('#issuesBtn');
+    const { errors = 0, warnings = 0 } = g.stats || {};
+    btn.hidden = !(errors || warnings);
+    btn.textContent = `⚠ ${errors} error(s), ${warnings} warning(s)`;
+    render();
+    renderTimeline();
+    renderPanel();
+  }
+
+  // ---------- cards ----------
+  const colorOf = (n) => (n.type === 'phase' ? state.phaseColor.get(n.id) : n.type === 'feature' ? state.phaseColor.get(n.phase) : n.type === 'bucket' ? kcolor(n.kind) : n.type === 'point' ? kcolor(n.kind) : n.type === 'ticket' ? (cssVar(`--s-${n.status}`) || '#999') : cssVar('--accent')) || '#999';
+  const currentPhase = () => state.g.nodes.filter((n) => n.type === 'phase').find((p) => p.status !== 'done' && p.status !== 'dropped')?.id;
+  function cardHtml(n, childCount, open) {
+    const col = colorOf(n);
+    const more = childCount ? `<span class="more" title="${open ? 'Fold' : `Open ${childCount}`}">${open ? '−' : childCount}</span>` : '';
+    const info = n.type === 'bucket' ? '' : `<button class="info" data-info="${esc(n.id)}" title="Details">i</button>`;
+    let lead = ''; let body = ''; let extra = '';
+    if (n.type === 'project') {
+      const total = state.g.nodes.filter((x) => x.type === 'feature').reduce((a, f) => addCounts(a, counts(f)), {});
+      const phases = state.g.nodes.filter((x) => x.type === 'phase').length;
+      body = `<div class="t">${esc(n.title)}</div><div class="s">${phases} phases · ${state.g.nodes.filter((x) => x.type === 'feature').length} topics</div><div class="chips">${countsHtml(total) || '<span class="muted">nothing yet</span>'}</div>${barsHtml(total)}`;
+    } else if (n.type === 'phase') {
+      const fs = kids(n); const total = fs.reduce((a, f) => addCounts(a, counts(f)), {});
+      lead = `<span class="num">${esc(n.id.replace('P', ''))}</span>`;
+      body = `<div class="t">${esc(n.title)}</div><div class="s">${fs.length ? `${fs.length} topic${fs.length === 1 ? '' : 's'}` : 'not planned yet'}</div>${fs.length ? `<div class="chips">${countsHtml(total)}</div>${barsHtml(total)}` : ''}`;
+      if (n.id === currentPhase()) extra = 'current';
+    } else if (n.type === 'feature') {
+      const c = counts(n);
+      const ask = c.open + c.suggestion;
+      body = `<div class="t">${esc(n.title)}</div><div class="chips">${countsHtml(c) || '<span class="muted">nothing yet</span>'}${ask ? `<span class="chip ask" title="Open questions and ideas waiting for you">needs decision</span>` : ''}</div>${barsHtml(c)}`;
+    } else if (n.type === 'bucket') {
+      lead = `<span class="icw">${BUCKET[n.kind].icon}</span>`;
+      body = `<div class="t">${esc(n.title)}</div><div class="s">${BUCKET[n.kind].hint}</div>`;
+    } else if (n.type === 'point') {
+      const snip = noteSnippet(n);
+      const b = n.kind === 'dropped' ? { icon: '✖', title: 'Dropped' } : BUCKET[n.kind];
+      const ask = n.kind === 'open' ? '<span class="chip ask">needs decision</span>' : n.kind === 'suggestion' ? '<span class="chip ask">needs yes / no</span>' : '';
+      lead = `<span class="icw">${b.icon}</span>`;
+      body = `<div class="kindtag">${b.title}<span class="dt">${fmtDate(n.date)}${n.from ? ` · ${esc(n.from)}` : ''}</span></div><div class="t">${esc(n.title)}</div>${snip ? `<div class="s clamp">${esc(snip)}</div>` : ''}${ask ? `<div class="chips">${ask}</div>` : ''}`;
+    } else if (n.type === 'ticket') {
+      const s = TICKET[n.status] || TICKET.planned;
+      const initials = n.owner ? esc(n.owner.split(/[-_\s]/).map((w) => w[0]).join('').slice(0, 2).toUpperCase()) : '';
+      lead = `<span class="icw">${s.icon}</span>`;
+      body = `<div class="kindtag">Ticket<span class="dt">${esc(n.id)}</span></div><div class="t">${esc(n.title)}</div>
+        <div class="tmeta"><span class="pill" style="--c:${col}">${s.label}</span>${n.owner ? `<span class="avatar" title="${esc(n.owner)}">${initials}</span><span>${esc(n.owner)}</span>` : '<span>nobody yet</span>'}${n.checklist?.total ? `<span class="tbar" title="${n.checklist.done} of ${n.checklist.total} done"><i style="width:${Math.round((n.checklist.done / n.checklist.total) * 100)}%"></i></span><span>${n.checklist.done}/${n.checklist.total}</span>` : ''}</div>`;
+    }
+    const cls = `card ${n.type} ${extra} ${open ? 'open' : ''} ${n.id === state.sel ? 'sel' : ''} ${n.kind === 'dropped' ? 'dropped' : ''}`;
+    return `<div class="${cls}" data-card="${esc(n.id)}" style="--c:${col};width:${WIDTH[n.type]}px">${lead}<div class="body">${body}</div>${info}${more}</div>`;
+  }
+
+  // ---------- layout + animation ----------
+  function visibleTree() {
+    // Returns list of {n, depth, parentId, kidsIds} in DFS order, respecting expansion (search auto-expands matches)
+    const out = [];
+    const root = state.g.nodes.find((n) => n.type === 'project');
+    if (!root) return out;
+    const walk = (n, depth, parentId) => {
+      let ks = kids(n);
+      if (state.q) ks = ks.filter(subtreeMatches);
+      const open = state.q ? ks.length > 0 : state.expanded.has(n.id);
+      const row = { n, depth, parentId, childCount: kids(n).length, open: open && ks.length > 0, kidIds: [] };
+      out.push(row);
+      if (row.open) for (const k of ks) { row.kidIds.push(k.id); walk(k, depth + 1, n.id); }
+    };
+    walk(root, 0, null);
+    return out;
+  }
+
+  let animTimer = null;
+  function render() {
+    if (!state.g) return;
+    const rows = visibleTree();
+    const content = $('#content');
+    const prevPos = state.pos;
+    const existing = new Map([...content.querySelectorAll('.card')].map((el) => [el.dataset.card, el]));
+    const keep = new Set(rows.map((r) => r.n.id));
+
+    // 1. Cards that disappear: slide back to their parent and fade.
+    for (const [id, el] of existing) {
+      if (keep.has(id) || el.classList.contains('ghost')) continue;
+      const parentId = el.dataset.parent;
+      const pp = parentId && (state.pos.get(parentId) || prevPos.get(parentId));
+      el.classList.add('ghost');
+      if (pp) { el.style.left = `${pp.x}px`; el.style.top = `${pp.y}px`; }
+      setTimeout(() => el.remove(), 300);
+    }
+
+    // 2. Create / update cards (positions assigned after measuring)
+    const byId = new Map();
+    for (const r of rows) {
+      let el = existing.get(r.n.id);
+      const html = cardHtml(r.n, r.childCount, r.open);
+      if (!el || el.classList.contains('ghost')) {
+        el?.remove();
+        const tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        el = tmp.firstElementChild;
+        el.classList.add('ghost');
+        const pp = r.parentId && prevPos.get(r.parentId);
+        el.style.left = `${pp ? pp.x : PAD}px`; el.style.top = `${pp ? pp.y : 0}px`;
+        content.appendChild(el);
+      } else {
+        const tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        const fresh = tmp.firstElementChild;
+        el.className = fresh.className;
+        el.innerHTML = fresh.innerHTML;
+        el.style.width = fresh.style.width;
+        el.style.setProperty('--c', fresh.style.getPropertyValue('--c'));
+      }
+      el.dataset.parent = r.parentId || '';
+      byId.set(r.n.id, el);
+    }
+
+    // 3. Measure heights, compute tidy tree positions
+    const h = new Map([...byId].map(([id, el]) => [id, el.offsetHeight]));
+    const colX = []; let x = PAD;
+    const depthType = ['project', 'phase', 'feature', 'bucket', 'point'];
+    for (let d = 0; d < 6; d++) { colX[d] = x; x += (WIDTH[depthType[Math.min(d, 4)]] || 340) + GAP_X; }
+    const pos = new Map();
+    let y = PAD;
+    const rowById = new Map(rows.map((r) => [r.n.id, r]));
+    const place = (id) => {
+      const r = rowById.get(id);
+      const hh = h.get(id) || 40;
+      if (!r.kidIds.length) { pos.set(id, { x: colX[r.depth], y, h: hh }); y += hh + GAP_Y; return; }
+      const startY = y;
+      for (const k of r.kidIds) place(k);
+      const first = pos.get(r.kidIds[0]); const last = pos.get(r.kidIds[r.kidIds.length - 1]);
+      const mid = (first.y + last.y + last.h) / 2;
+      pos.set(id, { x: colX[r.depth], y: mid - hh / 2, h: hh });
+      if (r.kidIds.length > 1) y += GAP_Y; // breathing room between groups
+      void startY;
+    };
+    place(rows[0].n.id);
+
+    // Centre vertically when the tree is shorter than the viewport
+    const stage = $('#stage');
+    const treeH = y + PAD;
+    const offset = Math.max(0, (stage.clientHeight - treeH) / 2);
+    const maxX = Math.max(...[...pos.entries()].map(([id, p]) => p.x + (byId.get(id)?.offsetWidth || 0))) + PAD;
+    const canvasH = Math.max(stage.clientHeight, treeH + offset);
+    const canvasW = Math.max(stage.clientWidth, maxX);
+    $('#canvas').style.width = `${canvasW}px`; $('#canvas').style.height = `${canvasH}px`;
+    const svg = $('#links'); svg.setAttribute('width', canvasW); svg.setAttribute('height', canvasH);
+
+    // 4. Apply positions (new cards animate in from their parent)
+    requestAnimationFrame(() => {
+      for (const [id, p] of pos) {
+        const el = byId.get(id);
+        el.style.left = `${p.x}px`; el.style.top = `${p.y + offset}px`;
+        el.classList.remove('ghost');
+      }
+      state.pos = new Map([...pos].map(([id, p]) => [id, { x: p.x, y: p.y + offset, h: p.h }]));
+      // hint next to a collapsed root
+      let hint = content.querySelector('.hint');
+      if (rows.length === 1) {
+        if (!hint) { hint = document.createElement('div'); hint.className = 'hint ghost'; content.appendChild(hint); }
+        const p = state.pos.get(rows[0].n.id);
+        hint.textContent = '← click to open the map';
+        hint.style.left = `${p.x + WIDTH.project + 14}px`; hint.style.top = `${p.y + p.h / 2 - 8}px`;
+        requestAnimationFrame(() => hint.classList.remove('ghost'));
+      } else if (hint) hint.remove();
+      // Animate connectors while cards move
+      const t0 = performance.now();
+      cancelAnimationFrame(animTimer);
+      const tick = () => { drawLinks(rows, byId); if (performance.now() - t0 < 420) animTimer = requestAnimationFrame(tick); };
+      tick();
+      // Bring newly opened children into view
+      const last = rows.find((r) => r.open && r.n.id === state.lastToggled);
+      if (last && last.kidIds.length) {
+        const first = byId.get(last.kidIds[0]); const lastK = byId.get(last.kidIds[last.kidIds.length - 1]);
+        const top = pos.get(last.kidIds[0]).y + offset; const bottom = pos.get(last.kidIds[last.kidIds.length - 1]).y + offset + (lastK?.offsetHeight || 0);
+        const right = pos.get(last.kidIds[0]).x + (first?.offsetWidth || 0) + PAD;
+        const view = { top: stage.scrollTop, bottom: stage.scrollTop + stage.clientHeight, right: stage.scrollLeft + stage.clientWidth };
+        const opts = { behavior: 'smooth' };
+        if (bottom - top < stage.clientHeight) { if (top < view.top || bottom > view.bottom) opts.top = Math.max(0, (top + bottom) / 2 - stage.clientHeight / 2); }
+        else if (top < view.top || top > view.bottom) opts.top = Math.max(0, top - 40);
+        if (right > view.right) opts.left = Math.max(0, right - stage.clientWidth);
+        if (opts.top !== undefined || opts.left !== undefined) stage.scrollTo(opts);
+        state.lastToggled = null;
+      }
+    });
+  }
+
+  function drawLinks(rows, byId) {
+    const canvas = $('#canvas').getBoundingClientRect();
+    const rect = (el) => { const r = el.getBoundingClientRect(); return { x1: r.left - canvas.left, y: r.top - canvas.top + r.height / 2, x2: r.right - canvas.left }; };
+    const paths = [];
+    for (const r of rows) {
+      if (!r.parentId) continue;
+      const pe = byId.get(r.parentId); const ce = byId.get(r.n.id);
+      if (!pe || !ce) continue;
+      const p = rect(pe); const c = rect(ce);
+      const mx = (p.x2 + c.x1) / 2;
+      const ghost = ce.classList.contains('ghost') ? 'ghost' : '';
+      paths.push(`<path class="c ${ghost}" style="--c:${colorOf(r.n)}" d="M${p.x2},${p.y} C${mx},${p.y} ${mx},${c.y} ${c.x1},${c.y}"/>`);
+    }
+    $('#links').innerHTML = paths.join('');
+  }
+
+  function toggle(id) {
+    if (state.expanded.has(id)) {
+      // collapse this node and everything under it
+      const n = getNode(id);
+      const drop = (x) => { state.expanded.delete(x.id); for (const k of kids(x)) if (state.expanded.has(k.id)) drop(k); };
+      if (n) drop(n); else state.expanded.delete(id);
+    } else state.expanded.add(id);
+    state.lastToggled = id;
+    store.set('expanded', [...state.expanded]);
+    render();
+  }
+
+  // ---------- timeline ----------
+  function events() {
+    const ev = [];
+    for (const n of state.g.nodes) {
+      if (n.type === 'point' && n.date) ev.push({ date: n.date, kind: n.kind, id: n.id });
+      if (n.type === 'ticket' && n.updated && (n.status === 'done' || n.status === 'in-progress')) ev.push({ date: n.updated, kind: n.status === 'done' ? 'done' : 'work', id: n.id });
+    }
+    return ev;
+  }
+  function renderTimeline() {
+    const byDay = new Map();
+    for (const e of events()) { if (!byDay.has(e.date)) byDay.set(e.date, []); byDay.get(e.date).push(e); }
+    const days = [...byDay.keys()].sort().slice(-40);
+    const icon = { discussed: '💬', decided: '✅', open: '❓', suggestion: '💡', caution: '⚠️', dropped: '✖', done: '🏁', work: '🔨' };
+    $('#timeline').innerHTML = '<span class="lbl">Timeline</span>' + (days.map((d) => {
+      const c = {};
+      for (const e of byDay.get(d)) c[e.kind] = (c[e.kind] || 0) + 1;
+      return `<button class="day ${state.day === d ? 'on' : ''}" data-day="${d}"><div class="d">${fmtDate(d)}</div><div class="c">${Object.entries(c).map(([k, v]) => `<span>${icon[k]} ${v}</span>`).join('')}</div></button>`;
+    }).join('') || '<span class="muted small">no dated notes yet</span>');
+  }
+
+  // ---------- details panel ----------
+  function md(text) {
+    const inline = (s) => esc(s).replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+    let out = ''; let inList = false; let inCode = false; let buf = [];
+    const closeList = () => { if (inList) { out += '</ul>'; inList = false; } };
+    for (const raw of text.split('\n')) {
+      if (/^\s*(```|~~~)/.test(raw)) { if (inCode) { out += `<pre>${esc(buf.join('\n'))}</pre>`; buf = []; inCode = false; } else { closeList(); inCode = true; } continue; }
+      if (inCode) { buf.push(raw); continue; }
+      const cb = /^\s*[-*]\s+\[([ xX])\]\s+(.*)$/.exec(raw); const li = /^\s*[-*]\s+(.*)$/.exec(raw);
+      if (cb || li) { if (!inList) { out += '<ul>'; inList = true; } out += cb ? `<li class="cb">${cb[1] === ' ' ? '☐' : '☑'} ${inline(cb[2])}</li>` : `<li>${inline(li[1])}</li>`; continue; }
+      closeList();
+      const h = /^(#{1,6})\s+(.*)$/.exec(raw); const q = /^\s*>\s?(.*)$/.exec(raw);
+      if (h) { const lvl = h[1].length; out += lvl === 1 ? `<h2>${inline(h[2])}</h2>` : lvl === 2 ? `<h3>${inline(h[2])}</h3>` : `<h4>${inline(h[2])}</h4>`; }
+      else if (q) out += `<blockquote>${inline(q[1])}</blockquote>`; else if (raw.trim()) out += `<p>${inline(raw)}</p>`;
+    }
+    if (inCode) out += `<pre>${esc(buf.join('\n'))}</pre>`;
+    closeList();
+    return out;
+  }
+  const iconOf = (m) => (m.type === 'point' ? (BUCKET[m.kind]?.icon ?? '✖') : m.type === 'ticket' ? (TICKET[m.status] || TICKET.planned).icon : m.type === 'feature' ? '◆' : '▣');
+  const statusPill = (t) => { const s = TICKET[t.status] || TICKET.planned; return `<span class="pill" style="--c:${cssVar(`--s-${t.status}`) || '#999'}">${s.label}</span>`; };
+  function rel(id) {
+    const m = state.byId.get(id);
+    if (!m) return `<div class="rel bad"><span class="ic">?</span><span>${esc(id)} (missing)</span></div>`;
+    const sub = m.type === 'point' ? `${BUCKET[m.kind]?.title ?? 'Dropped'} · ${fmtDate(m.date)}${m.from ? ` · ${esc(m.from)}` : ''}${noteSnippet(m) ? `<br>${esc(noteSnippet(m))}` : ''}`
+      : m.type === 'ticket' ? `${esc(m.id)}${m.owner ? ` · ${esc(m.owner)}` : ''}${m.checklist?.total ? ` · ☑ ${m.checklist.done}/${m.checklist.total}` : ''}`
+      : `${esc(m.id)}${m.type === 'feature' ? ` · ${m.progress.points.settled}/${m.progress.points.total} settled` : ''}`;
+    return `<a href="#" class="rel" data-id="${esc(id)}"><span class="ic">${iconOf(m)}</span><span><span class="t">${esc(m.title)}</span><span class="s">${sub}</span></span>${m.type === 'ticket' ? statusPill(m) : ''}</a>`;
+  }
+  const relList = (title, ids) => (ids?.length ? `<h3>${title}</h3>${ids.map((id) => rel(id)).join('')}` : '');
+  const fact = (k, v) => (v ? `<div class="fact"><div class="k">${k}</div><div class="v">${v}</div></div>` : '');
+  // Labelled note lines ("What: …", "Why: …") become sections; unlabelled lines continue the previous one.
+  const LABELS = { what: 'What this is', why: 'Why', expected: 'What we expect', discussed: 'What we discussed', options: 'Options on the table', pending: 'Still pending', built: "What's built", risk: 'What goes wrong if we forget', next: 'Next step', how: 'How it works', see: 'See also' };
+  function noteSections(notes) {
+    const out = [];
+    for (const line of notes || []) {
+      const m = /^([A-Za-z][A-Za-z ]{0,14}):\s*(.*)$/.exec(line);
+      const key = m && LABELS[m[1].trim().toLowerCase()] ? m[1].trim().toLowerCase() : null;
+      if (key) out.push({ key, text: m[2] });
+      else if (out.length) out[out.length - 1].text += `\n${line}`;
+      else out.push({ key: null, text: line });
+    }
+    return out;
+  }
+  const noteSnippet = (n) => { const s = noteSections(n.notes); const w = s.find((x) => x.key === 'what') || s[0]; return w ? w.text.split('\n')[0] : ''; };
+  const editorLink = (n) => (state.g.root ? `vscode://file/${encodeURI(`${state.g.root}/${n.file}`)}:${n.line || 1}` : null);
+  const progressBar = (label, a, b, c) => (b ? `<div class="progress" style="--c:${c}"><span>${label}</span><span class="track"><span class="fill" style="width:${Math.round((a / b) * 100)}%"></span></span><span>${a}/${b}</span></div>` : '');
+
+  function panelHead(n) {
+    if (n.type === 'point') { const b = BUCKET[n.kind] || { icon: '✖', title: 'Dropped' }; return `<span class="kind" style="--c:${kcolor(n.kind)}">${b.icon} ${b.title}</span>`; }
+    if (n.type === 'ticket') { const s = TICKET[n.status] || TICKET.planned; return `<span class="kind" style="--c:${cssVar(`--s-${n.status}`) || '#999'}">${s.icon} Ticket · ${s.label}</span>`; }
+    return `<span class="kind" style="--c:${colorOf(n)}">${iconOf(n)} ${esc(n.type === 'feature' ? 'topic' : n.type)}</span>`;
+  }
+
+  function panelBody(n) {
+    const topic = topicOf(n);
+    const phase = state.byId.get(n.phase);
+    const ed = editorLink(n);
+    const actions = `<div class="actions">
+      ${window.__PLAN__ ? '' : `<button data-preview="${esc(n.id)}" title="Show the Markdown file here, with this line highlighted">📄 Preview file</button>`}
+      ${ed ? `<a href="${ed}" title="Opens the file in VS Code at this line">✎ Open in editor</a>` : ''}
+      <button data-copy="${esc(n.id)}">⧉ Copy ID</button>
+      <button data-reveal="${esc(n.id)}">◎ Show on map</button>
+    </div>`;
+    const where = `<div class="fact"><div class="k">File</div><div class="v"><code>${esc(n.file)}${n.line > 1 ? `:${n.line}` : ''}</code></div></div>`;
+
+    if (n.type === 'point') {
+      const secs = noteSections(n.notes);
+      const title = (s) => (s.key === 'why' ? (n.kind === 'dropped' ? 'Why we dropped it' : n.kind === 'decided' ? 'Why we decided this' : 'Why') : s.key ? LABELS[s.key] : (n.kind === 'suggestion' ? 'The idea' : 'Detail'));
+      const colorFor = (s) => ({ risk: kcolor('caution'), pending: kcolor('open'), built: kcolor('work'), next: kcolor('suggestion'), options: kcolor('suggestion') }[s.key] || kcolor(n.kind));
+      const body = secs.length
+        ? secs.map((s) => `<h3>${title(s)}</h3><div class="why" style="--c:${colorFor(s)}">${md(s.text)}</div>`).join('')
+        : `<p class="muted small" style="margin-top:10px">No details written yet. In the file, add indented lines under this point: <code>&gt; What: …</code>, <code>&gt; Why: …</code>, <code>&gt; Expected: …</code>.</p>`;
+      const next = { open: 'Still waiting for an answer. When decided, change <code>open</code> → <code>decided</code> on this line and write <code>Why:</code>.', suggestion: 'Waiting for a yes/no. Accept: <code>suggestion</code> → <code>decided</code>. Reject: → <code>dropped</code> with <code>Why:</code>.', caution: 'A rule to keep in mind while building. Tickets that touch this should mention it in their notes.', discussed: 'A record of the conversation. No action needed.', decided: '', dropped: '' }[n.kind];
+      const siblings = topic ? pointsOf(topic).filter((p) => p.id !== n.id && p.kind === n.kind) : [];
+      return `
+        <h2>${esc(n.title)}</h2>
+        <div class="lead">${BUCKET[n.kind]?.hint ?? ''}${n.from ? ` · raised by ${esc(n.from)}` : ''}</div>
+        <div class="facts">${fact('When', fmtDate(n.date))}${fact('Topic', esc(topic?.title))}${fact('Phase', phase ? `${esc(phase.id)} ${esc(phase.title)}` : '')}${where}</div>
+        ${body}
+        ${next ? `<p class="muted small" style="margin-top:10px">${next}</p>` : ''}
+        ${actions}
+        ${relList('Delivered by these tickets', n.implementedBy)}
+        ${n.commits?.length ? `<h3>Commits mentioning this</h3>${n.commits.map((c) => `<div class="commit"><code>${esc(c.hash)}</code><span>${esc(c.subject)}<span class="s">${esc(c.author)} · ${esc(c.date)}</span></span></div>`).join('')}` : ''}
+        ${siblings.length ? `<h3>Other “${BUCKET[n.kind]?.title ?? 'dropped'}” notes in this topic</h3>${siblings.map((s) => rel(s.id)).join('')}` : ''}`;
+    }
+
+    if (n.type === 'ticket') {
+      const sec = (name) => (n.sections || []).find((s) => new RegExp(`^${name}$`, 'i').test(s.heading || ''));
+      const goal = sec('goal'); const ac = sec('acceptance criteria'); const oos = sec('out of scope'); const notes = sec('notes');
+      const other = (n.sections || []).filter((s) => s.text && s.heading && !/^(goal|acceptance criteria|out of scope|notes|handoff log)$/i.test(s.heading));
+      const waiting = n.dependsOn.filter((d) => state.byId.get(d)?.status !== 'done');
+      return `
+        <h2>${esc(n.title)}</h2>
+        <div class="lead">${goal?.text ? md(goal.text) : '<span>No goal written yet.</span>'}</div>
+        <div class="facts">${fact('Owner', esc(n.owner) || '<span class="muted">nobody yet</span>')}${fact('Updated', fmtDate(n.updated))}${fact('Topic', esc(topic?.title))}${fact('Phase', phase ? `${esc(phase.id)} ${esc(phase.title)}` : '')}${fact('Labels', n.labels?.map((l) => `<span class="tag">${esc(l)}</span>`).join(' '))}${where}</div>
+        ${n.checklist?.total ? progressBar('Checklist', n.checklist.done, n.checklist.total, cssVar('--k-work')) : ''}
+        ${n.status === 'blocked' || waiting.length ? `<div class="why" style="--c:${cssVar('--k-caution')}"><b class="small">Waiting on</b>${waiting.length ? waiting.map((d) => rel(d)).join('') : '<p>see notes</p>'}</div>` : ''}
+        ${actions}
+        ${ac?.text ? `<h3>Acceptance criteria</h3>${md(ac.text)}` : ''}
+        ${relList('Delivers these decisions', n.implements)}
+        ${relList('Depends on', n.dependsOn)}
+        ${relList('Blocks', n.blocks)}
+        ${oos?.text ? `<h3>Out of scope</h3>${md(oos.text)}` : ''}
+        ${notes?.text ? `<h3>Notes</h3>${md(notes.text)}` : ''}
+        ${other.map((s) => `<h3>${esc(s.heading)}</h3>${md(s.text)}`).join('')}
+        ${n.code?.length ? `<h3>Code</h3>${n.code.map((c) => `<div class="commit"><code>${esc(c.path)}</code><span class="${c.exists ? '' : 'muted'}">${c.exists ? '✓ exists' : 'not created yet'}</span></div>`).join('')}` : ''}
+        ${n.commits?.length ? `<h3>Commits</h3>${n.commits.map((c) => `<div class="commit"><code>${esc(c.hash)}</code><span>${esc(c.subject)}<span class="s">${esc(c.author)} · ${esc(c.date)}</span></span></div>`).join('')}` : ''}
+        <h3>Handoff log</h3>${n.handoff?.length ? `<div class="log">${n.handoff.map((h) => `<div>${esc(h)}</div>`).join('')}</div>` : '<p class="muted small">No entries yet. Each session working on this ticket adds a line.</p>'}`;
+    }
+
+    const ch = realChildren(n);
+    const pts = ch.filter((k) => k.type === 'point'); const tks = ch.filter((k) => k.type === 'ticket'); const subs = ch.filter((k) => k.type === 'feature' || k.type === 'phase');
+    const desc = (n.sections || []).filter((s) => s.text && !/^points$/i.test(s.heading || ''));
+    const byKind = KINDS.map((k) => [k, pts.filter((p) => p.kind === k)]).filter(([, l]) => l.length);
+    return `
+      <h2>${esc(n.title)}</h2>
+      <div class="lead">${n.type === 'feature' ? 'Topic' : n.type}${phase && n.type !== 'phase' ? ` in ${esc(phase.id)} ${esc(phase.title)}` : ''}</div>
+      <div class="facts">${fact('Updated', fmtDate(n.updated))}${fact('Labels', n.labels?.map((l) => `<span class="tag">${esc(l)}</span>`).join(' '))}${where}</div>
+      ${progressBar('Decided', n.progress.points.settled, n.progress.points.total, cssVar('--k-decided'))}
+      ${progressBar('Built', n.progress.tickets.done, n.progress.tickets.total, cssVar('--k-work'))}
+      ${actions}
+      ${desc.length ? `<h3>About</h3>${desc.map((s) => `${s.heading ? `<h4>${esc(s.heading)}</h4>` : ''}${md(s.text)}`).join('')}` : ''}
+      ${relList('Depends on', n.dependsOn)}
+      ${relList('Blocks', n.blocks)}
+      ${subs.length ? relList(n.type === 'project' ? 'Phases' : 'Topics', subs.map((s) => s.id)) : ''}
+      ${byKind.map(([k, l]) => `<h3>${BUCKET[k]?.icon ?? '✖'} ${BUCKET[k]?.title ?? 'Dropped'} (${l.length})</h3>${l.map((p) => rel(p.id)).join('')}`).join('')}
+      ${tks.length ? relList('Work (tickets)', tks.map((t) => t.id)) : ''}
+      ${n.code?.length ? `<h3>Code</h3>${n.code.map((c) => `<div class="commit"><code>${esc(c.path)}</code><span class="${c.exists ? '' : 'muted'}">${c.exists ? '✓ exists' : 'not created yet'}</span></div>`).join('')}` : ''}
+      ${n.commits?.length ? `<h3>Commits</h3>${n.commits.map((c) => `<div class="commit"><code>${esc(c.hash)}</code><span>${esc(c.subject)}<span class="s">${esc(c.author)} · ${esc(c.date)}</span></span></div>`).join('')}` : ''}`;
+  }
+
+  let clearTimer = null;
+  function renderPanel() {
+    const p = $('#panel');
+    const shell = (head, body) => {
+      clearTimeout(clearTimer);
+      p.classList.add('open');
+      p.innerHTML = `<div class="pin"><div class="ptop">${head}<button class="close" data-close title="Close (Esc)">✕</button></div><div class="pbody">${body}</div></div>`;
+    };
+    if (state.issues) {
+      const list = state.g.issues.map((i) => `<div class="issue"><b class="${i.level === 'error' ? 'bad' : ''}">${i.level}</b> · <code>${esc(i.file)}</code>${i.id ? ` · ${esc(i.id)}` : ''}<div>${esc(i.message)}</div></div>`).join('');
+      shell('<b>Format issues</b>', list || '<p class="muted">No issues 🎉</p>');
+    } else if (state.file) {
+      const { n, text, mode } = state.file;
+      const head = `<button class="back" data-back>← Back</button><code class="muted">${esc(n.file)}</code><span class="ftabs"><button class="${mode === 'rendered' ? 'on' : ''}" data-fmode="rendered">Rendered</button><button class="${mode === 'raw' ? 'on' : ''}" data-fmode="raw">Raw</button></span>`;
+      if (text === null) { shell(head, '<p class="bad">Could not load the file.</p>'); return; }
+      const lines = text.split(/\r?\n/);
+      let body = lines; let fmEnd = -1;
+      if (lines[0] === '---') { fmEnd = lines.indexOf('---', 1); if (fmEnd > 0) body = lines.slice(fmEnd + 1); }
+      const target = (n.line || 1) - 1; // 0-based index into lines
+      let html;
+      if (mode === 'raw') {
+        html = `<div class="raw">${lines.map((l, i) => `<div class="${i === target ? 'hlrow' : ''}" ${i === target ? 'data-hl' : ''}><span class="ln">${i + 1}</span><span>${esc(l) || ' '}</span></div>`).join('')}</div>`;
+      } else {
+        const fm = fmEnd > 0 ? lines.slice(1, fmEnd).map((l) => /^([\w-]+):\s*(.*)$/.exec(l)).filter(Boolean).map((m) => `<div><b>${esc(m[1])}</b>${esc(m[2])}</div>`).join('') : '';
+        const bodyTarget = target - (fmEnd > 0 ? fmEnd + 1 : 0);
+        const marked = body.map((l, i) => (i === bodyTarget ? l.replace(/^(\s*(?:[-*]\s+|>\s?)?)(.*)$/, '$1⟦hl⟧$2⟦/hl⟧') : l)).join('\n');
+        html = `${fm ? `<div class="fm">${fm}</div>` : ''}<div class="rendered">${md(marked).replace('⟦hl⟧', '<mark class="hl" data-hl>').replace('⟦/hl⟧', '</mark>')}</div>`;
+      }
+      shell(head, html);
+      requestAnimationFrame(() => p.querySelector('[data-hl]')?.scrollIntoView({ block: 'center' }));
+    } else if (state.day) {
+      const ev = events().filter((e) => e.date === state.day);
+      const groups = KINDS.concat(['work', 'done']).map((k) => [k, ev.filter((e) => e.kind === k)]).filter(([, l]) => l.length);
+      const label = { work: '🔨 Started work', done: '🏁 Finished' };
+      shell(`<b>${fmtDate(state.day)}</b>`, `<h2>What happened</h2><div class="lead">${ev.length} notes</div>${groups.map(([k, l]) => `<h3>${label[k] || `${BUCKET[k]?.icon ?? '✖'} ${BUCKET[k]?.title ?? 'Dropped'}`} (${l.length})</h3>${l.map((e) => rel(e.id)).join('')}`).join('') || '<p class="muted">nothing</p>'}`);
+    } else {
+      const n = state.sel && state.byId.get(state.sel);
+      if (!n) {
+        // keep the content while the panel slides shut, then clear it
+        p.classList.remove('open');
+        clearTimeout(clearTimer);
+        clearTimer = setTimeout(() => { if (!p.classList.contains('open')) p.innerHTML = ''; }, 450);
+      } else shell(`${panelHead(n)}<code class="muted">${esc(n.id)}</code>`, panelBody(n));
+    }
+    requestAnimationFrame(() => render());
+  }
+
+  // Slide the map left (and up/down if needed) in step with the panel opening,
+  // so the selected card ends up visible in the half that remains.
+  let shiftAnim = null;
+  function shiftMapTo(id) {
+    const el = document.querySelector(`[data-card="${CSS.escape(id)}"]`);
+    if (!el) return;
+    const stage = $('#stage');
+    const main = document.querySelector('main');
+    const finalW = main.clientWidth * 0.5; // stage width once the panel has opened
+    const cardLeft = parseFloat(el.style.left); const cardRight = cardLeft + el.offsetWidth;
+    const cardTop = parseFloat(el.style.top); const cardBottom = cardTop + el.offsetHeight;
+    const fromL = stage.scrollLeft; const fromT = stage.scrollTop;
+    let toL = fromL;
+    if (cardRight + 40 > fromL + finalW) toL = Math.min(cardRight + 40 - finalW, Math.max(0, cardLeft - 24));
+    let toT = fromT;
+    if (cardTop < fromT + 20 || cardBottom > fromT + stage.clientHeight - 20) toT = Math.max(0, (cardTop + cardBottom) / 2 - stage.clientHeight / 2);
+    if (toL === fromL && toT === fromT) return;
+    cancelAnimationFrame(shiftAnim);
+    const t0 = performance.now(); const DUR = 460;
+    const ease = (t) => 1 - Math.pow(1 - t, 3);
+    const step = (now) => {
+      const k = ease(Math.min(1, (now - t0) / DUR));
+      stage.scrollLeft = fromL + (toL - fromL) * k;
+      stage.scrollTop = fromT + (toT - fromT) * k;
+      if (k < 1) shiftAnim = requestAnimationFrame(step);
+    };
+    shiftAnim = requestAnimationFrame(step);
+  }
+
+  function select(id) {
+    state.sel = id; state.issues = false; state.day = null; state.file = null;
+    renderPanel();
+    if (id) shiftMapTo(id);
+  }
+  async function previewFile(id, mode) {
+    const n = state.byId.get(id);
+    if (!n?.file) return;
+    let text = null;
+    try { const r = await fetch(`api/file?path=${encodeURIComponent(n.file)}`); if (r.ok) text = await r.text(); } catch { /* offline */ }
+    state.file = { n, text, mode: mode || state.file?.mode || store.get('fmode', 'rendered') };
+    renderPanel();
+  }
+  // Expand the path to a node so it is visible on the map
+  function reveal(id) {
+    const n = state.byId.get(id);
+    if (!n) return;
+    const chain = [];
+    let cur = n;
+    while (cur) { chain.unshift(cur); cur = state.byId.get(cur.parent); }
+    for (const c of chain) {
+      if (c.type === 'point' || c.type === 'ticket') continue;
+      state.expanded.add(c.id);
+    }
+    if (n.type === 'point' || n.type === 'ticket') {
+      const f = topicOf(n);
+      if (f) state.expanded.add(`${f.id}#${n.type === 'ticket' ? 'work' : n.kind === 'dropped' ? 'decided' : n.kind}`);
+    }
+    state.lastToggled = n.parent;
+    store.set('expanded', [...state.expanded]);
+    render();
+    setTimeout(() => document.querySelector(`[data-card="${CSS.escape(id)}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' }), 450);
+  }
+  function setLive(mode, text) { const el = $('#live'); el.className = `live ${mode}`; el.lastElementChild.textContent = text; }
+
+  // ---------- events ----------
+  document.addEventListener('click', (e) => {
+    const info = e.target.closest('[data-info]');
+    if (info) { e.stopPropagation(); select(info.dataset.info); return; }
+    const card = e.target.closest('[data-card]');
+    if (card) {
+      const n = getNode(card.dataset.card);
+      if (n && (n.type === 'point' || n.type === 'ticket')) select(n.id);
+      else toggle(card.dataset.card);
+      return;
+    }
+    const d = e.target.closest('[data-day]');
+    if (d) { state.day = state.day === d.dataset.day ? null : d.dataset.day; state.sel = null; state.issues = false; renderTimeline(); renderPanel(); return; }
+    if (e.target.closest('[data-close]')) { state.issues = false; state.day = null; select(null); return; }
+    const cp = e.target.closest('[data-copy]');
+    if (cp) { navigator.clipboard?.writeText(cp.dataset.copy).then(() => { cp.textContent = '✓ Copied'; setTimeout(() => { cp.textContent = '⧉ Copy ID'; }, 1200); }); return; }
+    const rv = e.target.closest('[data-reveal]');
+    if (rv) { reveal(rv.dataset.reveal); return; }
+    const pv = e.target.closest('[data-preview]');
+    if (pv) { previewFile(pv.dataset.preview); return; }
+    if (e.target.closest('[data-back]')) { state.file = null; renderPanel(); return; }
+    const fm = e.target.closest('[data-fmode]');
+    if (fm && state.file) { store.set('fmode', fm.dataset.fmode); previewFile(state.file.n.id, fm.dataset.fmode); return; }
+    const item = e.target.closest('[data-id]');
+    if (item) { e.preventDefault(); select(item.dataset.id); }
+  });
+  $('#collapseBtn').addEventListener('click', () => { state.expanded.clear(); store.set('expanded', []); render(); });
+  $('#legendBtn').addEventListener('click', (e) => { e.stopPropagation(); $('#legend').classList.toggle('hidden'); });
+  document.addEventListener('click', (e) => { if (!e.target.closest('#legend')) $('#legend').classList.add('hidden'); });
+  $('#issuesBtn').addEventListener('click', () => { state.issues = !state.issues; state.day = null; renderPanel(); });
+  $('#q').addEventListener('input', (e) => { state.q = e.target.value.trim().toLowerCase(); render(); });
+  document.addEventListener('keydown', (e) => {
+    const typing = e.target.matches('input, select, textarea');
+    if (e.key === 'Escape') {
+      $('#legend').classList.add('hidden');
+      if (typing) { e.target.blur(); if (e.target.id === 'q') { e.target.value = ''; state.q = ''; render(); } return; }
+      if (state.sel || state.issues || state.day) { state.issues = false; state.day = null; select(null); }
+      return;
+    }
+    if (typing) return;
+    if (e.key === '/') { e.preventDefault(); $('#q').focus(); }
+  });
+  new ResizeObserver(() => { if (state.g) render(); }).observe($('#stage'));
+
+  // ---------- boot ----------
+  if (window.__PLAN__) { setLive('', 'static export'); setGraph(window.__PLAN__); }
+  else {
+    let pulse = null;
+    const es = new EventSource('events');
+    es.addEventListener('graph', (e) => {
+      const first = !state.g;
+      setGraph(JSON.parse(e.data));
+      setLive('on', first ? 'live' : 'updated just now');
+      clearTimeout(pulse); pulse = setTimeout(() => setLive('on', 'live'), 2500);
+    });
+    es.onerror = () => setLive('off', 'disconnected — is thinkmap serve running?');
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+node_modules/
+.DS_Store
+*.log
+thinkmap.html
+plan.html
+.claude/settings.local.json
