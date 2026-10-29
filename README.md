@@ -109,5 +109,4 @@ node bin/thinkmap.js serve --open     # this repo plans itself in docs/plan/
 
 ## License
 
-MIT © Deepak Singh. Born inside [Tracklane](https://github.com/dsngeu/Tracklane), a
-multi-tenant ticket system built with Claude Code.
+MIT © Deepak Singh
