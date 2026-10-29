@@ -1,6 +1,6 @@
 # Thinkmap — Live Planning Map
 
-Status: **viewer and engine built (v4 mind map); skills, hooks and plugin pending** ·
+Status: **viewer, engine, skills, hooks and plugin built (0.3.0); marketplace lives in this repo** ·
 Owner: Deepak · Last updated: 2026-10-29
 
 ## 1. Problem
@@ -59,21 +59,22 @@ updates live. Works for **any** project that follows the format (`thinkmap init`
   unknown kinds, decided points without a body (warning).
 - `status: auto` roll-ups; progress = settled points + done tickets; git commit links.
 
-### Claude Code integration (pending)
-| Piece | Type | When |
+### Claude Code integration (built, 0.3.0)
+| Piece | Type | Where |
 |---|---|---|
-| `thinkmap-format` — teaches the format; triggers when planning/discussing | Skill (auto) | next |
-| `/thinkmap-init`, `/thinkmap`, `/thinkmap-status`, `/thinkmap-ticket <ID>` | Skills (commands) | next |
-| Validate on save (PostToolUse) · session briefing (SessionStart) | Hooks | after skills |
-| Plugin + company marketplace | Plugin | after hooks |
+| `thinkmap-format` — points at `template/FORMAT.md` (one source of truth) and teaches the habit; triggers when planning/discussing | Skill (auto) | `skills/thinkmap-format/` |
+| `/thinkmap-init`, `/thinkmap` (user-only) · `/thinkmap-status`, `/thinkmap-ticket <ID>` (Claude may use them too) | Skills (commands) | `skills/` |
+| Validate on save (PostToolUse, exit 2 + errors on stderr) · session briefing (SessionStart, additionalContext) — fail open, < 1 s | Hooks | `hooks/hooks.json`, `hooks/*.mjs` |
+| Plugin manifest + marketplace in this repo: `/plugin marketplace add dsngeu/ThinkMap` → `/plugin install thinkmap@thinkmap` | Plugin | `.claude-plugin/` |
 
 ## 5. How the company gets it (distribution)
 
-1. **Now — copy the folder**: `thinkmap ` + `thinkmap init` + a CLAUDE.md snippet.
+1. **Plugin (main path)**: `/plugin marketplace add dsngeu/ThinkMap`, `/plugin install thinkmap@thinkmap`,
+   `/thinkmap-init`. Engine + skills + hooks in one package; no CLAUDE.md editing.
    Guide: `docs/USING-IN-ANOTHER-PROJECT.md`.
-2. **Next — plugin**: engine + skills + hooks in one package; the format lives in the skill.
-3. **Company-wide — internal marketplace**: `/plugin marketplace add company/claude-plugins`,
-   `/plugin install thinkmap@company`; pre-enabled via a project's shared settings.
+2. **npx (no Claude Code)**: `npx github:dsngeu/ThinkMap init` + the CLAUDE.md snippet it prints.
+3. **Company-wide — internal marketplace** (optional): a catalogue repo listing Thinkmap by
+   GitHub source; pre-enabled via a project's shared settings.
 4. **No Claude Code?** `thinkmap export`, or CI publishing the export to GitHub Pages.
 
 ## 6. Tech
@@ -93,4 +94,4 @@ updates live. Works for **any** project that follows the format (`thinkmap init`
 ## 8. Build order
 
 1. Format spec ✅  2. Engine ✅  3. Viewer ✅ (four iterations)  4. `init` + adoption guide ✅
-5. Own public repo ✅  6. Skills  7. Hooks  8. Plugin + company marketplace
+5. Own public repo ✅  6. Skills ✅  7. Hooks ✅  8. Plugin + marketplace in this repo ✅ (company catalogue optional)

@@ -4,11 +4,46 @@ Thinkmap turns a folder of Markdown files into a live mind map of a project's pl
 what was discussed, decided, is still open, suggested, must be remembered, and built.
 It has **no dependencies** — only Node 20+ and (optionally) Git.
 
-There are three ways to get it, from "works today" to "two commands for any team".
+Two ways to get it: the Claude Code plugin (recommended) or plain `npx`.
 
 ---
 
-## Stage 1 — today: `npx` (2 minutes)
+## Way 1 — the Claude Code plugin (recommended)
+
+Inside a `claude` session:
+
+```
+/plugin marketplace add dsngeu/ThinkMap      # once per machine
+/plugin install thinkmap@thinkmap            # once per machine
+/thinkmap-init                               # once per project (skip if docs/plan/ exists)
+/thinkmap                                    # every day: opens the live map
+```
+
+That is all. No `npx`, no copied folders, no CLAUDE.md editing: the plugin carries
+
+- **`thinkmap-format`** — an automatic skill. Whenever a session discusses, decides, asks or
+  warns about something in a project with `docs/plan/`, Claude writes it into the plan
+  files in the right format. The rules come from one file, the plugin's `template/FORMAT.md`.
+- **`/thinkmap`**, **`/thinkmap-status [P1|open]`**, **`/thinkmap-ticket <ID>`**,
+  **`/thinkmap-init`** — the commands. Saying "work on ticket P1-T03" triggers the ticket
+  one by itself.
+- **Hooks** — after every edit under `docs/plan/` the validator runs and errors go back to
+  Claude; every new session starts with a plan briefing (status, where the rules are, the commands).
+
+`/thinkmap-init` also adds a short Planning section to `CLAUDE.md` (creating it if missing)
+so the rule is visible to people and to sessions without the plugin. A project that already
+has `docs/plan/` needs no init — install the plugin and it is picked up.
+
+**Updating:** `claude plugin update thinkmap@thinkmap`, then `/reload-plugins` (or a new
+session). **Trying it without installing:** `claude --plugin-dir path/to/ThinkMap`.
+
+**Pre-enable for a whole team:** list the marketplace and plugin in the project's shared
+`.claude/settings.json` (`extraKnownMarketplaces` / `enabledPlugins`), so whoever clones the
+repo gets Thinkmap on their first `claude` start.
+
+---
+
+## Way 2 — `npx` (no Claude Code, or no plugin)
 
 ### 1. Create the plan folder
 ```bash
@@ -61,32 +96,13 @@ npx github:dsngeu/ThinkMap serve --open     # http://localhost:4400
 
 ---
 
-## Stage 2 — next: a Claude Code plugin (planned)
+## Company-wide: an internal plugin marketplace (optional)
 
-The same tool packaged as a plugin, so a project needs **no `npx` and no CLAUDE.md editing**:
-
-```
-thinkmap plugin
-├── skills/   thinkmap-format (auto: teaches the file format while discussing)
-│             /thinkmap-init · /thinkmap · /thinkmap-status · /thinkmap-ticket <ID>
-├── hooks/    validate on every save · briefing at session start
-└── engine    bin/ src/ web/ (this repo)
-```
-The format rules live inside the `thinkmap-format` skill, so the plugin carries the
-knowledge with it.
-
-## Stage 3 — company-wide: an internal plugin marketplace (planned)
-
-A Git repo in the company (e.g. `yourcompany/claude-plugins`) lists approved plugins.
-Any colleague, in any project:
-```
-/plugin marketplace add yourcompany/claude-plugins   # once per machine
-/plugin install thinkmap@yourcompany                 # once per machine
-/thinkmap-init                                       # once per project
-/thinkmap                                            # every day
-```
-A project's shared `.claude/settings.json` can pre-enable the plugin, so whoever clones
-the repo gets Thinkmap on their first `claude` start with no install commands.
+Today the marketplace file lives in the Thinkmap repo itself (`/plugin marketplace add
+dsngeu/ThinkMap`). A company that wants one catalogue of approved plugins can instead keep
+a repo like `yourcompany/claude-plugins` whose `.claude-plugin/marketplace.json` lists
+Thinkmap with `"source": {"source": "github", "repo": "dsngeu/ThinkMap"}`; colleagues then
+run `/plugin marketplace add yourcompany/claude-plugins` and `/plugin install thinkmap@yourcompany`.
 
 For people without Claude Code (managers, CTO): a CI job can run `thinkmap export`
 on every push and publish the HTML to GitHub Pages — an always-current URL.

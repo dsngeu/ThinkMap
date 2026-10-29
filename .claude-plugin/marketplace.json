@@ -1,0 +1,14 @@
+{
+  "name": "thinkmap",
+  "description": "Thinkmap — planning mind map for Claude Code projects",
+  "owner": { "name": "Deepak Singh" },
+  "plugins": [
+    {
+      "name": "thinkmap",
+      "source": "./",
+      "description": "Know your project: what's decided, what's open, what's built. Skills that write the plan while you talk, hooks that keep it valid, and a live mind map.",
+      "category": "productivity",
+      "tags": ["planning", "mind-map", "decision-log", "tickets"]
+    }
+  ]
+}

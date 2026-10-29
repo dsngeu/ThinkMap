@@ -1,6 +1,6 @@
 {
   "name": "thinkmap",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Know your project: what's decided, what's open, what's built. A live mind map built from Markdown planning files.",
   "type": "module",
   "bin": {
@@ -10,7 +10,10 @@
     "bin",
     "src",
     "web",
-    "template"
+    "template",
+    "skills",
+    "hooks",
+    ".claude-plugin"
   ],
   "engines": {
     "node": ">=20"

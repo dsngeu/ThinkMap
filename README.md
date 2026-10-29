@@ -35,8 +35,39 @@ https://github.com/user-attachments/assets/584a6e7b-6f27-4f0b-b423-9c2df8c4b036
 
 ## Install and open
 
+Two ways in. Both need Node 20+ and Git.
+
+### As a Claude Code plugin (recommended)
+
+Inside a `claude` session, once per machine:
+```
+/plugin marketplace add dsngeu/ThinkMap
+/plugin install thinkmap@thinkmap
+```
+Then, in any project:
+```
+/thinkmap-init        # once: creates docs/plan/ (and a Planning section in CLAUDE.md)
+/thinkmap             # opens the live map
+```
+What the plugin gives every session in that project, without any CLAUDE.md editing:
+
+| Piece | What it does |
+|---|---|
+| `thinkmap-format` (automatic) | While you discuss or decide, Claude writes decisions, open questions, ideas and cautions into the plan files. The rules come from one file, `template/FORMAT.md`. |
+| `/thinkmap` | Opens the map (starts the viewer if needed) |
+| `/thinkmap-status [P1 \| open]` | Terminal summary — Claude may also run it on its own |
+| `/thinkmap-ticket <ID>` | Claims a ticket for this session (in-progress, owner, Handoff log) and loads its context; refuses to double-claim. "Work on P1-T03" triggers it too |
+| `/thinkmap-init` | Sets up `docs/plan/` in a new project |
+| Hook: validate on save | After any edit under `docs/plan/`, format errors go straight back to Claude |
+| Hook: session briefing | Every new session starts with the plan status and where the rules are |
+
+Update: `claude plugin update thinkmap@thinkmap`, then `/reload-plugins`. Try it without
+installing: `claude --plugin-dir path/to/ThinkMap`.
+
+### With npx (no Claude Code needed)
+
 Nothing to install: `npx` fetches Thinkmap from GitHub the first time (say **y** when
-npm asks "Ok to proceed?"). Requires Node 20+ and Git.
+npm asks "Ok to proceed?").
 
 **New project (no `docs/plan/` yet):**
 ```bash
@@ -60,9 +91,8 @@ npx github:dsngeu/ThinkMap serve --open
 - One clone for all projects: `git clone https://github.com/dsngeu/ThinkMap.git ~/thinkmap`,
   then `node ~/thinkmap/bin/thinkmap.js serve --open` inside any project.
 
-**Claude Code plugin — not yet.** `/plugin install thinkmap@…` and `/thinkmap` are
-Claude Code commands (typed inside a `claude` session, not in the terminal) and will
-exist once the plugin ships. Until then, the `npx` commands above are the way in.
+The `/plugin …` and `/thinkmap…` commands are typed inside a `claude` session, not in the
+terminal; the `npx` commands are for the terminal.
 
 ## What you see
 
@@ -111,7 +141,7 @@ Expected · Discussed · Options · Pending · Built · Risk · Next`. Full spec
 | `thinkmap validate [dir] [--quiet]` | Check the format; exit 1 on errors (use in hooks and CI) |
 | `thinkmap export [dir] [--out plan.html]` | One static HTML file to share |
 | `thinkmap json [dir]` | The graph as JSON |
-| `thinkmap update [--check] [--force]` | Fetch the newest version — works for the npx cache, a project dependency and a clone |
+| `thinkmap update [--check] [--force]` | Fetch the newest version — works for the npx cache, a project dependency and a clone (as a plugin it tells you the `claude plugin update` command) |
 | `thinkmap version` | Version and where Thinkmap runs from |
 
 `dir` defaults to `./docs/plan`. Commits are linked to tickets when the message contains
@@ -142,14 +172,16 @@ npx github:dsngeu/ThinkMap#master update
 
 1. Keep the map open on a second screen.
 2. Discuss as usual. Say "record that as decided" or "that's still open" — the assistant
-   writes the files (the `CLAUDE.md` snippet from `init` tells it how).
-3. Hand tickets to separate sessions: "work on ticket P1-T03". Each session edits only its
-   own ticket, logs in the *Handoff log*, and marks it `done`. The map turns green.
-4. `thinkmap validate` in a hook or CI keeps the files well-formed.
+   writes the files (the plugin's `thinkmap-format` skill tells it how; without the plugin,
+   the `CLAUDE.md` snippet from `init` does).
+3. Hand tickets to separate sessions: `/thinkmap-ticket P1-T03` or just "work on ticket
+   P1-T03". Each session edits only its own ticket, logs in the *Handoff log*, and marks
+   it `done`. The map turns green.
+4. The plugin's hooks validate every save and brief every new session; without the plugin,
+   `thinkmap validate` in your own hook or CI does the first part.
 
-Planned: a Claude Code plugin bundling skills (`/thinkmap`, `/thinkmap-status`,
-`/thinkmap-ticket`, an auto `thinkmap-format` skill) and hooks (validate on save, session
-briefing), installable from a company plugin marketplace. See [SPEC.md](SPEC.md).
+Plugin layout: `.claude-plugin/` (manifest + marketplace), `skills/`, `hooks/`, and the
+engine (`bin/ src/ web/ template/`). See [SPEC.md](SPEC.md).
 
 More: [docs/USING-IN-ANOTHER-PROJECT.md](docs/USING-IN-ANOTHER-PROJECT.md).
 

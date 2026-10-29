@@ -90,7 +90,7 @@ switch (cmd) {
     break;
   case 'version': {
     const info = detectInstall();
-    console.log(`thinkmap ${currentVersion()}  (${info.kind === 'npx' ? 'npx cache' : info.kind === 'dependency' ? 'project dependency' : info.kind}: ${info.dir})`);
+    console.log(`thinkmap ${currentVersion()}  (${info.kind === 'npx' ? 'npx cache' : info.kind === 'dependency' ? 'project dependency' : info.kind === 'plugin' ? 'Claude Code plugin' : info.kind}: ${info.dir})`);
     break;
   }
   case 'update': {

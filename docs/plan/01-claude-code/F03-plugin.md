@@ -17,7 +17,8 @@ Package everything as one Claude Code plugin and distribute it through a plugin 
   > `src/`, `web/`, `template/`). Installing the plugin gives a project the commands,
   > the automatic format skill and the hooks at once.
   > Why: One install, no copied folders, no CLAUDE.md editing.
-  > Built: Not yet — ticket P1-T03.
+  > Built: `.claude-plugin/plugin.json` (0.3.0, version kept equal to package.json by a test);
+  > `skills/`, `hooks/` at the repo root; `claude plugin validate ./` passes. Ticket P1-T03.
 
 - [decided 2026-10-29] P1-F03-02: Distribute through a plugin marketplace repo
   > What: A Git repo with `.claude-plugin/marketplace.json` listing Thinkmap (and later
@@ -26,7 +27,8 @@ Package everything as one Claude Code plugin and distribute it through a plugin 
   > can pre-enable it so clones get it automatically.
   > Why: This is how a company rolls out tooling to every team with governance.
   > Expected: A fresh project is planning-ready after two commands.
-  > Built: Not yet — ticket P1-T03.
+  > Built: `.claude-plugin/marketplace.json` in this repo (marketplace name `thinkmap`):
+  > `/plugin marketplace add dsngeu/ThinkMap` → `/plugin install thinkmap@thinkmap`. Ticket P1-T03.
 
 - [open 2026-10-29] P1-F03-03: Also publish to npm as `thinkmap`?
   > What: `npx thinkmap` instead of `npx github:dsngeu/ThinkMap`.
@@ -34,11 +36,13 @@ Package everything as one Claude Code plugin and distribute it through a plugin 
   > (b) Stay GitHub-only for now.
   > Next: Decide after the plugin ships.
 
-- [open 2026-10-29] P1-F03-04: Where does the marketplace repo live — this repo or a separate `claude-plugins` repo?
-  > What: A marketplace can list several plugins; a company usually keeps one catalogue repo.
-  > Options: (a) Separate catalogue repo (scales to more plugins). (b) Marketplace file inside
-  > this repo (simplest for a single plugin).
-  > Next: (b) first to test the flow, (a) when a second plugin exists.
+- [decided 2026-10-29] P1-F03-04: The marketplace file lives in this repo for now
+  > What: `.claude-plugin/marketplace.json` next to `plugin.json`, listing the repo root (`"./"`)
+  > as the `thinkmap` plugin. A company catalogue repo can list it later by GitHub source.
+  > Why: One plugin, one repo, nothing extra to maintain; a separate catalogue earns its keep
+  > only when a second plugin exists.
+  > Discussed: (a) separate catalogue repo vs (b) in this repo — (b) chosen first.
+  > Built: `.claude-plugin/marketplace.json`.
 
 - [decided 2026-10-29] P1-F03-05: `thinkmap update` + an "update available" banner — Thinkmap tells you and updates itself
   > What: `thinkmap update` detects how it was installed (npx cache `~/.npm/_npx/<hash>`,

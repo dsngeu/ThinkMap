@@ -29,12 +29,17 @@ export function compareVersions(a, b) {
 }
 
 // Where is this copy of Thinkmap running from?
+//   plugin     ~/.claude/plugins/cache/<marketplace>/thinkmap/<version>  → claude plugin update
 //   npx        ~/.npm/_npx/<hash>/node_modules/thinkmap   → re-install into that cache folder
 //   dependency <project>/node_modules/thinkmap             → npm install in the project
 //   clone      a folder with .git                          → git pull
 export function detectInstall(pkgDir = PKG_DIR, exists = fs.existsSync) {
   const abs = path.resolve(pkgDir);
   const parts = abs.split(/[\\/]/);
+  const pc = parts.lastIndexOf('cache');
+  if (pc > 1 && parts[pc - 1] === 'plugins' && parts[pc - 2] === '.claude' && parts[pc + 1]) {
+    return { kind: 'plugin', dir: abs, marketplace: parts[pc + 1], plugin: parts[pc + 2] || 'thinkmap' };
+  }
   const nm = parts.lastIndexOf('node_modules');
   if (nm > 0 && parts[nm - 2] === '_npx' && /^[0-9a-f]+$/i.test(parts[nm - 1])) {
     return { kind: 'npx', dir: abs, cacheDir: parts.slice(0, nm).join(path.sep) };
@@ -101,12 +106,14 @@ export async function checkLatest({ current = currentVersion(), timeoutMs = 3000
 // How to type a Thinkmap command for this install: "npx github:dsngeu/ThinkMap" when it runs
 // from the npx cache, "npx thinkmap" as a project dependency, plain "thinkmap" otherwise.
 export function cliCommand(info = detectInstall()) {
+  if (info.kind === 'plugin') return `node "${path.join(info.dir, 'bin', 'thinkmap.js')}"`;
   return info.kind === 'npx' ? `npx ${SPEC}` : info.kind === 'dependency' ? 'npx thinkmap' : 'thinkmap';
 }
 
 export function howToUpdate(info = detectInstall()) {
   const cli = cliCommand(info);
   return {
+    plugin: `claude plugin update ${info.plugin ?? 'thinkmap'}@${info.marketplace ?? 'thinkmap'}   (then /reload-plugins or a new session)`,
     npx: `${cli} update`,
     dependency: `${cli} update   (runs npm install ${SPEC} in your project)`,
     clone: `git -C ${info.dir} pull`,
@@ -126,7 +133,8 @@ export function runUpdate({ pkgDir = PKG_DIR, log = console.log, spawn = spawnSy
   const plan = updatePlan(info);
   const before = currentVersion(pkgDir);
   if (!plan) {
-    log(`✗ Thinkmap runs from ${info.dir}, which is neither an npx cache, a node_modules folder nor a git clone.\n  Re-install it: npx ${SPEC} serve --open`);
+    if (info.kind === 'plugin') log(`ℹ Thinkmap runs as a Claude Code plugin (${info.dir}).\n  Update it with: ${howToUpdate(info)}`);
+    else log(`✗ Thinkmap runs from ${info.dir}, which is neither an npx cache, a node_modules folder nor a git clone.\n  Re-install it: npx ${SPEC} serve --open`);
     return { ok: false, before, after: before, plan: null, info };
   }
   log(`⬆ Updating Thinkmap ${before ?? ''} — ${plan.explain}\n  $ ${plan.cmd} ${plan.args.join(' ')}\n`);
