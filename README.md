@@ -30,7 +30,7 @@ One minute: open the map, expand a phase, click a decision, read its story.
 <!-- GitHub-hosted video. To replace: edit this file on github.com, drag ThinkMap-demo.mp4
      into the editor, and paste the https://github.com/user-attachments/assets/... URL it
      produces on the line below (on its own line, no Markdown around it). -->
-PASTE_VIDEO_URL_HERE
+https://github.com/user-attachments/assets/584a6e7b-6f27-4f0b-b423-9c2df8c4b036
 
 ## Install and open
 
