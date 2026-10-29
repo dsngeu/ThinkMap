@@ -77,6 +77,12 @@ export function formatStatus(graph, { filter = null, color = false } = {}) {
     }, 5);
   }
 
+  const tc = graph.tooling?.counts;
+  if (!openOnly && tc && (tc.agents || tc.skills || tc.hooks)) {
+    const n = (k, w) => `${tc[k]} ${w}${tc[k] === 1 ? '' : 's'}`;
+    lines.push(`${c.bold('🧩 TOOLING')}  ${n('agents', 'agent')} · ${n('skills', 'skill')} · ${n('hooks', 'hook')} ${c.grey(`in ${graph.tooling.root} — open the Tooling tab in the viewer`)}`, '');
+  }
+
   const { errors, warnings } = graph.stats;
   if (errors || warnings) lines.push(c.red(`⚠  ${errors} format error(s), ${warnings} warning(s) — run: thinkmap validate`), '');
 

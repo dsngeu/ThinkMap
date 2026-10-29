@@ -70,6 +70,10 @@ exist once the plugin ships. Until then, the `npx` commands above are the way in
 - **Details panel** (half the screen; the map glides aside): the full story of a note — *What this is · Why · What we expect · What we discussed · Still pending · What's built* — plus related tickets and decisions with status, acceptance criteria, code files, commits and the handoff log.
 - **Preview file** (rendered or raw, line highlighted) · **Open in editor** (VS Code, exact line) · **Show on map**.
 - **Search** (`/`) auto-expands matching branches · **? Legend** · **timeline** strip · light & dark themes · static export for people without the tool.
+- **Tooling tab**: the project's own Claude Code **agents, skills and hooks**, read from `.claude/`
+  (`agents/`, `skills/`, `commands/`, the `hooks` block of `settings.json`, plus a plugin's own folders
+  when `.claude-plugin/plugin.json` exists). Tap one to see what it does, how it starts, which tools it
+  may use, and the file. Project files only — never your personal `~/.claude`. Hooks are shown, never run.
 
 ## The files
 

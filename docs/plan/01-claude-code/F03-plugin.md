@@ -39,3 +39,12 @@ Package everything as one Claude Code plugin and distribute it through a plugin 
   > Options: (a) Separate catalogue repo (scales to more plugins). (b) Marketplace file inside
   > this repo (simplest for a single plugin).
   > Next: (b) first to test the flow, (a) when a second plugin exists.
+
+- [open 2026-10-29] P1-F03-05: How do people who already installed Thinkmap get updates?
+  > What: Today there is no update path or notice. `npx github:dsngeu/ThinkMap` caches the
+  > first fetch and keeps using it; `npm i -D github:…` pins a commit in the lockfile; a clone
+  > needs `git pull`.
+  > Options: (a) Tag releases (`v0.2.0`) and document `npx github:dsngeu/ThinkMap#v0.2.0` —
+  > a new spec forces a fresh fetch. (b) Publish to npm (P1-F03-03) so `npx thinkmap@latest`
+  > just works. (c) Plugin marketplace `/plugin update` once P1-F03-02 ships.
+  > Next: (a) now, it costs nothing; (b) and (c) follow the existing plan.

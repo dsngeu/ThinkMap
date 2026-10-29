@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { listMarkdownFiles, parsePlanFile, STATUSES, TYPES, KINDS, KIND_STATUS } from './parse.js';
+import { scanTooling } from './tooling.js';
 
 const ID_RULES = {
   project: /^[A-Z][A-Z0-9_-]*$/,
@@ -73,7 +74,7 @@ export function buildGraph(planDir, opts = {}) {
   const base = repoRoot || absDir;
   const rel = (f) => path.relative(base, f).split(path.sep).join('/') || '.';
   const issue = (level, file, id, message) => issues.push({ level, file, id: id ?? null, message });
-  const result = { version: 1, generatedAt: new Date().toISOString(), root: base, planDir: rel(absDir), project: null, nodes: [], edges: [], issues, stats: {} };
+  const result = { version: 1, generatedAt: new Date().toISOString(), root: base, planDir: rel(absDir), project: null, nodes: [], edges: [], issues, stats: {}, tooling: null };
 
   if (!fs.existsSync(absDir) || !fs.statSync(absDir).isDirectory()) {
     issue('error', rel(absDir), null, 'plan folder not found');
@@ -327,6 +328,14 @@ export function buildGraph(planDir, opts = {}) {
     if (n.type === 'point') byKind[n.kind]++;
     byType[n.type] = (byType[n.type] ?? 0) + 1;
   }
+  // 8. The project's own Claude Code tooling (agents, skills, hooks) — shown on its own tab, not plan nodes.
+  try {
+    result.tooling = scanTooling(base);
+  } catch (e) {
+    result.tooling = { root: '.claude/', scanned: [], isPlugin: false, counts: { agents: 0, skills: 0, hooks: 0 }, items: [], notes: [`tooling scan failed: ${e.message}`] };
+  }
+
   result.stats = { byStatus, byKind, byType, errors: issues.filter((i) => i.level === 'error').length, warnings: issues.filter((i) => i.level === 'warning').length };
+  result.stats.tooling = result.tooling.counts;
   return result;
 }

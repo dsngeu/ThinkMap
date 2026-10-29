@@ -42,6 +42,7 @@ updates live. Works for **any** project that follows the format (`thinkmap init`
 ## 4. Features
 
 ### Viewer (built)
+- **Tooling tab** — the project's Claude Code agents, skills (incl. legacy commands) and hooks from `.claude/`, each with a details panel (what it does, how it starts, tools, model, file). Project-only, read-only, included in `status` and `export`.
 - NotebookLM-style expandable mind map: project → phases → topics → buckets → notes/tickets, animated.
 - Cards: labelled counters, settled/open and built progress bars, "needs decision" chips, current phase.
 - Half-screen details panel; map glides left to keep the clicked card visible.

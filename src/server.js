@@ -57,6 +57,15 @@ export function startServer({ planDir, port = 4400, host = '127.0.0.1', log = co
   } catch (e) {
     log(`file watching unavailable (${e.message}) — refresh the page manually`);
   }
+  // The Tooling tab reads <root>/.claude (and a plugin's own folders); watch those too, if present.
+  const extraWatchers = [];
+  const root = repoRoot || absDir;
+  const isPlugin = fs.existsSync(path.join(root, '.claude-plugin', 'plugin.json'));
+  for (const d of ['.claude', ...(isPlugin ? ['agents', 'skills', 'commands', 'hooks'] : [])]) {
+    const p = path.join(root, d);
+    if (p === absDir || !fs.existsSync(p)) continue;
+    try { extraWatchers.push(fs.watch(p, { recursive: true }, scheduleRebuild)); } catch { /* best effort */ }
+  }
 
   // New commits can turn tickets green, so poll HEAD.
   let head = null;
@@ -120,6 +129,7 @@ export function startServer({ planDir, port = 4400, host = '127.0.0.1', log = co
           port: p,
           close: () => {
             watcher?.close();
+            for (const w of extraWatchers) w.close();
             clearInterval(gitPoll);
             clearInterval(heartbeat);
             for (const res of clients) res.end();
