@@ -14,7 +14,7 @@ export function exportHtml(graph) {
   return fs.readFileSync(VIEWER, 'utf8').replace('<!--PLAN_DATA-->', `<script>window.__PLAN__=${data};</script>`);
 }
 
-export function startServer({ planDir, port = 4400, host = '127.0.0.1', log = console.log, version = null, checkUpdate = null, onUpdate = null, updateHint = null }) {
+export function startServer({ planDir, port = 4400, host = '127.0.0.1', log = console.log, version = null, checkUpdate = null, onUpdate = null, updateHint = null, cli = 'thinkmap' }) {
   const absDir = path.resolve(planDir);
   const repoRoot = findRepoRoot(absDir);
   const clients = new Set();
@@ -22,7 +22,7 @@ export function startServer({ planDir, port = 4400, host = '127.0.0.1', log = co
   let json = '';
   let key = '';
   // Viewer-facing app info: version now, "newer version exists" once the check (if any) returns.
-  const app = { version, latest: null, updateAvailable: false, updateHint };
+  const app = { version, latest: null, updateAvailable: false, updateHint, cli };
   const serialize = () => { json = JSON.stringify({ ...graph, app }); };
 
   const rebuild = () => {
@@ -64,10 +64,24 @@ export function startServer({ planDir, port = 4400, host = '127.0.0.1', log = co
   };
 
   let watcher = null;
-  try {
-    watcher = fs.watch(absDir, { recursive: true }, scheduleRebuild);
-  } catch (e) {
-    log(`file watching unavailable (${e.message}) — refresh the page manually`);
+  let waitForDir = null;
+  const watchPlan = () => {
+    try {
+      watcher = fs.watch(absDir, { recursive: true }, scheduleRebuild);
+    } catch (e) {
+      log(`file watching unavailable (${e.message}) — refresh the page manually`);
+    }
+  };
+  if (fs.existsSync(absDir)) watchPlan();
+  else {
+    // Served before `init`: say so, and start watching the moment the folder appears.
+    log(`! ${absDir} does not exist yet — the page explains how to create it (${cli} init --name "Project").`);
+    waitForDir = setInterval(() => {
+      if (!fs.existsSync(absDir)) return;
+      clearInterval(waitForDir); waitForDir = null;
+      watchPlan();
+      scheduleRebuild();
+    }, 1500);
   }
   // The Tooling tab reads <root>/.claude (and a plugin's own folders); watch those too, if present.
   const extraWatchers = [];
@@ -141,6 +155,7 @@ export function startServer({ planDir, port = 4400, host = '127.0.0.1', log = co
           port: p,
           close: () => {
             watcher?.close();
+            clearInterval(waitForDir);
             for (const w of extraWatchers) w.close();
             clearInterval(gitPoll);
             clearInterval(heartbeat);

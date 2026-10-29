@@ -29,3 +29,4 @@ Publishing to npm (P1-F03-03) would let `npx thinkmap@latest` replace all of thi
 
 ## Handoff log
 - 2026-10-29 · claude · built and checked the banner in Chrome with a simulated newer version
+- 2026-10-29 · claude · fix after field test: `update` now checks every cached npx copy (a fresh `#master` copy said "nothing to do" while the plain entry stayed old); CLI output and the viewer print the install-specific command (`npx github:…`) instead of a bare `thinkmap`; `serve` before `init` explains and starts watching once the folder appears

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import path from 'node:path';
-import { compareVersions, detectInstall, updatePlan, checkLatest, runUpdate, npxCacheEntries, SPEC } from '../src/update.js';
+import { compareVersions, detectInstall, updatePlan, checkLatest, runUpdate, npxCacheEntries, cliCommand, howToUpdate, staleCopies, SPEC } from '../src/update.js';
 
 test('compareVersions handles numeric segments and v-prefix', () => {
   assert.equal(compareVersions('0.2.0', '0.1.0'), 1);
@@ -58,7 +58,7 @@ test('npxCacheEntries finds every cached Thinkmap copy and its spec', () => {
   };
   const pkgs = { '/n/aaaa/package.json': '{"dependencies":{"thinkmap":"github:dsngeu/ThinkMap"}}', '/n/bbbb/package.json': '{"dependencies":{"thinkmap":"github:dsngeu/ThinkMap#master"}}', '/n/cccc/package.json': '{"dependencies":{"thinkmap":"npm:other-thinkmap@1"}}' };
   const list = npxCacheEntries('/n', () => ['aaaa', 'bbbb', 'cccc', 'not-a-hash', 'dddd'], (p) => Boolean(fsx[p]), (p) => { if (!pkgs[p]) throw new Error('nope'); return pkgs[p]; });
-  assert.deepEqual(list, [{ dir: path.join('/n/aaaa'), spec: 'github:dsngeu/ThinkMap' }, { dir: path.join('/n/bbbb'), spec: 'github:dsngeu/ThinkMap#master' }]);
+  assert.deepEqual(list, [{ dir: path.join('/n/aaaa'), spec: 'github:dsngeu/ThinkMap', version: null }, { dir: path.join('/n/bbbb'), spec: 'github:dsngeu/ThinkMap#master', version: null }]);
 });
 
 test('runUpdate in npx mode re-installs each cached copy', () => {
@@ -69,4 +69,19 @@ test('runUpdate in npx mode re-installs each cached copy', () => {
   assert.equal(calls[0].cwd, path.join('/h/.npm/_npx/abcd'));
   assert.equal(calls[0].args.at(-1), SPEC);
   assert.equal(r.ok, true);
+});
+
+test('cliCommand and howToUpdate match the install kind', () => {
+  assert.equal(cliCommand({ kind: 'npx' }), `npx ${SPEC}`);
+  assert.equal(cliCommand({ kind: 'dependency' }), 'npx thinkmap');
+  assert.equal(cliCommand({ kind: 'clone' }), 'thinkmap');
+  assert.equal(howToUpdate({ kind: 'npx' }), `npx ${SPEC} update`);
+  assert.match(howToUpdate({ kind: 'clone', dir: '/d' }), /git -C \/d pull/);
+});
+
+test('staleCopies: non-npx compares this copy; npx lists older cache entries', () => {
+  assert.equal(staleCopies('0.2.0', { kind: 'clone', dir: '/d' }, '0.2.0').length, 0);
+  assert.equal(staleCopies('0.3.0', { kind: 'clone', dir: '/d' }, '0.2.0').length, 1);
+  // npx: no real cache under the fake path → nothing stale (and no crash)
+  assert.deepEqual(staleCopies('9.9.9', { kind: 'npx', cacheDir: '/nope/_npx/abcd' }, '0.2.0'), []);
 });

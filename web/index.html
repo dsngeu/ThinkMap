@@ -526,10 +526,11 @@ mark.hl { background: color-mix(in srgb, var(--k-open) 28%, transparent); color:
       // No project node: the folder is empty, not a plan folder, or project.md is broken.
       const g = state.g;
       const errs = (g.issues || []).filter((i) => i.level === 'error').slice(0, 5);
+      const cli = g.app?.cli || 'npx github:dsngeu/ThinkMap';
       $('#content').innerHTML = `<div class="mempty"><h2>No plan found in <code>${esc(g.planDir && g.planDir !== '.' ? g.planDir : g.root || 'docs/plan')}</code></h2>
         <p>Thinkmap needs a <code>project.md</code> with <code>type: project</code> in that folder${g.root && g.planDir && g.planDir !== '.' ? ` (looked under <code>${esc(g.root)}</code>)` : ''}.</p>
-        <p>New project — create the folder from the template:</p><pre>npx github:dsngeu/ThinkMap init --name "Your Project"</pre>
-        <p>Plan lives elsewhere — point Thinkmap at it:</p><pre>thinkmap serve path/to/plan --open</pre>
+        <p>New project — create the folder from the template (this page updates by itself afterwards):</p><pre>${esc(cli)} init --name "Your Project"</pre>
+        <p>Plan lives elsewhere — restart with its path:</p><pre>${esc(cli)} serve path/to/plan --open</pre>
         ${errs.length ? `<p>Format errors found:</p>${errs.map((i) => `<div class="issue"><code>${esc(i.file)}</code> ${esc(i.message)}</div>`).join('')}` : ''}</div>`;
       $('#links').innerHTML = '';
       $('#canvas').style.width = ''; $('#canvas').style.height = '';

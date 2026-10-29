@@ -73,7 +73,9 @@ export function npxCacheEntries(npxDir, readdir = fs.readdirSync, exists = fs.ex
     let spec = SPEC;
     try { spec = JSON.parse(readFile(path.join(dir, 'package.json'), 'utf8')).dependencies?.thinkmap || SPEC; } catch { /* keep default */ }
     if (!/dsngeu\/thinkmap/i.test(spec)) continue; // some other package called thinkmap
-    out.push({ dir, spec });
+    let version = null;
+    try { version = JSON.parse(readFile(path.join(dir, 'node_modules', 'thinkmap', 'package.json'), 'utf8')).version ?? null; } catch { /* unknown */ }
+    out.push({ dir, spec, version });
   }
   return out;
 }
@@ -96,13 +98,26 @@ export async function checkLatest({ current = currentVersion(), timeoutMs = 3000
   }
 }
 
-export function howToUpdate(info) {
+// How to type a Thinkmap command for this install: "npx github:dsngeu/ThinkMap" when it runs
+// from the npx cache, "npx thinkmap" as a project dependency, plain "thinkmap" otherwise.
+export function cliCommand(info = detectInstall()) {
+  return info.kind === 'npx' ? `npx ${SPEC}` : info.kind === 'dependency' ? 'npx thinkmap' : 'thinkmap';
+}
+
+export function howToUpdate(info = detectInstall()) {
+  const cli = cliCommand(info);
   return {
-    npx: `thinkmap update   (or: npx ${SPEC} update)`,
-    dependency: `npx thinkmap update   (runs npm install ${SPEC} in your project)`,
+    npx: `${cli} update`,
+    dependency: `${cli} update   (runs npm install ${SPEC} in your project)`,
     clone: `git -C ${info.dir} pull`,
     unknown: `re-install from ${SPEC}`,
   }[info.kind];
+}
+
+// Cached npx copies older than `latest` (npx mode), or this copy if it is older (other modes).
+export function staleCopies(latest, info = detectInstall(), current = currentVersion(info.dir)) {
+  if (info.kind === 'npx') return npxCacheEntries(path.dirname(info.cacheDir)).filter((e) => compareVersions(e.version, latest) < 0);
+  return compareVersions(current, latest) < 0 ? [{ dir: info.dir, spec: SPEC, version: current }] : [];
 }
 
 // Runs the update in the foreground; returns { ok, before, after, plan }.

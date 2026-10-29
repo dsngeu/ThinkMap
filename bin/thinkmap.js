@@ -7,7 +7,7 @@ import { buildGraph } from '../src/graph.js';
 import { formatStatus, formatIssues } from '../src/status.js';
 import { startServer, exportHtml } from '../src/server.js';
 import { initPlan, CLAUDE_SNIPPET } from '../src/init.js';
-import { currentVersion, detectInstall, howToUpdate, checkLatest, runUpdate } from '../src/update.js';
+import { currentVersion, detectInstall, howToUpdate, checkLatest, runUpdate, cliCommand, staleCopies } from '../src/update.js';
 
 const HELP = `Thinkmap — live planning map for docs/plan/*.md
 
@@ -51,7 +51,7 @@ switch (cmd) {
       console.log(`✓ Thinkmap set up in ${r.dir}`);
       for (const f of r.written) console.log(`  + ${f}`);
       for (const f of r.skipped) console.log(`  = ${f} (kept, already existed)`);
-      console.log(`\nNext:\n  1. Add this to your CLAUDE.md so every Claude session follows the format:\n\n${CLAUDE_SNIPPET.replace(/^/gm, '     ')}\n  2. Replace the example topic with real ones (see ${path.join(r.dir, 'FORMAT.md')})\n  3. thinkmap serve --open`);
+      console.log(`\nNext:\n  1. Add this to your CLAUDE.md so every Claude session follows the format:\n\n${CLAUDE_SNIPPET.replace(/^/gm, '     ')}\n  2. Replace the example topic with real ones (see ${path.join(r.dir, 'FORMAT.md')})\n  3. ${cliCommand()} serve --open`);
     } catch (e) {
       console.error(`✗ ${e.message}`);
       process.exit(1);
@@ -62,7 +62,7 @@ switch (cmd) {
     const version = currentVersion();
     const checkUpdate = flags['no-update-check'] ? null : () => checkLatest({ current: version });
     const updateHint = howToUpdate(detectInstall());
-    const srv = await startServer({ planDir: dir, port: Number(flags.port ?? 4400), version, checkUpdate, updateHint, onUpdate: (u) => console.log(`⬆ Thinkmap ${u.latest} is available (you have ${u.current}). Update: ${updateHint}`) });
+    const srv = await startServer({ planDir: dir, port: Number(flags.port ?? 4400), version, checkUpdate, updateHint, cli: cliCommand(), onUpdate: (u) => console.log(`⬆ Thinkmap ${u.latest} is available (you have ${u.current}). Update: ${updateHint}`) });
     console.log(`📍 Thinkmap ${version} serving ${path.resolve(dir)}\n   ${srv.url}   (Ctrl+C to stop)`);
     if (flags.open) execFile(process.platform === 'darwin' ? 'open' : 'xdg-open', [srv.url], () => {});
     const stop = () => { srv.close(); process.exit(0); };
@@ -94,11 +94,19 @@ switch (cmd) {
     break;
   }
   case 'update': {
+    const info = detectInstall();
     const u = await checkLatest({ current: currentVersion() });
-    if (u) console.log(u.newer ? `⬆ ${u.latest} is available (you have ${u.current})` : `✓ ${u.current} is the newest version on GitHub`);
-    else console.log('(could not reach GitHub to compare versions)');
+    if (!u) console.log('(could not reach GitHub to compare versions)');
+    else {
+      // In npx mode this copy may be fresh while the plain `npx github:dsngeu/ThinkMap` entry is stale — check them all.
+      const stale = staleCopies(u.latest, info, u.current);
+      if (info.kind === 'npx' && stale.length) console.log(`⬆ ${u.latest} is on GitHub; ${stale.length} cached cop${stale.length === 1 ? 'y is' : 'ies are'} older (${[...new Set(stale.map((s) => s.version ?? '?'))].join(', ')})`);
+      else if (u.newer) console.log(`⬆ ${u.latest} is available (you have ${u.current})`);
+      else console.log(`✓ ${u.current} is the newest version on GitHub${info.kind === 'npx' ? ' (all cached copies)' : ''}`);
+      if (flags.check) break;
+      if (!u.newer && !stale.length && !flags.force) { console.log('Nothing to do. Use --force to re-install anyway.'); break; }
+    }
     if (flags.check) break;
-    if (u && !u.newer && !flags.force) { console.log('Nothing to do. Use --force to re-install anyway.'); break; }
     const r = runUpdate();
     process.exit(r.ok ? 0 : 1);
     break;
