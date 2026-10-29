@@ -62,7 +62,9 @@ What the plugin gives every session in that project, without any CLAUDE.md editi
 | Hook: session briefing | Every new session starts with the plan status and where the rules are |
 
 Update: `claude plugin update thinkmap@thinkmap`, then `/reload-plugins`. Try it without
-installing: `claude --plugin-dir path/to/ThinkMap`.
+installing: `claude --plugin-dir path/to/ThinkMap`. Installed with npx first and the plugin
+later? The `docs/plan/FORMAT.md` that npx created is a copy from that version; the next
+session briefing (or `thinkmap validate`) says so, and `thinkmap format --write` refreshes it.
 
 ### With npx (no Claude Code needed)
 
@@ -110,7 +112,7 @@ terminal; the `npx` commands are for the terminal.
 
 ```
 docs/plan/
-├── FORMAT.md                      the rules (read by your assistant every session)
+├── FORMAT.md                      a copy of the rules for people and sessions without Thinkmap
 ├── project.md                     type: project
 └── 01-basic/
     ├── phase.md                   type: phase     id P1
@@ -141,6 +143,7 @@ Expected · Discussed · Options · Pending · Built · Risk · Next`. Full spec
 | `thinkmap validate [dir] [--quiet]` | Check the format; exit 1 on errors (use in hooks and CI) |
 | `thinkmap export [dir] [--out plan.html]` | One static HTML file to share |
 | `thinkmap json [dir]` | The graph as JSON |
+| `thinkmap format [dir] [--write]` | Is `docs/plan/FORMAT.md` the version bundled with this Thinkmap? Exit 1 if not; `--write` refreshes the copy |
 | `thinkmap update [--check] [--force]` | Fetch the newest version — works for the npx cache, a project dependency and a clone (as a plugin it tells you the `claude plugin update` command) |
 | `thinkmap version` | Version and where Thinkmap runs from |
 
@@ -160,6 +163,16 @@ thinkmap update --check    # just compare with GitHub
 `thinkmap serve` checks GitHub once at start and shows **⬆ Update available** in the header
 when a newer version exists (one GET of `package.json`; nothing about your project is sent).
 Skip it with `--no-update-check` or `THINKMAP_NO_UPDATE_CHECK=1`.
+
+**After any update, refresh the format copy.** `init` leaves `docs/plan/FORMAT.md` in your
+project for people and sessions without Thinkmap, but the validator and the plugin follow
+the rules bundled with the tool, so the copy falls behind with every update (and when you
+move from npx to the plugin). `thinkmap validate`, the session briefing and `thinkmap format`
+all say when that happens; one command fixes it:
+
+```bash
+thinkmap format --write    # plugin: node "~/.claude/plugins/cache/thinkmap/thinkmap/<version>/bin/thinkmap.js" format --write
+```
 
 **First update from 0.1.0** (which had no `update` command): run it from a fresh fetch once;
 it refreshes every cached copy, including the plain `npx github:dsngeu/ThinkMap` one:

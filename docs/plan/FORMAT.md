@@ -4,6 +4,10 @@ All planning lives in `docs/plan/` as Markdown files. The **Thinkmap** viewer re
 these files and draws them as a live graph of connected dots. Every Claude session
 and every person follows this format, so plans stay in sync across sessions.
 
+> This file is a **copy** of the rules bundled with Thinkmap (`template/FORMAT.md` in the
+> tool), kept here for people and sessions without it. Don't edit it: `thinkmap format`
+> says when it is behind the bundled version and `thinkmap format --write` refreshes it.
+
 ## 1. Folder structure
 
 ```

@@ -6,7 +6,7 @@ import { execFile } from 'node:child_process';
 import { buildGraph } from '../src/graph.js';
 import { formatStatus, formatIssues } from '../src/status.js';
 import { startServer, exportHtml } from '../src/server.js';
-import { initPlan, CLAUDE_SNIPPET } from '../src/init.js';
+import { initPlan, CLAUDE_SNIPPET, formatCopyStatus, syncFormatCopy, TEMPLATE_FORMAT, TEMPLATE_VERSION } from '../src/init.js';
 import { currentVersion, detectInstall, howToUpdate, checkLatest, runUpdate, cliCommand, staleCopies } from '../src/update.js';
 
 const HELP = `Thinkmap — live planning map for docs/plan/*.md
@@ -18,6 +18,7 @@ Usage:
   thinkmap validate [dir] [--quiet]                check format (exit 1 on errors)
   thinkmap export   [dir] [--out thinkmap.html]    single static HTML file
   thinkmap json     [dir]                          graph as JSON
+  thinkmap format   [dir] [--write]                is docs/plan/FORMAT.md the bundled version? --write refreshes it
   thinkmap update   [--check]                      fetch the newest version (npx cache, node_modules or clone)
   thinkmap version                                 show version and where Thinkmap runs from
 
@@ -88,6 +89,28 @@ switch (cmd) {
   case 'json':
     console.log(JSON.stringify(buildGraph(dir), null, 2));
     break;
+  case 'format': {
+    // docs/plan/FORMAT.md is a copy for people and sessions without Thinkmap; the validator
+    // follows the bundled template. Report drift (exit 1) or, with --write, refresh the copy.
+    const s = formatCopyStatus(dir);
+    const shown = path.relative(process.cwd(), s.file) || s.file;
+    const where = dir === 'docs/plan' ? '' : ` ${dir}`;
+    if (flags.write) {
+      const r = syncFormatCopy(dir);
+      if (!r.changed) console.log(`✓ ${shown} already matches the rules bundled with Thinkmap ${TEMPLATE_VERSION}`);
+      else if (r.created) console.log(`✓ ${shown} created from the rules bundled with Thinkmap ${TEMPLATE_VERSION}`);
+      else console.log(`✓ ${shown} refreshed to the rules bundled with Thinkmap ${TEMPLATE_VERSION}\n  If the file had local edits, \`git diff ${shown}\` shows what changed.`);
+      break;
+    }
+    if (!s.exists) {
+      console.log(`ℹ ${shown} does not exist. The rules live in ${TEMPLATE_FORMAT}\n  Create a copy for people and sessions without Thinkmap: ${cliCommand()} format --write${where}`);
+      break;
+    }
+    if (s.upToDate) { console.log(`✓ ${shown} matches the rules bundled with Thinkmap ${TEMPLATE_VERSION}`); break; }
+    console.log(`! ${shown} differs from the rules bundled with Thinkmap ${TEMPLATE_VERSION}.\n  The validator and the plugin follow the bundled rules; this copy is what people and\n  sessions without Thinkmap read, so it should say the same.\n  Refresh it:     ${cliCommand()} format --write${where}\n  Compare first:  diff "${TEMPLATE_FORMAT}" "${shown}"`);
+    process.exit(1);
+    break;
+  }
   case 'version': {
     const info = detectInstall();
     console.log(`thinkmap ${currentVersion()}  (${info.kind === 'npx' ? 'npx cache' : info.kind === 'dependency' ? 'project dependency' : info.kind === 'plugin' ? 'Claude Code plugin' : info.kind}: ${info.dir})`);
@@ -108,6 +131,9 @@ switch (cmd) {
     }
     if (flags.check) break;
     const r = runUpdate();
+    // The updated copy may carry new format rules; the project's FORMAT.md copy does not follow by itself.
+    const fc = r.ok ? formatCopyStatus(dir) : null;
+    if (fc?.exists && !fc.upToDate) console.log(`ℹ ${path.join(dir, 'FORMAT.md')} is an older copy of the format rules — refresh it: ${cliCommand()} format --write`);
     process.exit(r.ok ? 0 : 1);
     break;
   }

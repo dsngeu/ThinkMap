@@ -4,6 +4,10 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const TEMPLATE_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'template');
+export const TEMPLATE_FORMAT = path.join(TEMPLATE_DIR, 'FORMAT.md');
+export const TEMPLATE_VERSION = (() => {
+  try { return JSON.parse(fs.readFileSync(path.join(TEMPLATE_DIR, '..', 'package.json'), 'utf8')).version ?? '?'; } catch { return '?'; }
+})();
 
 export const CLAUDE_SNIPPET = `## Planning (Thinkmap)
 
@@ -40,4 +44,26 @@ export function initPlan(target, { name = 'My Project', force = false, today = n
   };
   walk(TEMPLATE_DIR);
   return { dir: abs, written, skipped };
+}
+
+// `init` leaves a copy of FORMAT.md in the plan folder for people and sessions without
+// Thinkmap. The validator and the plugin skills follow the bundled template/FORMAT.md, so
+// every Thinkmap update (npx, dependency, clone or plugin) leaves that copy behind. These
+// two detect the drift (`thinkmap format`, a validate warning, the session briefing) and
+// bring the copy back in line (`thinkmap format --write`).
+const normalise = (s) => s.replace(/\r\n/g, '\n').trimEnd();
+
+export function formatCopyStatus(planDir) {
+  const file = path.join(path.resolve(planDir), 'FORMAT.md');
+  if (!fs.existsSync(file)) return { file, exists: false, upToDate: null };
+  const upToDate = normalise(fs.readFileSync(file, 'utf8')) === normalise(fs.readFileSync(TEMPLATE_FORMAT, 'utf8'));
+  return { file, exists: true, upToDate };
+}
+
+export function syncFormatCopy(planDir) {
+  const s = formatCopyStatus(planDir);
+  if (s.upToDate) return { ...s, changed: false, created: false };
+  fs.mkdirSync(path.dirname(s.file), { recursive: true });
+  fs.copyFileSync(TEMPLATE_FORMAT, s.file);
+  return { file: s.file, exists: true, upToDate: true, changed: true, created: !s.exists };
 }

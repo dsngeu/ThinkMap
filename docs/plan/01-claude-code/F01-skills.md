@@ -56,6 +56,8 @@ task matches) or when a person types `/name`.
   > Why: Two copies drift; a drifted skill would teach sessions a format the validator rejects.
   > Risk: Silent validation errors in every project using the plugin.
   > Built: The skill links to the file; `test/plugin.test.js` fails if it ever restates the point syntax or ID table.
+  > Discussed: The project's own `docs/plan/FORMAT.md` is the third copy; since P1-F03-06 the
+  > tool checks it against the bundled file and `thinkmap format --write` refreshes it.
 
 - [decided 2026-10-29] P1-F01-07: Skill names keep the `thinkmap-*` prefix
   > What: `thinkmap`, `thinkmap-status`, `thinkmap-ticket`, `thinkmap-init`, `thinkmap-format`.

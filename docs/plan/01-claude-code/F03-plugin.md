@@ -56,3 +56,25 @@ Package everything as one Claude Code plugin and distribute it through a plugin 
   > the Tooling tab. Copies installed as 0.1.0 (no `update` yet) run
   > `npx github:dsngeu/ThinkMap#master update` once.
   > Built: Ticket P1-T04 — `src/update.js`, `update` / `version` commands, banner in the viewer.
+
+- [decided 2026-10-29] P1-F03-06: `thinkmap format` — the project's FORMAT.md copy is checked and refreshed by the tool, not by hand
+  > What: `init` leaves `docs/plan/FORMAT.md` in a project for people and sessions without
+  > Thinkmap. It is a copy; the validator and the `thinkmap-format` skill follow the bundled
+  > `template/FORMAT.md`. The tool now compares the two (line endings ignored): `thinkmap
+  > validate` warns, the session-briefing hook tells the new session, `thinkmap format` reports
+  > (exit 1 when behind), `thinkmap format --write` overwrites the copy with the bundled file,
+  > and `thinkmap update` ends with the hint when the copy is behind. No copy → nothing to say.
+  > Why: Field report from a project that was set up with npx and later switched to the
+  > plugin: the npx-era copy stayed, every plugin update widened the gap, and the project had
+  > to carry a caution ("diff the two files after each update") by hand. Every install path
+  > has the same problem — the copy never follows an update — so Thinkmap must own it.
+  > Discussed: (a) stop copying FORMAT.md and point everyone at the tool's file — rejected,
+  > people and sessions without the plugin need a readable copy and CLAUDE.md snippets link to
+  > it; (b) a version stamp inside the file — rejected, a byte compare is simpler and also
+  > catches hand edits; (c) refresh silently on every run — rejected, overwriting a tracked
+  > file must be an explicit command. Chosen: warn everywhere, fix with one command.
+  > Expected: After `claude plugin update thinkmap@thinkmap` the next session's briefing says
+  > the copy is older and names the command; after `format --write` the warning is gone.
+  > Built: `src/init.js` (`formatCopyStatus`, `syncFormatCopy`), warning in `src/graph.js`,
+  > `format` command in `bin/thinkmap.js`, briefing line in `hooks/briefing.mjs`, note at the
+  > top of `template/FORMAT.md`, skill and README text; version 0.4.0. Ticket P1-T05.

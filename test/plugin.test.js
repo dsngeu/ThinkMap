@@ -109,6 +109,12 @@ test('briefing: status + where the rules are when a plan exists; nothing otherwi
   assert.match(text, /Briefed — plan status/);
   assert.ok(text.includes('/plug/template/FORMAT.md'));
   assert.match(text, /\/thinkmap-ticket <ID>/);
+  assert.doesNotMatch(text, /format --write/, 'a fresh init needs no refresh');
+  // the copy left by an older install (e.g. npx before the plugin) → the session is told to refresh it
+  fs.appendFileSync(path.join(dir, 'docs/plan/FORMAT.md'), '\nold rule\n');
+  const stale = briefing({ projectDir: dir, pluginRoot: '/plug' });
+  assert.match(stale, /docs\/plan\/FORMAT.md is an older copy/);
+  assert.ok(stale.includes('node "/plug/bin/thinkmap.js" format --write'));
 });
 
 test('hook scripts run as processes: fail open, fast, JSON on stdout for SessionStart', () => {

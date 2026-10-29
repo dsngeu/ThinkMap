@@ -14,8 +14,15 @@ mind map, so every Claude session and every person sees what is decided, open an
 **The format has exactly one source of truth: `${CLAUDE_PLUGIN_ROOT}/template/FORMAT.md`.**
 Read that file before you write or change a plan file. Do not work from memory and do not
 look for a copy here — this skill deliberately carries none, so it can never drift from
-the validator. (The project may also have its own copy at `docs/plan/FORMAT.md`; the
-plugin's file is the canonical one.)
+the validator.
+
+The project may also have its own `docs/plan/FORMAT.md`. That is a **copy** kept for
+people and sessions without the plugin, not a second source: never edit it by hand. When
+the validator or the session briefing says it is behind the bundled rules, refresh it with
+
+```
+node "${CLAUDE_PLUGIN_ROOT}/bin/thinkmap.js" format --write
+```
 
 ## The habit
 

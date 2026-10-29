@@ -8,6 +8,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { buildGraph } from '../src/graph.js';
 import { formatStatus } from '../src/status.js';
+import { formatCopyStatus, TEMPLATE_VERSION } from '../src/init.js';
 
 const PLUGIN_ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 
@@ -17,9 +18,12 @@ export function briefing({ projectDir = process.cwd(), planDir = 'docs/plan', pl
   const g = buildGraph(abs);
   const status = formatStatus(g, { color: false });
   const cli = `node "${pluginRoot}/bin/thinkmap.js"`;
+  const relPlan = path.relative(projectDir, abs) || '.';
+  const fc = formatCopyStatus(abs);
   return [
-    `[Thinkmap] This project plans itself in ${path.relative(projectDir, abs) || '.'}/ — every decision, open question, suggestion and caution goes into those files while you talk, never only in chat.`,
+    `[Thinkmap] This project plans itself in ${relPlan}/ — every decision, open question, suggestion and caution goes into those files while you talk, never only in chat.`,
     `Format rules (read before writing a plan file): ${path.join(pluginRoot, 'template', 'FORMAT.md')}`,
+    ...(fc.exists && !fc.upToDate ? [`⚠ ${relPlan}/FORMAT.md is an older copy of those rules (it is kept for people and sessions without the plugin). Refresh it now, do not edit it by hand: ${cli} format --write${relPlan === 'docs/plan' ? '' : ` ${relPlan}`}   (Thinkmap ${TEMPLATE_VERSION})`] : []),
     `Commands: /thinkmap (open the map) · /thinkmap-status [P1|open] · /thinkmap-ticket <ID> (claim a ticket) · CLI: ${cli} validate|status|serve`,
     '',
     status,

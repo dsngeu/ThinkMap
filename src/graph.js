@@ -5,6 +5,8 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { listMarkdownFiles, parsePlanFile, STATUSES, TYPES, KINDS, KIND_STATUS } from './parse.js';
 import { scanTooling } from './tooling.js';
+import { formatCopyStatus, TEMPLATE_VERSION } from './init.js';
+import { cliCommand } from './update.js';
 
 const ID_RULES = {
   project: /^[A-Z][A-Z0-9_-]*$/,
@@ -94,6 +96,14 @@ export function buildGraph(planDir, opts = {}) {
 
   const files = listMarkdownFiles(absDir);
   if (!files.length) issue('warning', rel(absDir), null, 'no plan files yet — see FORMAT.md');
+
+  // The copy of FORMAT.md left by `init` must match the bundled rules, or people and sessions
+  // without Thinkmap follow a format the validator no longer accepts.
+  const fc = formatCopyStatus(absDir);
+  if (fc.exists && !fc.upToDate) {
+    const where = rel(absDir) === 'docs/plan' ? '' : ` ${rel(absDir)}`;
+    issue('warning', rel(fc.file), null, `this copy of the format rules differs from the ones bundled with Thinkmap ${TEMPLATE_VERSION} (the validator and the plugin follow the bundled rules) — refresh it: ${cliCommand()} format --write${where}`);
+  }
 
   for (const file of files) {
     const r = rel(file);

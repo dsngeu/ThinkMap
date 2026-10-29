@@ -133,7 +133,7 @@ export function runUpdate({ pkgDir = PKG_DIR, log = console.log, spawn = spawnSy
   const plan = updatePlan(info);
   const before = currentVersion(pkgDir);
   if (!plan) {
-    if (info.kind === 'plugin') log(`ℹ Thinkmap runs as a Claude Code plugin (${info.dir}).\n  Update it with: ${howToUpdate(info)}`);
+    if (info.kind === 'plugin') log(`ℹ Thinkmap runs as a Claude Code plugin (${info.dir}).\n  Update it with: ${howToUpdate(info)}\n  Afterwards, if your plan folder keeps its own FORMAT.md, refresh that copy: ${cliCommand(info)} format --write`);
     else log(`✗ Thinkmap runs from ${info.dir}, which is neither an npx cache, a node_modules folder nor a git clone.\n  Re-install it: npx ${SPEC} serve --open`);
     return { ok: false, before, after: before, plan: null, info };
   }
