@@ -23,20 +23,36 @@ The files are the source of truth. People and AI coding assistants (it was built
 
 Zero dependencies. Node 20+. One HTML file. Nothing leaves your machine.
 
-## 60-second start
+## Install and open
 
+Nothing to install: `npx` fetches Thinkmap from GitHub the first time (say **y** when
+npm asks "Ok to proceed?"). Requires Node 20+ and Git.
+
+**New project (no `docs/plan/` yet):**
 ```bash
 cd your-project
 npx github:dsngeu/ThinkMap init --name "Your Project"   # creates docs/plan/ with an example topic
-npx github:dsngeu/ThinkMap serve --open                 # http://localhost:4400
+npx github:dsngeu/ThinkMap serve --open                 # opens http://localhost:4400
+```
+`--name` is the title shown on the map's root card (defaults to the folder name).
+`init` also prints a short **Planning** section — paste it into the project's `CLAUDE.md`
+(or your assistant's instructions file) so every session writes decisions into the plan
+files instead of leaving them in chat.
+
+**Project that already has `docs/plan/`:** skip `init` (it refuses to touch a non-empty
+folder) and just open the map:
+```bash
+npx github:dsngeu/ThinkMap serve --open
 ```
 
-Prefer a local install? `npm i -D github:dsngeu/ThinkMap` then `npx thinkmap serve --open`.
-Or clone this repo and run `node bin/thinkmap.js serve --open` inside any project.
+**Other ways to run it**
+- Project dependency: `npm i -D github:dsngeu/ThinkMap`, then `npx thinkmap serve --open`.
+- One clone for all projects: `git clone https://github.com/dsngeu/ThinkMap.git ~/thinkmap`,
+  then `node ~/thinkmap/bin/thinkmap.js serve --open` inside any project.
 
-`init` also prints a short **Planning** section to paste into your `CLAUDE.md` (or any
-assistant's instructions file), so every session writes decisions into the plan files
-instead of leaving them in chat.
+**Claude Code plugin — not yet.** `/plugin install thinkmap@…` and `/thinkmap` are
+Claude Code commands (typed inside a `claude` session, not in the terminal) and will
+exist once the plugin ships. Until then, the `npx` commands above are the way in.
 
 ## What you see
 
