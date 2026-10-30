@@ -62,8 +62,16 @@ What the plugin gives every session in that project, without any CLAUDE.md editi
 | Hook: validate on save | After any edit under `docs/plan/`, format errors go straight back to Claude |
 | Hook: session briefing | Every new session starts with the plan status and where the rules are |
 
-Updating the plugin: see [Updating](#updating). Try it without installing:
-`claude --plugin-dir path/to/ThinkMap`.
+**Updating the plugin** (it does not update itself). In a Claude session or a terminal:
+```
+claude plugin marketplace update thinkmap     # refresh the listing from GitHub
+claude plugin update thinkmap@thinkmap        # fetch the new version
+```
+Then `/reload-plugins` or start a new session; `claude plugin list` shows the version. The
+first new session in each project tells you if its `docs/plan/FORMAT.md` copy needs
+`format --write`. Details and the npx/clone paths: [Updating](#updating).
+
+Try it without installing: `claude --plugin-dir path/to/ThinkMap`.
 
 ### With npx (no Claude Code needed)
 
