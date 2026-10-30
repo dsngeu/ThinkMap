@@ -24,7 +24,7 @@ export function briefing({ projectDir = process.cwd(), planDir = 'docs/plan', pl
     `[Thinkmap] This project plans itself in ${relPlan}/ — every decision, open question, suggestion and caution goes into those files while you talk, never only in chat.`,
     `Format rules (read before writing a plan file): ${path.join(pluginRoot, 'template', 'FORMAT.md')}`,
     ...(fc.exists && !fc.upToDate ? [`⚠ ${relPlan}/FORMAT.md is an older copy of those rules (it is kept for people and sessions without the plugin). Refresh it now, do not edit it by hand: ${cli} format --write${relPlan === 'docs/plan' ? '' : ` ${relPlan}`}   (Thinkmap ${TEMPLATE_VERSION})`] : []),
-    `Commands: /thinkmap (open the map) · /thinkmap-status [P1|open] · /thinkmap-ticket <ID> (claim a ticket) · CLI: ${cli} validate|status|serve`,
+    `Commands: /thinkmap (open the map) · /thinkmap-status [P1|open] · /thinkmap-tickets <P1|P1-F02> (break decided points into tickets) · /thinkmap-ticket <ID> (claim a ticket) · CLI: ${cli} validate|status|serve|phase`,
     '',
     status,
   ].join('\n');

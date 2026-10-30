@@ -1,7 +1,7 @@
 # Thinkmap — Live Planning Map
 
-Status: **viewer, engine, skills, hooks and plugin built (0.3.0); marketplace lives in this repo** ·
-Owner: Deepak · Last updated: 2026-10-29
+Status: **viewer, engine, skills, hooks and plugin built (0.5.0); layout enforced by the validator; marketplace lives in this repo** ·
+Owner: Deepak · Last updated: 2026-10-30
 
 ## 1. Problem
 
@@ -53,17 +53,20 @@ updates live. Works for **any** project that follows the format (`thinkmap init`
 - Live reload (Server-Sent Events) on file change or new commit. Localhost only.
 
 ### Engine (built)
-- `init` · `serve` · `status` · `validate` · `export` · `json`
+- `init` · `phase` · `serve` · `status` · `validate` · `export` · `json` · `format` · `update`
 - Zero-dependency parser: front matter, labelled point bodies, acceptance checklists, handoff logs.
 - Validation: required fields, ID patterns, parents, dependencies, cycles, duplicates,
-  unknown kinds, decided points without a body (warning).
+  unknown kinds, decided points without a body (warning), and the folder layout (FORMAT.md §1:
+  `NN-slug/phase.md` + `tickets/`, topic and ticket file names and places — errors).
+- `thinkmap phase P2 slug` scaffolds a phase; `status` suggests `/thinkmap-tickets` once a phase
+  is fully decided and has no tickets.
 - `status: auto` roll-ups; progress = settled points + done tickets; git commit links.
 
 ### Claude Code integration (built, 0.3.0)
 | Piece | Type | Where |
 |---|---|---|
 | `thinkmap-format` — points at `template/FORMAT.md` (one source of truth) and teaches the habit; triggers when planning/discussing | Skill (auto) | `skills/thinkmap-format/` |
-| `/thinkmap-init`, `/thinkmap` (user-only) · `/thinkmap-status`, `/thinkmap-ticket <ID>` (Claude may use them too) | Skills (commands) | `skills/` |
+| `/thinkmap-init`, `/thinkmap` (user-only) · `/thinkmap-status`, `/thinkmap-tickets <P1\|P1-F02>` (two gates), `/thinkmap-ticket <ID>` (Claude may use them too) | Skills (commands) | `skills/` |
 | Validate on save (PostToolUse, exit 2 + errors on stderr) · session briefing (SessionStart, additionalContext) — fail open, < 1 s | Hooks | `hooks/hooks.json`, `hooks/*.mjs` |
 | Plugin manifest + marketplace in this repo: `/plugin marketplace add dsngeu/ThinkMap` → `/plugin install thinkmap@thinkmap` | Plugin | `.claude-plugin/` |
 

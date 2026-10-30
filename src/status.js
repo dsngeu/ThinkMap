@@ -24,6 +24,11 @@ export function formatStatus(graph, { filter = null, color = false } = {}) {
     return c.green('█'.repeat(f)) + c.grey('░'.repeat(w - f));
   };
 
+  // A phase whose points are all settled but that has no ticket yet: the next step is to
+  // break it into tickets, and nothing else in the plan says so.
+  const fullyDecided = (p) => p.status !== 'dropped' && p.progress.points.total > 0 && p.progress.points.settled === p.progress.points.total && p.progress.tickets.total === 0;
+  const needsTickets = graph.nodes.filter((n) => n.type === 'phase' && (!phaseFilter || n.id === phaseFilter) && fullyDecided(n));
+
   const lines = [];
   const title = graph.project?.title ?? 'Plan';
   lines.push(`${c.bold(`📍 ${title} — plan status${phaseFilter ? ` (${phaseFilter})` : ''}`)}   ${c.grey(new Date(graph.generatedAt).toLocaleString())}`);
@@ -35,7 +40,8 @@ export function formatStatus(graph, { filter = null, color = false } = {}) {
       lines.push(`${c.bold('PHASES'.padEnd(30))}${c.grey('decided          built')}`);
       for (const p of phases) {
         const { points, tickets } = p.progress;
-        lines.push(`  ${fit(`${p.id} ${p.title}`, 28)}${bar(points.settled, points.total)} ${pct(points.settled, points.total)}   ${bar(tickets.done, tickets.total)} ${pct(tickets.done, tickets.total)}  ${c.grey(tickets.total ? `${tickets.done}/${tickets.total} tickets` : 'no tickets yet')}`);
+        const note = tickets.total ? `${tickets.done}/${tickets.total} tickets` : fullyDecided(p) ? 'all decided — no tickets yet' : 'no tickets yet';
+        lines.push(`  ${fit(`${p.id} ${p.title}`, 28)}${bar(points.settled, points.total)} ${pct(points.settled, points.total)}   ${bar(tickets.done, tickets.total)} ${pct(tickets.done, tickets.total)}  ${c.grey(note)}`);
       }
       lines.push('');
     }
@@ -86,9 +92,11 @@ export function formatStatus(graph, { filter = null, color = false } = {}) {
   const { errors, warnings } = graph.stats;
   if (errors || warnings) lines.push(c.red(`⚠  ${errors} format error(s), ${warnings} warning(s) — run: thinkmap validate`), '');
 
-  const next = open[0]
-    ? `discuss ${open[0].id} (${open[0].title})`
-    : ready[0] ? `start ${ready[0].id} with /thinkmap-ticket ${ready[0].id}` : null;
+  const next = needsTickets[0]
+    ? `generate tickets for ${needsTickets[0].id} — every point is decided and it has no tickets yet (/thinkmap-tickets ${needsTickets[0].id})`
+    : open[0]
+      ? `discuss ${open[0].id} (${open[0].title})`
+      : ready[0] ? `start ${ready[0].id} with /thinkmap-ticket ${ready[0].id}` : null;
   if (next) lines.push(`👉 Suggested: ${next}`);
 
   return lines.join('\n');

@@ -5,7 +5,7 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { listMarkdownFiles, parsePlanFile, STATUSES, TYPES, KINDS, KIND_STATUS } from './parse.js';
 import { scanTooling } from './tooling.js';
-import { formatCopyStatus, TEMPLATE_VERSION } from './init.js';
+import { formatCopyStatus, TEMPLATE_VERSION, PHASE_DIR_RE, FEATURE_FILE_RE, TICKET_FILE_RE, phaseFolderNumber } from './init.js';
 import { cliCommand } from './update.js';
 
 const ID_RULES = {
@@ -105,6 +105,55 @@ export function buildGraph(planDir, opts = {}) {
     issue('warning', rel(fc.file), null, `this copy of the format rules differs from the ones bundled with Thinkmap ${TEMPLATE_VERSION} (the validator and the plugin follow the bundled rules) — refresh it: ${cliCommand()} format --write${where}`);
   }
 
+  // Layout rules (FORMAT.md §1): one folder per phase, named NN-slug, each holding phase.md
+  // and a tickets/ folder. The tree is created by `thinkmap phase` / `init`; this only checks it.
+  const phaseDirs = new Map(); // folder name → { nn }
+  for (const e of fs.readdirSync(absDir, { withFileTypes: true })) {
+    if (!e.isDirectory() || e.name.startsWith('.') || e.name === 'node_modules') continue;
+    const m = PHASE_DIR_RE.exec(e.name);
+    const r = rel(path.join(absDir, e.name));
+    if (!m) {
+      issue('error', r, null, `folder "${e.name}" is not a phase folder — phases are named NN-slug (e.g. 01-basic); nothing else lives at the top of the plan folder`);
+      continue;
+    }
+    phaseDirs.set(e.name, { nn: String(parseInt(m[1], 10)).padStart(2, '0') });
+    if (!fs.existsSync(path.join(absDir, e.name, 'phase.md'))) issue('error', r, null, `phase folder has no phase.md (create the phase with: ${cliCommand()} phase P${parseInt(m[1], 10)} <slug>)`);
+    const tk = path.join(absDir, e.name, 'tickets');
+    if (!fs.existsSync(tk) || !fs.statSync(tk).isDirectory()) issue('error', r, null, `phase folder has no tickets/ folder — add ${e.name}/tickets/.gitkeep so git keeps it before the first ticket (${cliCommand()} phase P${parseInt(m[1], 10)} <slug> does this)`);
+  }
+  // Where a file of a given type may sit and what it must be called. Returns an error message or null.
+  const placement = (file, type, id) => {
+    const parts = path.relative(absDir, file).split(path.sep);
+    const name = parts[parts.length - 1];
+    const folder = parts[0];
+    const inPhase = parts.length >= 2 && phaseDirs.has(folder);
+    const nn = inPhase ? phaseDirs.get(folder).nn : null;
+    const own = (pid) => phaseFolderNumber(pid);
+    switch (type) {
+      case 'project':
+        return parts.length === 1 && name === 'project.md' ? null : 'the project node is docs/plan/project.md — nothing else may be type: project';
+      case 'phase':
+        if (!(inPhase && parts.length === 2 && name === 'phase.md')) return `a phase file is <NN-slug>/phase.md, not ${parts.join('/')}`;
+        return nn === own(id) ? null : `phase ${id} belongs in folder ${own(id)}-<slug>, not ${folder}/`;
+      case 'feature': {
+        if (!(inPhase && parts.length === 2)) return `a topic file sits directly in its phase folder (<NN-slug>/F<nn>-slug.md), not ${parts.join('/')}`;
+        const m = FEATURE_FILE_RE.exec(name);
+        if (!m) return `topic file name must be F<nn>-slug.md (lowercase words joined by "-"), e.g. ${id.split('-')[1]}-${name.replace(/\.md$/, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'topic'}.md`;
+        if (m[1] !== id.split('-')[1]) return `file name starts with "${m[1]}" but the id is ${id} — rename it ${id.split('-')[1]}-<slug>.md`;
+        return nn === own(id.split('-')[0]) ? null : `topic ${id} belongs in phase folder ${own(id.split('-')[0])}-<slug>, not ${folder}/`;
+      }
+      case 'ticket': {
+        if (!(inPhase && parts.length === 3 && parts[1] === 'tickets')) return `a ticket file sits only in its phase's tickets/ folder (<NN-slug>/tickets/P<n>-T<nn>-slug.md), not ${parts.join('/')}`;
+        const m = TICKET_FILE_RE.exec(name);
+        if (!m) return `ticket file name must be P<n>-T<nn>-slug.md (lowercase words joined by "-"), e.g. ${id}-${name.replace(/\.md$/, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'work'}.md`;
+        if (m[1] !== id) return `file name starts with "${m[1]}" but the id is ${id} — rename it ${id}-<slug>.md`;
+        return nn === own(id.split('-')[0]) ? null : `ticket ${id} belongs in ${own(id.split('-')[0])}-<slug>/tickets/, not ${folder}/tickets/`;
+      }
+      default:
+        return null;
+    }
+  };
+
   for (const file of files) {
     const r = rel(file);
     let parsed;
@@ -115,7 +164,7 @@ export function buildGraph(planDir, opts = {}) {
       continue;
     }
     if (!parsed) {
-      issue('warning', r, null, 'no front matter — file ignored');
+      issue('error', r, null, 'no front matter — only plan files (project.md, phase.md, F<nn>-*.md, tickets/P<n>-T<nn>-*.md) and FORMAT.md belong in the plan folder; move notes elsewhere');
       continue;
     }
     const d = parsed.data;
@@ -132,6 +181,10 @@ export function buildGraph(planDir, opts = {}) {
       type = null;
     }
     if (type && !ID_RULES[type].test(id)) issue('error', r, id, `id "${id}" does not match the ${type} pattern`);
+    else if (type) {
+      const where = placement(file, type, id);
+      if (where) issue('error', r, id, where);
+    }
 
     let status = d.status ?? null;
     if (status && !(STATUSES.includes(status) || (status === 'auto' && AUTO_TYPES.has(type)))) {

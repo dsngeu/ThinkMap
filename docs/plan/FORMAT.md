@@ -12,17 +12,38 @@ and every person follows this format, so plans stay in sync across sessions.
 
 ```
 docs/plan/
-├── FORMAT.md                       ← this file
-├── project.md                      ← root node (type: project)
-├── 01-basic/                       ← one folder per phase: NN-slug
-│   ├── phase.md                    ← type: phase
-│   ├── F01-signup.md               ← type: feature (discussion points inside)
+├── FORMAT.md                       ← this file (a copy, see the note above)
+├── project.md                      ← root node (type: project) — the only other file at this level
+├── 01-basic/                       ← one folder per phase: NN-slug, NN = phase number, two digits
+│   ├── phase.md                    ← type: phase (id P1) — always this name
+│   ├── F01-signup.md               ← type: feature = a topic (id P1-F01), directly in the phase folder
 │   ├── F02-employees.md
-│   └── tickets/
-│       ├── P1-T01-signup-api.md    ← type: ticket (one unit of work for one agent)
+│   └── tickets/                    ← always present, even before the first ticket exists
+│       ├── .gitkeep                ← keeps the folder in git while it is empty
+│       ├── P1-T01-signup-api.md    ← type: ticket (id P1-T01) — tickets live only here
 │       └── P1-T02-set-password-ui.md
 └── 02-workflow/ ...
 ```
+
+This tree is a set of rules, not an example. The validator reports each break as an
+**error**, and the save hook runs it after every edit:
+
+1. Every phase folder is named `NN-slug` and contains `phase.md` **and** a `tickets/` folder.
+   `NN` is the phase number with two digits (`P1` → `01-…`, `P12` → `12-…`); the slug is
+   lowercase words joined by `-`.
+2. Topic files (`type: feature`) sit directly in their phase folder, named `F<nn>-slug.md`.
+3. Ticket files (`type: ticket`) sit only inside that phase's `tickets/`, named `P<n>-T<nn>-slug.md`.
+4. A file name starts with its ID (`F01-…`, `P1-T01-…`) and its folder is the phase in its
+   ID and `parent:`.
+5. Nothing else: the only other files are `project.md` and `FORMAT.md` at the top level.
+   A `.md` file anywhere else, or without front matter, is an error. Files that are not
+   `.md` (images, `.gitkeep`) are not read.
+
+**Never build this tree by hand.** `thinkmap init` creates the first phase and
+`thinkmap phase P2 <slug>` creates each further one — folder, `phase.md` with valid front
+matter and `tickets/.gitkeep` in one go. Git cannot store an empty folder, which is why the
+`.gitkeep` is there: a phase whose questions are all still open looks the same on disk as a
+phase that already has tickets.
 
 ## 2. IDs
 

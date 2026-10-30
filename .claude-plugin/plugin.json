@@ -1,6 +1,6 @@
 {
   "name": "thinkmap",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Know your project: what's decided, what's open, what's built. Claude writes decisions into docs/plan/ while you talk; a live mind map shows them.",
   "author": { "name": "Deepak Singh" },
   "homepage": "https://github.com/dsngeu/ThinkMap#readme",

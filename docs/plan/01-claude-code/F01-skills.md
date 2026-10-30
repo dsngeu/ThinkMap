@@ -5,7 +5,7 @@ title: Skills
 status: auto
 parent: P1
 labels: [claude-code]
-updated: 2026-10-29
+updated: 2026-10-30
 ---
 
 Claude Code skills: reusable instructions Claude follows either automatically (when the
@@ -66,3 +66,17 @@ task matches) or when a person types `/name`.
   > Code's built-in commands, so the bare form would never work; the prefix guarantees it does.
   > Discussed: (a) prefixed vs (b) short — (b) rejected for the collision.
   > Built: `skills/` folders named accordingly; `/thinkmap:thinkmap-status` also works.
+
+- [decided 2026-10-30] P1-F01-08: `/thinkmap-tickets <P1 | P1-F02>` — break decided points into tickets, whole phase at once
+  > What: Takes a phase ID (every topic of the phase in one table) or a topic ID (additions to
+  > a phase that already has tickets). Gate 1 shows the proposed tickets — IDs continuing the
+  > phase numbering, title, topic, `implements`, `depends_on` — and waits. Gate 2 writes the
+  > files into `<NN-slug>/tickets/` on an explicit "go ahead", sets each covered point's
+  > `Built:` line to the ticket, and runs the validator.
+  > Why: GitHub issue #1 — a fresh phase with seven decided topics meant seven one-topic
+  > runs, so the breakdown was done by hand and the folder layout drifted. One run per phase
+  > removes the reason to skip the tool. `thinkmap status` names this command when a phase is
+  > fully decided and has no tickets (P2-F03-04).
+  > Expected: "all decided, zero tickets" is followed by `/thinkmap-tickets P1`, one table,
+  > one yes, and a valid `tickets/` folder.
+  > Built: `skills/thinkmap-tickets/SKILL.md` (Claude may invoke it; the gates keep the human in charge). Ticket P2-T02.

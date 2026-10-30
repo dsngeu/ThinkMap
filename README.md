@@ -56,6 +56,7 @@ What the plugin gives every session in that project, without any CLAUDE.md editi
 | `thinkmap-format` (automatic) | While you discuss or decide, Claude writes decisions, open questions, ideas and cautions into the plan files. The rules come from one file, `template/FORMAT.md`. |
 | `/thinkmap` | Opens the map (starts the viewer if needed) |
 | `/thinkmap-status [P1 \| open]` | Terminal summary — Claude may also run it on its own |
+| `/thinkmap-tickets <P1 \| P1-F02>` | Breaks the decided points of a phase (or one topic) into tickets: one table to approve first, files written only after "go ahead". `thinkmap status` suggests it when a phase is fully decided and has no tickets |
 | `/thinkmap-ticket <ID>` | Claims a ticket for this session (in-progress, owner, Handoff log) and loads its context; refuses to double-claim. "Work on P1-T03" triggers it too |
 | `/thinkmap-init` | Sets up `docs/plan/` in a new project |
 | Hook: validate on save | After any edit under `docs/plan/`, format errors go straight back to Claude |
@@ -112,11 +113,17 @@ terminal; the `npx` commands are for the terminal.
 docs/plan/
 ├── FORMAT.md                      a copy of the rules for people and sessions without Thinkmap
 ├── project.md                     type: project
-└── 01-basic/
+└── 01-basic/                      one folder per phase: NN-slug
     ├── phase.md                   type: phase     id P1
     ├── F02-signup.md              type: feature   id P1-F02   ← a "topic"; its ## Points are the notes
-    └── tickets/P1-T03-api.md      type: ticket    id P1-T03
+    └── tickets/                   always there (a .gitkeep holds it until the first ticket)
+        └── P1-T03-api.md          type: ticket    id P1-T03
 ```
+
+The layout is enforced, not suggested: `thinkmap validate` reports a misnamed folder, a topic in
+`tickets/`, a ticket outside it, a phase without `tickets/`, or any stray `.md` as an error.
+`thinkmap init` creates the first phase and `thinkmap phase P2 <slug>` each further one, so
+nobody builds the tree by hand.
 
 A note is one line plus a labelled body:
 
@@ -136,9 +143,10 @@ Expected · Discussed · Options · Pending · Built · Risk · Next`. Full spec
 | Command | What it does |
 |---|---|
 | `thinkmap init [dir] --name "X" [--force]` | Set up `docs/plan/` from the template |
+| `thinkmap phase <P2> <slug> [dir] [--title "X"]` | Scaffold one phase: `02-slug/phase.md` with valid front matter and `tickets/.gitkeep`. Re-running adds only what is missing |
 | `thinkmap serve [dir] [--port 4400] [--open]` | Web viewer with live reload |
-| `thinkmap status [dir] [P1 \| open]` | Terminal summary: phases, in progress, blocked, open questions, next free tickets |
-| `thinkmap validate [dir] [--quiet]` | Check the format; exit 1 on errors (use in hooks and CI) |
+| `thinkmap status [dir] [P1 \| open]` | Terminal summary: phases, in progress, blocked, open questions, next free tickets, and the suggested next step (including "generate tickets" once a phase is fully decided) |
+| `thinkmap validate [dir] [--quiet]` | Check the format and the folder layout; exit 1 on errors (use in hooks and CI) |
 | `thinkmap export [dir] [--out plan.html]` | One static HTML file to share |
 | `thinkmap json [dir]` | The graph as JSON |
 | `thinkmap format [dir] [--write]` | Is `docs/plan/FORMAT.md` the version bundled with this Thinkmap? Exit 1 if not; `--write` refreshes the copy |

@@ -4,8 +4,8 @@ type: phase
 title: Viewer & engine
 status: auto
 parent: PROJECT
-updated: 2026-10-29
+updated: 2026-10-30
 ---
 
-Improvements to the map itself. Nothing scheduled; these are the questions users have
-raised so far.
+Improvements to the map and the engine behind it: the questions users have raised about
+the viewer, and the rules that keep every project's plan folder the same shape.

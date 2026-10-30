@@ -6,13 +6,14 @@ import { execFile } from 'node:child_process';
 import { buildGraph } from '../src/graph.js';
 import { formatStatus, formatIssues } from '../src/status.js';
 import { startServer, exportHtml } from '../src/server.js';
-import { initPlan, CLAUDE_SNIPPET, formatCopyStatus, syncFormatCopy, TEMPLATE_FORMAT, TEMPLATE_VERSION } from '../src/init.js';
+import { initPlan, scaffoldPhase, CLAUDE_SNIPPET, formatCopyStatus, syncFormatCopy, TEMPLATE_FORMAT, TEMPLATE_VERSION } from '../src/init.js';
 import { currentVersion, detectInstall, howToUpdate, checkLatest, runUpdate, cliCommand, staleCopies } from '../src/update.js';
 
 const HELP = `Thinkmap — live planning map for docs/plan/*.md
 
 Usage:
   thinkmap init     [dir] [--name "Project"] [--force]   set up docs/plan/ from the template
+  thinkmap phase    <P2> <slug> [dir] [--title "Name"]   scaffold a phase: 02-slug/phase.md + tickets/.gitkeep
   thinkmap serve    [dir] [--port 4400] [--open]   web viewer with live reload
   thinkmap status   [dir] [P1 | open]              text summary
   thinkmap validate [dir] [--quiet]                check format (exit 1 on errors)
@@ -34,14 +35,16 @@ for (let i = 0; i < args.length; i++) {
   if (a.startsWith('--')) {
     const [k, v] = a.slice(2).split('=');
     if (v !== undefined) flags[k] = v;
-    else if (args[i + 1] && !args[i + 1].startsWith('--') && ['port', 'out', 'name'].includes(k)) flags[k] = args[++i];
+    else if (args[i + 1] && !args[i + 1].startsWith('--') && ['port', 'out', 'name', 'title'].includes(k)) flags[k] = args[++i];
     else flags[k] = true;
   } else positional.push(a);
 }
 
 // First positional is the dir only if it exists; otherwise it's a filter (e.g. "P1").
+// `phase P2 slug [dir]` takes the dir after its two arguments.
 let dir = 'docs/plan';
-if (positional[0] && fs.existsSync(positional[0])) dir = positional.shift();
+const dirAt = cmd === 'phase' ? 2 : 0;
+if (positional[dirAt] && fs.existsSync(positional[dirAt]) && fs.statSync(positional[dirAt]).isDirectory()) dir = positional.splice(dirAt, 1)[0];
 const color = process.stdout.isTTY && !process.env.NO_COLOR;
 
 switch (cmd) {
@@ -52,7 +55,26 @@ switch (cmd) {
       console.log(`✓ Thinkmap set up in ${r.dir}`);
       for (const f of r.written) console.log(`  + ${f}`);
       for (const f of r.skipped) console.log(`  = ${f} (kept, already existed)`);
-      console.log(`\nNext:\n  1. Add this to your CLAUDE.md so every Claude session follows the format:\n\n${CLAUDE_SNIPPET.replace(/^/gm, '     ')}\n  2. Replace the example topic with real ones (see ${path.join(r.dir, 'FORMAT.md')})\n  3. ${cliCommand()} serve --open`);
+      console.log(`\nNext:\n  1. Add this to your CLAUDE.md so every Claude session follows the format:\n\n${CLAUDE_SNIPPET.replace(/^/gm, '     ')}\n  2. Replace the example topic with real ones (see ${path.join(r.dir, 'FORMAT.md')}); more phases: ${cliCommand()} phase P2 <slug>\n  3. ${cliCommand()} serve --open`);
+    } catch (e) {
+      console.error(`✗ ${e.message}`);
+      process.exit(1);
+    }
+    break;
+  }
+  case 'phase': {
+    const [id, slug] = positional;
+    if (!id || !slug) {
+      console.error(`✗ usage: ${cliCommand()} phase <P2> <slug> [dir] [--title "Name"]   e.g. phase P2 workflow`);
+      process.exit(1);
+    }
+    try {
+      const r = scaffoldPhase(dir, { id, slug, title: typeof flags.title === 'string' ? flags.title : null });
+      console.log(`✓ phase ${r.id} "${r.title}" in ${path.join(r.dir, r.folder)}`);
+      for (const f of r.written) console.log(`  + ${f}`);
+      for (const f of r.skipped) console.log(`  = ${f} (kept, already existed)`);
+      if (!r.written.length) console.log('  nothing to add — the phase already had its skeleton');
+      else console.log(`\nNext: describe the phase in ${path.join(r.folder, 'phase.md')}, add topics as ${r.folder}/F01-<slug>.md, and run ${cliCommand()} validate`);
     } catch (e) {
       console.error(`✗ ${e.message}`);
       process.exit(1);
