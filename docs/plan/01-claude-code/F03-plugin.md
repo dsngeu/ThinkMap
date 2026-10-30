@@ -6,7 +6,7 @@ status: auto
 parent: P1
 depends_on: [P1-F01, P1-F02]
 labels: [claude-code, distribution]
-updated: 2026-10-29
+updated: 2026-10-30
 ---
 
 Package everything as one Claude Code plugin and distribute it through a plugin marketplace.
@@ -34,7 +34,10 @@ Package everything as one Claude Code plugin and distribute it through a plugin 
   > What: `npx thinkmap` instead of `npx github:dsngeu/ThinkMap`.
   > Options: (a) Yes, once the CLI is stable (nicer command, versioned releases).
   > (b) Stay GitHub-only for now.
-  > Next: Decide after the plugin ships.
+  > Discussed: 2026-10-30 — the npm name `thinkmap` is free (registry returns 404). Publishing
+  > is the single biggest reach step: `npx thinkmap serve` is discoverable, `npx github:…` is not.
+  > Needs `npm login` by Deepak; `update.js` would then prefer the registry over GitHub.
+  > Next: Deepak decides; if yes, `npm publish` from a clean 0.5.0 checkout and a P1 ticket for the update path.
 
 - [decided 2026-10-29] P1-F03-04: The marketplace file lives in this repo for now
   > What: `.claude-plugin/marketplace.json` next to `plugin.json`, listing the repo root (`"./"`)
@@ -78,3 +81,24 @@ Package everything as one Claude Code plugin and distribute it through a plugin 
   > Built: `src/init.js` (`formatCopyStatus`, `syncFormatCopy`), warning in `src/graph.js`,
   > `format` command in `bin/thinkmap.js`, briefing line in `hooks/briefing.mjs`, note at the
   > top of `template/FORMAT.md`, skill and README text; version 0.4.0. Ticket P1-T05.
+
+- [decided 2026-10-30] P1-F03-07: A live demo of this repo's own plan on GitHub Pages
+  > What: `.github/workflows/pages.yml` runs `thinkmap export docs/plan` on every push to
+  > master and publishes the single HTML file at https://dsngeu.github.io/ThinkMap/. The
+  > README and the repo's homepage link to it.
+  > Why: Reach. A visitor sees the map in ten seconds without installing anything, and the
+  > page doubles as proof that `export` works for sharing a plan with people who lack the tool.
+  > Expected: Every merged change to `docs/plan/` shows up on the demo page within minutes;
+  > a broken export fails the workflow visibly.
+  > Built: workflow + Pages enabled in "workflow" mode; `test.yml` runs `npm test` and `validate` on Node 20 and 22 for the badge.
+
+- [decided 2026-10-30] P1-F03-08: Discoverability basics on the GitHub repo
+  > What: Topics (claude-code, claude-code-plugin, mind-map, planning, decision-log, …),
+  > homepage = the live demo, Discussions on, README badges (tests, release, demo, plugin,
+  > Node, zero dependencies, MIT), a "Spread the word" section, and a GitHub Release per version
+  > starting with v0.5.0 (release notes = what changed for users).
+  > Why: Topics are how GitHub search and the topic pages surface a repo; releases show in
+  > followers' feeds and in the sidebar; badges answer "is this alive and tested?" at a glance.
+  > Discussed: Still to do by hand — a social preview image (Settings → Social preview, 1280×640;
+  > a screenshot of the map), a short post with the demo link (Claude Code community, Show HN,
+  > LinkedIn/X), and a PR to an awesome-claude-code list. None of these can be done from the CLI.

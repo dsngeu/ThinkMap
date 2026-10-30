@@ -2,6 +2,14 @@
 
 **Know your project: what's decided, what's open, what's built.**
 
+[![Tests](https://github.com/dsngeu/ThinkMap/actions/workflows/test.yml/badge.svg)](https://github.com/dsngeu/ThinkMap/actions/workflows/test.yml)
+[![Release](https://img.shields.io/github/v/release/dsngeu/ThinkMap?label=release)](https://github.com/dsngeu/ThinkMap/releases)
+[![Live demo](https://img.shields.io/badge/live%20demo-dsngeu.github.io%2FThinkMap-8b5cf6)](https://dsngeu.github.io/ThinkMap/)
+[![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-d97757)](#as-a-claude-code-plugin-recommended)
+![Node 20+](https://img.shields.io/badge/node-%3E%3D20-brightgreen)
+![Zero dependencies](https://img.shields.io/badge/dependencies-0-blue)
+[![License: MIT](https://img.shields.io/github/license/dsngeu/ThinkMap)](LICENSE)
+
 Thinkmap turns a folder of Markdown planning files into a live, click-to-expand mind map.
 Every topic has six buckets, the way a person keeps a project in their head:
 
@@ -26,7 +34,10 @@ Zero dependencies. Node 20+. One HTML file. Nothing about your project leaves yo
 
 ## See it in action
 
-One minute: open the map, expand a phase, click a decision, read its story.
+**[Live demo → dsngeu.github.io/ThinkMap](https://dsngeu.github.io/ThinkMap/)** — this repo's
+own plan, exported as a static page on every push. Expand a phase, click a decision, read its story.
+
+One minute on video: open the map, expand a phase, click a decision, read its story.
 
 <!-- GitHub-hosted video. To replace: edit this file on github.com, drag ThinkMap-demo.mp4
      into the editor, and paste the https://github.com/user-attachments/assets/... URL it
@@ -242,6 +253,15 @@ Plugin layout: `.claude-plugin/` (manifest + marketplace), `skills/`, `hooks/`, 
 engine (`bin/ src/ web/ template/`). See [SPEC.md](SPEC.md).
 
 More: [docs/USING-IN-ANOTHER-PROJECT.md](docs/USING-IN-ANOTHER-PROJECT.md).
+
+## Spread the word
+
+If Thinkmap helps your team, a ⭐ on the repo is how other people find it. Tell a teammate in
+one line: `/plugin marketplace add dsngeu/ThinkMap` then `/plugin install thinkmap@thinkmap`.
+Questions and ideas: [Discussions](https://github.com/dsngeu/ThinkMap/discussions) ·
+bugs: [Issues](https://github.com/dsngeu/ThinkMap/issues). Pull requests welcome — run
+`npm test` and `node bin/thinkmap.js validate docs/plan` first, and record any decision you
+make in `docs/plan/` (this repo plans itself).
 
 ## Develop
 
