@@ -176,3 +176,11 @@ test('server: Add needs the page token and the dashboard origin; --read-only ref
     assert.equal(r.status, 403);
   } finally { ro.close(); }
 });
+
+test('graph: lists the skills built into Thinkmap for other projects, not for Thinkmap itself', () => {
+  const g = buildGraph(path.join(project(), 'docs', 'plan'));
+  const names = g.builtin.map((b) => b.name);
+  for (const n of ['thinkmap', 'thinkmap-create-tickets', 'thinkmap-implement-ticket', 'thinkmap-status']) assert.ok(names.includes(n), n);
+  assert.equal(g.builtin.find((b) => b.name === 'thinkmap-create-tickets').slash, '/thinkmap-create-tickets');
+  assert.deepEqual(buildGraph(path.join(ROOT, 'docs', 'plan')).builtin, [], 'Thinkmap lists its own skills as plugin tooling already');
+});

@@ -62,6 +62,9 @@ Inside Claude Code, in any project:
 | `/thinkmap-implement-ticket P1-T03` | Shows a brief of ticket P1-T03: decisions, risks, plan. Say "go ahead" and this session builds it and marks it done |
 | `/thinkmap-status` | A quick summary in the terminal |
 
+These come with the plugin — nothing to add. The dashboard's **Tooling** page lists them under
+*Built into Thinkmap*.
+
 ## Ready-made review agents
 
 Thinkmap also offers a small team of code-review **agents** and one **skill** that any
@@ -106,7 +109,7 @@ pushed back, and what still needs you. Nothing is committed; you read the diff a
 
 ### Add them to a project
 
-Run `/thinkmap`, open **Tooling**, and press **Add**. Thinkmap copies the agent or skill
+Run `/thinkmap`, click **Tooling** in the top bar, and press **Add**. Thinkmap copies the agent or skill
 into your project's `.claude/` folder, together with anything it needs, so the team gets it
 through git like any other file. Start a new Claude session to use it.
 

@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { listMarkdownFiles, parsePlanFile, STATUSES, TYPES, KINDS, KIND_STATUS } from './parse.js';
-import { scanTooling } from './tooling.js';
+import { scanTooling, scanBuiltin } from './tooling.js';
 import { catalogueStatus, readRecord } from './catalogue.js';
 import { formatCopyStatus, TEMPLATE_VERSION, PHASE_DIR_RE, FEATURE_FILE_RE, TICKET_FILE_RE, phaseFolderNumber } from './init.js';
 import { cliCommand } from './update.js';
@@ -420,6 +420,8 @@ export function buildGraph(planDir, opts = {}) {
     result.tooling = { root: '.claude/', scanned: [], isPlugin: false, counts: { agents: 0, skills: 0, hooks: 0 }, items: [], notes: [`tooling scan failed: ${e.message}`] };
   }
   // 9. The Thinkmap catalogue: what a project can add, and which of its tooling files came from it.
+  //    Plus the skills built into the plugin — always available, nothing to add.
+  try { result.builtin = scanBuiltin(base); } catch { result.builtin = []; }
   try {
     result.catalogue = catalogueStatus(base);
     const ours = new Set(Object.values(readRecord(base).items).flatMap((r) => r.files || []));

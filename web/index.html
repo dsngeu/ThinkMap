@@ -365,6 +365,7 @@ mark.hl { background: color-mix(in srgb, var(--ask) 30%, transparent); color: in
   <span class="grow"></span>
   <button class="tbtn" id="searchBtn" title="Search (⌘K or /)"><span id="searchIc"></span><span class="lbl">Search</span><kbd>⌘K</kbd></button>
   <a class="tbtn need" id="needBtn" href="#/inbox" hidden title="Questions and ideas waiting for your decision"><span class="lbl">Needs you</span><span class="n" id="needN"></span></a>
+  <a class="tbtn" id="toolBtn" href="#/tooling" title="Agents and skills: built in, add-ons, and this project's own"><span id="toolIc"></span><span class="lbl">Tooling</span></a>
   <a class="tbtn" id="mapBtn" href="#/map" title="Mind map view"><span id="mapIc"></span><span class="lbl">Map</span></a>
   <button class="tbtn" id="updBtn" hidden title="A newer Thinkmap is on GitHub">Update</button>
   <span class="live" id="live" title="connecting…"></span>
@@ -593,7 +594,6 @@ mark.hl { background: color-mix(in srgb, var(--ask) 30%, transparent); color: in
     const prog = progressOf(p);
     const ask = nodesOf('point').filter((x) => x.kind === 'open' || x.kind === 'suggestion');
     const cur = currentPhase();
-    const tools = state.g.tooling?.items?.length || 0;
     const { errors = 0, warnings = 0 } = state.g.stats || {};
     const step = (ph) => {
       const s = stage(ph); const pr = progressOf(ph); const fs = featuresOf(ph); const pc = countsOf(ph);
@@ -625,7 +625,7 @@ mark.hl { background: color-mix(in srgb, var(--ask) 30%, transparent); color: in
         <div>${sechead('Recent activity', null, 'What was decided, asked or built lately.')}<div class="card feed">${recent.length ? recent.map((e) => `<a href="${linkTo(e.n)}">${dotic(iconOfNode(e.n), toneOfNode(e.n))}<span class="t">${inlineMd(e.n.title)}</span><span class="d">${fmtDate(e.date)}</span></a>`).join('') : '<p class="muted" style="padding:14px">Nothing dated yet.</p>'}</div></div>
         <div>${sechead('Also in this project', null, 'Reference, when you need it.')}<div class="minis">
           ${c.caution ? mini('#/care', 'risk', 'risk', `${plural(c.caution, 'thing', 'things')} to take care of`, 'Rules and risks to remember while building') : ''}
-          ${mini('#/tooling', 'tools', 'accent', 'Claude Code tooling', tools ? plural(tools, 'agent, skill or hook', 'agents, skills and hooks') : 'None in this project')}
+          ${mini('#/tooling', 'tools', 'accent', 'Claude Code tooling', toolingSummary())}
           ${errors || warnings ? mini('#/issues', 'warn', errors ? 'risk' : 'idle', errors ? plural(errors, 'format error') : plural(warnings, 'format warning'), errors ? 'Some plan files break the format' : 'Small fixes; the plan still reads fine') : ''}
         </div></div>
       </div>`;
@@ -805,6 +805,7 @@ mark.hl { background: color-mix(in srgb, var(--ask) 30%, transparent); color: in
     // Remove asks once more on the same button instead of a browser dialog.
     if (action === 'remove' && el.dataset.sure !== '1') { el.dataset.sure = '1'; el.classList.add('warn'); el.innerHTML = `${icon('trash')}Click again to remove`; return; }
     for (const b of document.querySelectorAll(`[data-cat][data-name="${CSS.escape(name)}"]`)) b.disabled = true;
+    catMsgs.clear(); // only the latest press speaks; older messages would contradict the new states
     let r;
     try {
       const res = await fetch('api/catalogue', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Thinkmap-Token': token }, body: JSON.stringify({ action, name }) });
@@ -816,8 +817,25 @@ mark.hl { background: color-mix(in srgb, var(--ask) 30%, transparent); color: in
       const text = action === 'remove' ? 'Removed from .claude/. Start a new Claude session for it to go away there too.'
         : `${list('updated').includes(name) ? 'Updated' : 'Added'} to .claude/${more.length ? `, with ${more.join(', ')}` : ''}. Commit it to share with your team, and start a new Claude session to use it.`;
       catMsgs.set(name, { text, tone: 'ok' });
+      for (const n of more) catMsgs.set(n, { text: `Added along with ${name}, which needs it.`, tone: 'ok' });
     } else catMsgs.set(name, { text: r.error || 'Something went wrong.', tone: 'risk' });
     renderPage(false);
+  }
+  // Home card line: what Thinkmap gives you, then what the project has.
+  function toolingSummary() {
+    const own = (state.g.tooling?.items || []).filter((i) => i.source !== 'thinkmap').length;
+    const b = (state.g.builtin || []).length;
+    const c = state.g.catalogue?.items || [];
+    const left = c.filter((i) => i.state === 'available').length;
+    return [b && `${b} built in`, c.length && (left ? `${left} ready-made to add` : `${c.length} add-ons added`), `${own} of this project’s own`].filter(Boolean).join(' · ');
+  }
+  function builtinCard(b) {
+    return `<div class="card tool cat">${dotic(GROUP.skill.ic, GROUP.skill.tone)}<span>
+      <div class="t">${esc(b.slash || b.name)}</div>
+      <div class="s">${esc(b.description)}</div>
+      <div class="row">${pill('Always available', 'ok')}<span class="k t-${GROUP.skill.tone}" style="margin:0">${b.slash ? 'skill' : 'automatic skill'}</span></div>
+      ${b.slash ? `<div class="row"><button data-copy="${esc(b.slash)}">${icon('copy')}Copy command</button></div>` : `<div class="need">${esc(b.trigger)}</div>`}
+    </span></div>`;
   }
   function toolingPage() {
     const t = state.g.tooling || { items: [], notes: [] };
@@ -828,11 +846,13 @@ mark.hl { background: color-mix(in srgb, var(--ask) 30%, transparent); color: in
     const howAdd = canInstall() ? 'Add copies the files into this project’s <code>.claude/</code>. Commit them to share with your team.'
       : window.__PLAN__ ? 'This is a static copy of the map. Add them from the live map (<code>/thinkmap</code>) or with the command.'
       : 'This map was started read-only. Add them with the command.';
-    const catSec = cat.items.length ? `${sechead('From Thinkmap', `${cat.installed} of ${cat.items.length}`, `Ready-made agents and skills. ${howAdd}`)}<div class="tools">${cat.items.map(catCard).join('')}</div>` : '';
+    const builtin = state.g.builtin || [];
+    const builtSec = builtin.length ? `${sechead('Built into Thinkmap', builtin.length, 'Come with the Thinkmap plugin and work in every project that has it. Nothing to add — type the command in Claude Code. After a Thinkmap update, start a new Claude session to get the newest ones.')}<div class="tools">${builtin.map(builtinCard).join('')}</div>` : '';
+    const catSec = cat.items.length ? `${sechead('Add-ons from Thinkmap', `${cat.installed} of ${cat.items.length} added`, `Optional ready-made agents and skills. ${howAdd}`)}<div class="tools">${cat.items.map(catCard).join('')}</div>` : '';
     const ownSec = own.length
       ? ['agent', 'skill', 'hook'].map((g) => { const l = own.filter((i) => i.group === g); return l.length ? `${sechead(`This project’s own ${GROUP[g].title.toLowerCase()}`, l.length, GROUP[g].hint)}<div class="tools">${l.map((i) => `<a class="card tool" href="${href('tooling', i.id)}">${dotic(GROUP[g].ic, GROUP[g].tone)}<span><div class="t">${esc(i.group === 'skill' && i.slash ? i.slash : i.name)}</div><div class="s">${esc(i.description || 'No description.')}</div><div class="k t-${GROUP[g].tone}">${esc(tbadge(i))}</div></span></a>`).join('')}</div>` : ''; }).join('')
       : `${sechead('This project’s own', 0, '')}<div class="lede">None yet. Thinkmap looks in <code>.claude/agents/</code>, <code>.claude/skills/</code>, <code>.claude/commands/</code> and the <code>hooks</code> block of <code>.claude/settings.json</code> (plus a plugin’s own folders). It never reads your personal <code>~/.claude</code>.</div>`;
-    return `${head}<div class="lede">Ready-made agents and skills from Thinkmap, and the ones this project has made itself.</div>${notes}${catSec}${ownSec}`;
+    return `${head}<div class="lede">Skills built into Thinkmap, optional add-ons you can add with one click, and this project’s own agents, skills and hooks.</div>${notes}${builtSec}${catSec}${ownSec}`;
   }
   function toolPage(n) {
     const g = GROUP[n.group];
@@ -927,6 +947,7 @@ mark.hl { background: color-mix(in srgb, var(--ask) 30%, transparent); color: in
     const map = isMap();
     $('#page').hidden = map; $('#stage').hidden = !map; $('#maptools').hidden = !map;
     $('#mapBtn').classList.toggle('on', map);
+    $('#toolBtn').classList.toggle('on', r[0] === 'tooling');
     const need = asks(counts(nodesOf('feature')));
     $('#needBtn').hidden = !need || r[0] === 'inbox'; $('#needN').textContent = need;
     if (map) renderMap(); else renderPage(animate);
@@ -1129,7 +1150,7 @@ mark.hl { background: color-mix(in srgb, var(--ask) 30%, transparent); color: in
   function setLive(mode, text) { const el = $('#live'); el.className = `live ${mode}`; el.title = text; }
 
   // ---------- events ----------
-  $('#markIc').innerHTML = icon('logo'); $('#searchIc').innerHTML = icon('search'); $('#mapIc').innerHTML = icon('map'); $('#palIc').innerHTML = icon('search');
+  $('#markIc').innerHTML = icon('logo'); $('#searchIc').innerHTML = icon('search'); $('#mapIc').innerHTML = icon('map'); $('#toolIc').innerHTML = icon('tools'); $('#palIc').innerHTML = icon('search');
   document.addEventListener('click', (e) => {
     const t = e.target;
     if (!t.closest('#updbox') && !t.closest('#updBtn')) $('#updbox').hidden = true;

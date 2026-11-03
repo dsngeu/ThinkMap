@@ -9,6 +9,7 @@
 // still listed with its file. Hook commands are displayed, never run.
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { splitFrontMatter, parseYamlSubset } from './parse.js';
 
 const BODY_LIMIT = 30_000; // characters of Markdown body kept per item
@@ -182,3 +183,28 @@ const lineOf = (needle, lines) => {
   const i = lines.findIndex((l) => l.includes(probe));
   return i >= 0 ? i + 1 : 1;
 };
+
+// Skills built into the Thinkmap plugin itself (this package's skills/ folder). They are
+// available in every project the plugin is installed for, so the Tooling tab lists them as
+// "Built into Thinkmap" — nothing to add. Skipped when the scanned project *is* Thinkmap,
+// whose plugin layout already lists them.
+export const THINKMAP_ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
+export function scanBuiltin(projectRoot) {
+  const own = path.join(THINKMAP_ROOT, 'skills');
+  if (path.resolve(projectRoot) === path.resolve(THINKMAP_ROOT)) return [];
+  const out = [];
+  for (const f of listFiles(own, (p) => path.basename(p) === 'SKILL.md', 1)) {
+    let text;
+    try { text = fs.readFileSync(f, 'utf8'); } catch { continue; }
+    const { data } = parseToolFrontMatter(text);
+    const name = String(data.name || path.basename(path.dirname(f)));
+    const slash = !falsy(data['user-invocable']);
+    const auto = !truthy(data['disable-model-invocation']);
+    out.push({
+      name, slash: slash ? `/${name}` : null, description: String(data.description || ''),
+      hint: data['argument-hint'] ? String(data['argument-hint']) : null,
+      trigger: slash && auto ? `Type /${name}, or Claude uses it on its own when the task matches` : slash ? `Type /${name}` : 'Automatic — Claude uses it while you plan',
+    });
+  }
+  return out.sort((a, b) => Number(!a.slash) - Number(!b.slash) || a.name.localeCompare(b.name));
+}

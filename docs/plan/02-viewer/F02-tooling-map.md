@@ -131,6 +131,22 @@ can see what runs automatically in this repo and tap an item to read what it doe
   > avoids two ticket commands side by side. Deepak's call.
   > Built: See P1-F01-09 and P1-F01-10.
 
+- [decided 2026-11-03] P2-F02-13: The Tooling page shows three groups — built into Thinkmap, add-ons, this project's own — and has its own top-bar button
+  > What: "Built into Thinkmap" lists the plugin's own skills (`/thinkmap`, `/thinkmap-create-tickets`,
+  > `/thinkmap-implement-ticket`…) as "Always available" with a copy-command button. "Add-ons
+  > from Thinkmap" is the catalogue with Add / Remove. A **Tooling** button sits in the top bar
+  > next to Map, and the home card says e.g. "6 built in · 3 ready-made to add · 2 of this
+  > project's own".
+  > Why: Deepak looked for the ticket skills on the dashboard to install them; built-in skills
+  > were shown nowhere, so they looked missing, and the only way into Tooling was a card at the
+  > bottom of the home page.
+  > Discussed: (a) show built-ins as always available vs (b) move the ticket skills into the
+  > catalogue as add-ons — (a), Deepak's call: no Add step, no duplicate commands, and they
+  > update with the plugin. This reads Thinkmap's own package, not the user's installed
+  > plugins, so P2-F02-02 still holds.
+  > Built: `scanBuiltin()` in `src/tooling.js` (`builtin` in the graph; empty when the project is
+  > Thinkmap itself), `web/index.html` (section, top-bar button, home card); test in `test/catalogue.test.js`.
+
 - [caution 2026-11-03 claude] P2-F02-08: A localhost server that writes files is reachable from any web page
   > What: Any site open in the browser can send requests
   > to 127.0.0.1. Write endpoints need a per-run secret token, an Origin check, writes limited
