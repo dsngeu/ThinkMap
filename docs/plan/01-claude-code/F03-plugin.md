@@ -129,6 +129,15 @@ Package everything as one Claude Code plugin and distribute it through a plugin 
   > 290 lines; a developer could not tell in a minute what Thinkmap does for them.
   > Built: README rewritten (about 90 lines); details moved, not deleted.
 
+- [caution 2026-11-03 claude] P1-F03-12: A change users should get needs a version bump, or the plugin update skips it
+  > What: Claude Code keeps installed plugins by version (`~/.claude/plugins/cache/thinkmap/thinkmap/<version>/`).
+  > If `plugin.json` keeps the same version, `claude plugin update` sees nothing new and users
+  > keep the old copy. Raise `version` in `package.json` and `.claude-plugin/plugin.json`
+  > together (a test keeps them equal) before pushing a release.
+  > Why: 2026-11-03 — the catalogue, Add / Remove and the ticket-skill rename shipped in three
+  > commits still at 0.7.0; after updating, the dashboard showed no Add buttons. Fixed by 0.8.0.
+  > Risk: Users update, see nothing new, and think the feature is broken.
+
 ## Tickets
 
 - P1-T03 · Package as a Claude Code plugin + marketplace · done
