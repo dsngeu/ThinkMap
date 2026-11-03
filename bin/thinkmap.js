@@ -10,20 +10,29 @@ import { initPlan, scaffoldPhase, CLAUDE_SNIPPET, formatCopyStatus, syncFormatCo
 import { findServers, decide, stopServer } from '../src/handoff.js';
 import { planTicketSync, applyTicketSync } from '../src/tickets.js';
 import { currentVersion, detectInstall, howToUpdate, checkLatest, runUpdate, cliCommand, staleCopies } from '../src/update.js';
+import { catalogueStatus, addItems, removeItems } from '../src/catalogue.js';
+import { findRepoRoot } from '../src/graph.js';
+
+// The project's root — where .claude/ lives. The same root the Tooling tab scans.
+const projectRoot = (planDir) => findRepoRoot(path.resolve(planDir)) || path.resolve(planDir);
 
 const HELP = `Thinkmap — live planning map for docs/plan/*.md
 
 Usage:
   thinkmap init     [dir] [--name "Project"] [--force]   set up docs/plan/ from the template
   thinkmap phase    <P2> <slug> [dir] [--title "Name"]   scaffold a phase: 02-slug/phase.md + tickets/.gitkeep
-  thinkmap serve    [dir] [--port 4400] [--open] [--restart]   web viewer with live reload; reuses or replaces
-                                                   a Thinkmap already serving this plan (--restart always replaces)
+  thinkmap serve    [dir] [--port 4400] [--open] [--restart] [--read-only]   web viewer with live reload; reuses or
+                                                   replaces a Thinkmap already serving this plan (--restart always replaces);
+                                                   --read-only hides the Add / Remove buttons
   thinkmap status   [dir] [P1 | P1-F02 | open]     text summary: whole plan, one phase, one topic, or open questions
   thinkmap tickets  [dir] [--write]                do ticket file names and topics' "## Tickets" lists match? --write fixes them
   thinkmap validate [dir] [--quiet]                check format (exit 1 on errors)
   thinkmap export   [dir] [--out thinkmap.html]    single static HTML file
   thinkmap json     [dir]                          graph as JSON
   thinkmap format   [dir] [--write]                is docs/plan/FORMAT.md the bundled version? --write refreshes it
+  thinkmap catalogue [dir]                         ready-made agents and skills, and which this project has added
+  thinkmap add      <name…> [dir] [--force]        copy catalogue items (and what they need) into .claude/
+  thinkmap remove   <name…> [dir] [--force]        delete catalogue items Thinkmap added (never your own files)
   thinkmap update   [--check]                      fetch the newest version (npx cache, node_modules or clone)
   thinkmap version                                 show version and where Thinkmap runs from
 
@@ -112,7 +121,7 @@ switch (cmd) {
     }
     const checkUpdate = flags['no-update-check'] ? null : () => checkLatest({ current: version });
     const updateHint = howToUpdate(detectInstall());
-    const srv = await startServer({ planDir: dir, port: startPort, version, checkUpdate, updateHint, cli: cliCommand(), onUpdate: (u) => console.log(`⬆ Thinkmap ${u.latest} is available (you have ${u.current}). Update: ${updateHint}`) });
+    const srv = await startServer({ planDir: dir, port: startPort, version, checkUpdate, updateHint, cli: cliCommand(), readOnly: Boolean(flags['read-only']), onUpdate: (u) => console.log(`⬆ Thinkmap ${u.latest} is available (you have ${u.current}). Update: ${updateHint}`) });
     console.log(`📍 Thinkmap ${version} serving ${path.resolve(dir)}\n   ${srv.url}   (Ctrl+C to stop)`);
     open(srv.url);
     const stop = () => { srv.close(); process.exit(0); };
@@ -123,6 +132,44 @@ switch (cmd) {
   case 'status':
     console.log(formatStatus(buildGraph(dir), { filter: positional[0] ?? null, color }));
     break;
+  case 'catalogue': {
+    // Ready-made agents and skills a project can add to its .claude/ (catalogue/ in this package).
+    const root = projectRoot(dir);
+    const c = catalogueStatus(root);
+    const STATE = { available: '○ not added', installed: '● added', update: '↑ update available', modified: '✎ added, changed here', conflict: '✗ name taken by your own file' };
+    const w = Math.max(...c.items.map((i) => i.name.length + (i.kind === 'skill' ? 1 : 0)));
+    console.log(`Thinkmap catalogue — ${c.installed} of ${c.items.length} added to ${path.relative(process.cwd(), path.join(root, '.claude')) || '.claude'}/\n`);
+    for (const i of c.items) {
+      const n = i.kind === 'skill' ? `/${i.name}` : i.name;
+      console.log(`  ${n.padEnd(w)}  ${i.kind.padEnd(5)}  ${STATE[i.state]}\n  ${' '.repeat(w)}  ${i.summary}${i.requires.length ? `\n  ${' '.repeat(w)}  needs: ${i.requires.join(', ')}` : ''}`);
+    }
+    console.log(`\nAdd: ${cliCommand()} add <name> · Remove: ${cliCommand()} remove <name> · or the Tooling tab of ${cliCommand()} serve`);
+    break;
+  }
+  case 'add':
+  case 'remove': {
+    const names = positional;
+    if (!names.length) { console.error(`✗ usage: ${cliCommand()} ${cmd} <name> [<name>…] [dir] [--force]   — see ${cliCommand()} catalogue`); process.exit(1); }
+    try {
+      const root = projectRoot(dir);
+      if (cmd === 'add') {
+        const r = addItems(root, names, { force: Boolean(flags.force) });
+        for (const n of r.added) console.log(`  + ${n}`);
+        for (const n of r.updated) console.log(`  ↑ ${n} (updated)`);
+        for (const n of r.unchanged) console.log(`  = ${n} (already added)`);
+        for (const n of r.kept) console.log(`  ! ${n} kept: changed in this project since it was added (--force replaces it)`);
+        if (r.added.length || r.updated.length) console.log(`\n✓ Copied into .claude/ — commit it to share with your team. Start a new Claude session to use it.`);
+      } else {
+        const r = removeItems(root, names, { force: Boolean(flags.force) });
+        for (const n of r.removed) console.log(`  − ${n}`);
+        console.log('\n✓ Removed from .claude/. Start a new Claude session for it to disappear there too.');
+      }
+    } catch (e) {
+      console.error(`✗ ${e.message}`);
+      process.exit(1);
+    }
+    break;
+  }
   case 'tickets': {
     // Ticket file names carry their topic (P2-T05-F04-slug.md) and each topic lists its tickets.
     // Report what is out of step (exit 1) or, with --write, rename the files and rewrite the lists.

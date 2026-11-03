@@ -8,6 +8,7 @@ A zero-dependency Node tool that turns `docs/plan/*.md` into a live mind map.
 - `src/parse.js` — front matter + point parser · `src/graph.js` — validation, roll-ups, git links
 - `src/server.js` — localhost server, live reload (SSE) · `src/status.js` — terminal summary
 - `src/init.js` + `template/` — what `thinkmap init` copies into a project
+- `catalogue/` + `src/catalogue.js` — ready-made agents and skills; add/remove into a project's `.claude/`
 - `web/index.html` — the whole viewer, one file, no build step, no libraries
 - `test/` — `node --test`; run with `npm test`
 
@@ -15,7 +16,8 @@ A zero-dependency Node tool that turns `docs/plan/*.md` into a live mind map.
 - **Zero dependencies.** No npm packages, no build step, no CDN scripts. Node 20+ only.
 - `template/FORMAT.md` is the canonical format spec. Changing the format = change the
   parser, the spec, the template example topic, and a test, together.
-- Server binds 127.0.0.1 only and serves only `.md` files inside the plan folder.
+- Server binds 127.0.0.1 only and serves only `.md` files inside the plan folder. Its one write:
+  adding/removing catalogue files in `.claude/` (token + Origin checked, P2-F02-08).
 - Keep `web/index.html` working in light and dark mode and at phone width.
 - Every change: `npm test` passes and `node bin/thinkmap.js validate docs/plan` is clean.
 

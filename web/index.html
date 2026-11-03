@@ -292,6 +292,18 @@ mark.hl { background: color-mix(in srgb, var(--ask) 30%, transparent); color: in
 .tool .t { font-weight: 650; font-size: 15px; overflow-wrap: anywhere; }
 .tool .s { font-size: 13.5px; color: var(--muted); margin-top: 3px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .tool .k { font-size: 12.5px; color: var(--t); margin-top: 8px; overflow-wrap: anywhere; }
+.tool > span:not(.dotic) { min-width: 0; flex: 1; }
+.cat .s { -webkit-line-clamp: 3; }
+.cat .need { font-size: 12.5px; color: var(--faint); margin-top: 6px; }
+.cat .row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
+.cat .row a, .cat .row button { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 11px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface); font-size: 12.5px; font-weight: 600; color: var(--muted); }
+.cat .row a:hover, .cat .row button:hover { color: var(--text); border-color: var(--line); }
+.cat .row .go { background: var(--text); color: var(--bg); border-color: var(--text); }
+.cat .row .go:hover { color: var(--bg); opacity: .88; }
+.cat .row .warn, .cat .row .warn:hover { color: var(--risk); border-color: color-mix(in srgb, var(--risk) 45%, var(--border)); }
+.cat .row button:disabled { opacity: .55; cursor: progress; }
+.cat .row .ic { width: 14px; height: 14px; }
+.cat .msg { font-size: 12.5px; margin-top: 10px; color: var(--t); overflow-wrap: anywhere; }
 
 /* ---------- mind map (second view) ---------- */
 #stage { position: absolute; inset: 0; overflow: auto; background: radial-gradient(circle at 1px 1px, var(--line) 1px, transparent 0) 0 0 / 22px 22px; }
@@ -398,6 +410,8 @@ mark.hl { background: color-mix(in srgb, var(--ask) 30%, transparent); color: in
     logo: '<circle cx="12" cy="5.5" r="2.2"/><circle cx="5.5" cy="17" r="2.2"/><circle cx="18.5" cy="17" r="2.2"/><path d="M11 7.5L6.6 15M13 7.5l4.4 7.5M8 17h8"/>',
     up: '<path d="M7 17L17 7M9 7h8v8"/>',
     layers: '<path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>',
+    trash: '<path d="M4 7h16M10 11v6M14 11v6"/><path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"/><path d="M9 7V4h6v3"/>',
   };
   const icon = (n) => `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n] || ''}</svg>`;
 
@@ -744,18 +758,86 @@ mark.hl { background: color-mix(in srgb, var(--ask) 30%, transparent); color: in
   const carePage = () => groupedPage(['caution'], 'Take care', (n) => `${plural(n, 'thing', 'things')} to take care of`, 'Rules and risks recorded across the project. Whoever builds in these topics should keep them in mind.', 'risk', 'risk', 'No cautions recorded');
 
   const tbadge = (t) => (t.group === 'skill' ? (t.slash ? `${t.slash}${/on its own/.test(t.trigger) ? ' · also automatic' : ''}` : 'automatic') : t.group === 'agent' ? `subagent${t.model ? ` · ${t.model}` : ''}${t.tools?.length ? ` · ${plural(t.tools.length, 'tool')}` : ''}` : `${t.event}${t.matcher ? ` · ${t.matcher}` : ''}${t.hookType === 'prompt' ? ' · prompt' : ''}`);
+  // ---------- the Thinkmap catalogue: ready-made agents and skills ----------
+  const CAT_STATE = {
+    available: { label: 'Not added', tone: 'idle' },
+    installed: { label: 'Added', tone: 'ok' },
+    update: { label: 'Update available', tone: 'accent' },
+    modified: { label: 'Added · changed here', tone: 'ask' },
+    conflict: { label: 'Name taken', tone: 'risk' },
+  };
+  const token = document.querySelector('meta[name="thinkmap-token"]')?.content || '';
+  const canInstall = () => Boolean(token && state.g.app?.canInstall && !window.__PLAN__);
+  const catMsgs = new Map(); // name → { text, tone } after a button press
+  function catCard(c) {
+    const st = CAT_STATE[c.state] || CAT_STATE.available;
+    const grp = GROUP[c.kind];
+    const title = c.kind === 'skill' ? `/${c.name}` : c.name;
+    const cli = state.g.app?.cli || 'npx github:dsngeu/ThinkMap';
+    const added = ['installed', 'update', 'modified'].includes(c.state);
+    const tool = (state.g.tooling?.items || []).find((i) => i.source === 'thinkmap' && i.group === c.kind && i.name === c.name);
+    const btn = (action, label, ic, cls = '') => `<button class="${cls}" data-cat="${action}" data-name="${esc(c.name)}">${icon(ic)}${label}</button>`;
+    let row = '';
+    if (canInstall()) {
+      if (c.state === 'available') row = btn('add', 'Add', 'plus', 'go');
+      else if (c.state === 'update') row = btn('add', 'Update', 'up', 'go') + btn('remove', 'Remove', 'trash');
+      else if (c.state === 'installed') row = btn('remove', 'Remove', 'trash');
+      else if (c.state === 'modified') row = `<button data-copy="${esc(`${cli} remove ${c.name} --force`)}">${icon('copy')}Copy remove command</button>`;
+    } else if (c.state !== 'conflict') {
+      const cmd = `${cli} ${added ? 'remove' : 'add'} ${c.name}`;
+      row = `<button data-copy="${esc(cmd)}">${icon('copy')}Copy “${added ? 'remove' : 'add'}” command</button>`;
+    }
+    if (tool) row += `<a href="${href('tooling', tool.id)}">${icon('file')}Read it</a>`;
+    const msg = catMsgs.get(c.name);
+    const note = c.state === 'conflict' ? `Your project has its own ${c.kind} called “${esc(c.name)}”. Thinkmap never overwrites it.`
+      : c.state === 'modified' ? 'Changed in this project since it was added, so Thinkmap leaves it alone.' : '';
+    return `<div class="card tool cat">${dotic(grp.ic, grp.tone)}<span>
+      <div class="t">${esc(title)}</div>
+      <div class="s">${esc(c.summary || c.description)}</div>
+      <div class="row">${pill(st.label, st.tone)}<span class="k t-${grp.tone}" style="margin:0">${grp.one.toLowerCase()}</span></div>
+      ${c.requires.length && !added ? `<div class="need">Also adds: ${c.requires.map(esc).join(', ')}</div>` : ''}
+      ${note ? `<div class="need">${note}</div>` : ''}
+      ${row ? `<div class="row">${row}</div>` : ''}
+      ${msg ? `<div class="msg t-${msg.tone}" role="status">${esc(msg.text)}</div>` : ''}
+    </span></div>`;
+  }
+  async function catAction(action, name, el) {
+    // Remove asks once more on the same button instead of a browser dialog.
+    if (action === 'remove' && el.dataset.sure !== '1') { el.dataset.sure = '1'; el.classList.add('warn'); el.innerHTML = `${icon('trash')}Click again to remove`; return; }
+    for (const b of document.querySelectorAll(`[data-cat][data-name="${CSS.escape(name)}"]`)) b.disabled = true;
+    let r;
+    try {
+      const res = await fetch('api/catalogue', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Thinkmap-Token': token }, body: JSON.stringify({ action, name }) });
+      r = await res.json();
+    } catch { r = { ok: false, error: 'Thinkmap is not running. Start it again with /thinkmap.' }; }
+    if (r.ok) {
+      const list = (k) => r[k] || [];
+      const more = [...list('added'), ...list('updated')].filter((n) => n !== name);
+      const text = action === 'remove' ? 'Removed from .claude/. Start a new Claude session for it to go away there too.'
+        : `${list('updated').includes(name) ? 'Updated' : 'Added'} to .claude/${more.length ? `, with ${more.join(', ')}` : ''}. Commit it to share with your team, and start a new Claude session to use it.`;
+      catMsgs.set(name, { text, tone: 'ok' });
+    } else catMsgs.set(name, { text: r.error || 'Something went wrong.', tone: 'risk' });
+    renderPage(false);
+  }
   function toolingPage() {
     const t = state.g.tooling || { items: [], notes: [] };
+    const cat = state.g.catalogue || { items: [] };
     const notes = t.notes?.length ? `<div class="callout t-risk">${icon('warn')}<span>${t.notes.map(esc).join('<br>')}</span></div>` : '';
     const head = `<div class="eyebrow">${icon('tools')}Project</div><h1>Claude Code tooling</h1>`;
-    if (!t.items.length) return `${head}<div class="lede">No agents, skills or hooks in this project. Thinkmap looks in <code>.claude/agents/</code>, <code>.claude/skills/</code>, <code>.claude/commands/</code> and the <code>hooks</code> block of <code>.claude/settings.json</code> (plus a plugin's own folders). It never reads your personal <code>~/.claude</code>.</div>${notes}`;
-    return `${head}<div class="lede">The agents, skills and hooks this project ships with.</div>${notes}
-      ${['agent', 'skill', 'hook'].map((g) => { const l = t.items.filter((i) => i.group === g); return l.length ? `${sechead(GROUP[g].title, l.length, GROUP[g].hint)}<div class="tools">${l.map((i) => `<a class="card tool" href="${href('tooling', i.id)}">${dotic(GROUP[g].ic, GROUP[g].tone)}<span><div class="t">${esc(i.group === 'skill' && i.slash ? i.slash : i.name)}</div><div class="s">${esc(i.description || 'No description.')}</div><div class="k t-${GROUP[g].tone}">${esc(tbadge(i))}</div></span></a>`).join('')}</div>` : ''; }).join('')}`;
+    const own = t.items.filter((i) => i.source !== 'thinkmap');
+    const howAdd = canInstall() ? 'Add copies the files into this project’s <code>.claude/</code>. Commit them to share with your team.'
+      : window.__PLAN__ ? 'This is a static copy of the map. Add them from the live map (<code>/thinkmap</code>) or with the command.'
+      : 'This map was started read-only. Add them with the command.';
+    const catSec = cat.items.length ? `${sechead('From Thinkmap', `${cat.installed} of ${cat.items.length}`, `Ready-made agents and skills. ${howAdd}`)}<div class="tools">${cat.items.map(catCard).join('')}</div>` : '';
+    const ownSec = own.length
+      ? ['agent', 'skill', 'hook'].map((g) => { const l = own.filter((i) => i.group === g); return l.length ? `${sechead(`This project’s own ${GROUP[g].title.toLowerCase()}`, l.length, GROUP[g].hint)}<div class="tools">${l.map((i) => `<a class="card tool" href="${href('tooling', i.id)}">${dotic(GROUP[g].ic, GROUP[g].tone)}<span><div class="t">${esc(i.group === 'skill' && i.slash ? i.slash : i.name)}</div><div class="s">${esc(i.description || 'No description.')}</div><div class="k t-${GROUP[g].tone}">${esc(tbadge(i))}</div></span></a>`).join('')}</div>` : ''; }).join('')
+      : `${sechead('This project’s own', 0, '')}<div class="lede">None yet. Thinkmap looks in <code>.claude/agents/</code>, <code>.claude/skills/</code>, <code>.claude/commands/</code> and the <code>hooks</code> block of <code>.claude/settings.json</code> (plus a plugin’s own folders). It never reads your personal <code>~/.claude</code>.</div>`;
+    return `${head}<div class="lede">Ready-made agents and skills from Thinkmap, and the ones this project has made itself.</div>${notes}${catSec}${ownSec}`;
   }
   function toolPage(n) {
     const g = GROUP[n.group];
     const ed = editorLink(n);
-    const kv = [['How it starts', esc(n.trigger)], n.group === 'skill' && ['Slash command', n.slash ? `<code>${esc(n.slash)}</code>` : 'none, automatic only'], n.group === 'hook' && ['Event', `<code>${esc(n.event)}</code>`], n.group === 'hook' && ['Matcher', n.matcher ? `<code>${esc(n.matcher)}</code>` : 'every tool'], n.tools?.length && ['Tools allowed', esc(n.tools.join(', '))], n.model && ['Model', esc(n.model)], ['File', `<code>${esc(n.file)}</code>`]].filter((x) => x && x[1]);
+    const kv = [['How it starts', esc(n.trigger)], n.group === 'skill' && ['Slash command', n.slash ? `<code>${esc(n.slash)}</code>` : 'none, automatic only'], n.group === 'hook' && ['Event', `<code>${esc(n.event)}</code>`], n.group === 'hook' && ['Matcher', n.matcher ? `<code>${esc(n.matcher)}</code>` : 'every tool'], n.tools?.length && ['Tools allowed', esc(n.tools.join(', '))], n.model && ['Model', esc(n.model)], ['File', `<code>${esc(n.file)}</code>`], n.source === 'thinkmap' && ['Came from', 'The Thinkmap catalogue. Remove or update it on the <a href="#/tooling">Tooling</a> page.']].filter((x) => x && x[1]);
     const body = n.group === 'hook' ? `${sechead(n.hookType === 'prompt' ? 'Prompt' : 'Command', null, 'Shown for reading. Thinkmap never runs hooks.')}<pre>${esc(n.command ?? n.prompt ?? '')}</pre>` : n.body ? `${sechead('Instructions', null, '')}<div class="card doc">${md(n.body)}</div>` : '';
     return `<article class="reader"><div class="eyebrow">${pill(g.one, g.tone, g.ic)}</div><h1 style="margin-top:14px">${esc(n.group === 'skill' && n.slash ? n.slash : n.name)}</h1>
       <div class="lede">${esc(n.description || g.hint)}</div>
@@ -1058,6 +1140,8 @@ mark.hl { background: color-mix(in srgb, var(--ask) 30%, transparent); color: in
     if (go) { e.stopPropagation(); location.hash = go.dataset.go; return; }
     const card = t.closest('[data-card]');
     if (card) { const n = state.byId.get(card.dataset.card); if (n && (n.type === 'point' || n.type === 'ticket')) location.hash = linkTo(n); else toggle(card.dataset.card); return; }
+    const ca = t.closest('[data-cat]');
+    if (ca) { if (!ca.disabled) catAction(ca.dataset.cat, ca.dataset.name, ca); return; }
     const cp = t.closest('[data-copy]');
     if (cp) { const orig = cp.innerHTML; navigator.clipboard?.writeText(cp.dataset.copy).then(() => { cp.innerHTML = `${icon('check')}Copied`; setTimeout(() => { cp.innerHTML = orig; }, 1200); }); return; }
     const rv = t.closest('[data-reveal]');

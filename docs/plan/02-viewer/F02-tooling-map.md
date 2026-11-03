@@ -46,6 +46,8 @@ can see what runs automatically in this repo and tap an item to read what it doe
   > Why: Hooks are shell commands and `settings.json` may hold permissions; the viewer must
   > not become a way to read or run arbitrary files.
   > Risk: Turning a planning viewer into an attack surface.
+  > Discussed: 2026-11-03 — still true for reading; one write path now exists, limited to adding
+  > and removing catalogue files in `.claude/` with the P2-F02-08 safeguards (P2-F02-09).
 
 - [caution 2026-10-29 claude] P2-F02-05: Claude Code's agent, skill and hook formats are still changing — scan tolerantly
   > What: Read only name, description, path and trigger; anything unrecognised is shown as
@@ -69,18 +71,27 @@ can see what runs automatically in this repo and tap an item to read what it doe
   > everything in the plugin — Deepak chose per-item add/remove into the project's `.claude/`.
   > A catalogue fetched from a hosted server was rejected (network code, and a compromised
   > server could push instructions into every project).
-  > Built: Content in `catalogue/` (see P2-F02-10); the add/remove mechanism is P2-F02-09.
+  > Built: Content in `catalogue/` (P2-F02-10); Add / Remove in the dashboard and CLI (P2-F02-09).
 
-- [open 2026-11-03] P2-F02-09: Who performs add / remove — dashboard buttons or a command?
-  > Options: (a) Buttons: the server writes into `.claude/` (needs the P2-F02-08 safeguards).
-  > (b) A command, `thinkmap add <name>` / `thinkmap remove <name>` (and a `/thinkmap-add`
-  > skill); the dashboard shows status and a copy-the-command button; the server stays read-only.
-  > (c) Both: build (b) first, then buttons that call the same code.
-  > Discussed: 2026-11-03 — Claude leans (c). Also to settle: how an installed file is marked
-  > as Thinkmap's (front matter key vs a manifest in `.claude/`), refusing to overwrite a
-  > project's own file with the same name, installing `requires` together, and "update
-  > available" when the catalogue copy is newer.
-  > Next: Deepak picks; then a ticket for the installer.
+- [decided 2026-11-03] P2-F02-09: Add / Remove from the dashboard and from a command — one shared piece of code
+  > What: `src/catalogue.js` lists the catalogue with a state per item (not added, added, update
+  > available, changed here, name taken) and adds or removes items. The Tooling tab shows
+  > "From Thinkmap" cards with Add / Update / Remove, and "This project's own" without the
+  > files Thinkmap added. `thinkmap catalogue`, `thinkmap add <name>` and `thinkmap remove
+  > <name>` do the same from a terminal or for Claude. Adding brings what an item `requires`;
+  > Thinkmap records what it added in `.claude/thinkmap-catalogue.json` and keeps the files
+  > byte-for-byte as in the catalogue.
+  > Why: Deepak expected to install them from the dashboard after updating the plugin. A
+  > command is needed anyway (Claude, CI, read-only maps), and one code path keeps both honest.
+  > Discussed: Marking added files with a front matter key was rejected — the files stay
+  > identical to the catalogue, and the record file is what Remove trusts. A name already used
+  > by the project's own file is never overwritten, even with `--force`. Remove refuses an item
+  > another added item needs, or one changed in the project, unless `--force` (terminal only).
+  > Expected: After a plugin update, `/thinkmap` → Tooling → Add puts the agent in `.claude/`;
+  > the card turns "Added" without a reload.
+  > Built: `src/catalogue.js`, `/api/catalogue` in `src/server.js`, Tooling tab in
+  > `web/index.html`, `catalogue` / `add` / `remove` and `serve --read-only` in `bin/thinkmap.js`;
+  > `test/catalogue.test.js`; README and REFERENCE.
 
 - [decided 2026-11-03] P2-F02-10: First catalogue — five agents and one skill, rewritten to work in any project
   > What: Agents `backend-code-reviewer`, `frontend-code-reviewer`, `fullstack-code-reviewer`,
@@ -121,12 +132,17 @@ can see what runs automatically in this repo and tap an item to read what it doe
   > Built: See P1-F01-09 and P1-F01-10.
 
 - [caution 2026-11-03 claude] P2-F02-08: A localhost server that writes files is reachable from any web page
-  > What: If option (b) of P2-F02-07 is chosen, any site open in the browser can send requests
+  > What: Any site open in the browser can send requests
   > to 127.0.0.1. Write endpoints need a per-run secret token, an Origin check, writes limited
   > to the project's `.claude/`, and removal only of files Thinkmap itself installed.
   > Why: Skills and agents are instructions Claude follows; a planted one is a prompt injection
   > that persists in the repo.
   > Risk: The planning viewer becomes a way to change what Claude does in the project.
+  > Built: `/api/catalogue` checks POST, the Origin is the dashboard itself, a per-run token
+  > that only the served page carries (and a custom header, so other sites can't send it
+  > without a CORS preflight the server never grants), a JSON body under 2 KB, and a name from
+  > the catalogue. Paths come only from the catalogue, stay inside `.claude/`, and never pass
+  > through a symbolic link. `serve --read-only` turns it off. Tests cover each refusal.
 
 ## Tickets
 

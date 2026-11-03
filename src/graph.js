@@ -5,6 +5,7 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { listMarkdownFiles, parsePlanFile, STATUSES, TYPES, KINDS, KIND_STATUS } from './parse.js';
 import { scanTooling } from './tooling.js';
+import { catalogueStatus, readRecord } from './catalogue.js';
 import { formatCopyStatus, TEMPLATE_VERSION, PHASE_DIR_RE, FEATURE_FILE_RE, TICKET_FILE_RE, phaseFolderNumber } from './init.js';
 import { cliCommand } from './update.js';
 import { topicShortId, expectedTicketFileName, listedTickets, ticketListProblems } from './tickets.js';
@@ -77,7 +78,7 @@ export function buildGraph(planDir, opts = {}) {
   const base = repoRoot || absDir;
   const rel = (f) => path.relative(base, f).split(path.sep).join('/') || '.';
   const issue = (level, file, id, message) => issues.push({ level, file, id: id ?? null, message });
-  const result = { version: 1, generatedAt: new Date().toISOString(), root: base, planDir: rel(absDir), project: null, nodes: [], edges: [], issues, stats: {}, tooling: null };
+  const result = { version: 1, generatedAt: new Date().toISOString(), root: base, planDir: rel(absDir), project: null, nodes: [], edges: [], issues, stats: {}, tooling: null, catalogue: null };
 
   if (!fs.existsSync(absDir) || !fs.statSync(absDir).isDirectory()) {
     issue('error', rel(absDir), null, 'plan folder not found');
@@ -417,6 +418,14 @@ export function buildGraph(planDir, opts = {}) {
     result.tooling = scanTooling(base);
   } catch (e) {
     result.tooling = { root: '.claude/', scanned: [], isPlugin: false, counts: { agents: 0, skills: 0, hooks: 0 }, items: [], notes: [`tooling scan failed: ${e.message}`] };
+  }
+  // 9. The Thinkmap catalogue: what a project can add, and which of its tooling files came from it.
+  try {
+    result.catalogue = catalogueStatus(base);
+    const ours = new Set(Object.values(readRecord(base).items).flatMap((r) => r.files || []));
+    for (const t of result.tooling.items) if (t.source === 'project' && ours.has(t.file)) t.source = 'thinkmap';
+  } catch (e) {
+    result.catalogue = { record: '.claude/thinkmap-catalogue.json', installed: 0, items: [], error: e.message };
   }
 
   result.stats = { byStatus, byKind, byType, errors: issues.filter((i) => i.level === 'error').length, warnings: issues.filter((i) => i.level === 'warning').length };

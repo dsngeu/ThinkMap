@@ -42,7 +42,7 @@ updates live. Works for **any** project that follows the format (`thinkmap init`
 ## 4. Features
 
 ### Viewer (built)
-- **Tooling tab** — the project's Claude Code agents, skills (incl. legacy commands) and hooks from `.claude/`, each with a details panel (what it does, how it starts, tools, model, file). Project-only, read-only, included in `status` and `export`.
+- **Tooling tab** — the project's Claude Code agents, skills (incl. legacy commands) and hooks from `.claude/`, each with a details panel (what it does, how it starts, tools, model, file). Project-only, included in `status` and `export`. A "From Thinkmap" section lists the catalogue (`catalogue/`) with Add / Update / Remove; `thinkmap catalogue|add|remove` do the same.
 - NotebookLM-style expandable mind map: project → phases → topics → buckets → notes/tickets, animated.
 - Cards: labelled counters, settled/open and built progress bars, "needs decision" chips, current phase.
 - Half-screen details panel; map glides left to keep the clicked card visible.
@@ -84,7 +84,7 @@ updates live. Works for **any** project that follows the format (`thinkmap init`
 
 - Node 20+, no dependencies, ES modules. Single-file viewer (`web/index.html`), no graph library.
 - Server: Node `http` + `fs.watch` + Server-Sent Events; polls git HEAD every 3 s.
-- Security: binds 127.0.0.1; rejects non-localhost Host headers; `/api/file` serves only `.md` inside the plan folder.
+- Security: binds 127.0.0.1; rejects non-localhost Host headers; `/api/file` serves only `.md` inside the plan folder; `/api/catalogue` (Add / Remove) needs the dashboard's Origin and a per-run token, and writes only catalogue files into `.claude/` (`serve --read-only` turns it off).
 
 ## 7. Open questions
 

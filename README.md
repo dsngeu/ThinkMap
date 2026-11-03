@@ -106,23 +106,29 @@ pushed back, and what still needs you. Nothing is committed; you read the diff a
 
 ### Add them to a project
 
-They are plain files in [`catalogue/`](catalogue/). Adding one means copying it into your
-project's `.claude/` folder, so it is shared with your team through git like any other file.
-Run this in your project to add all six, then start a new Claude session:
+Run `/thinkmap`, open **Tooling**, and press **Add**. Thinkmap copies the agent or skill
+into your project's `.claude/` folder, together with anything it needs, so the team gets it
+through git like any other file. Start a new Claude session to use it.
 
-```bash
-base=https://raw.githubusercontent.com/dsngeu/ThinkMap/master/catalogue
-mkdir -p .claude/agents .claude/skills/review-fix-loop
-for a in backend-code-reviewer frontend-code-reviewer fullstack-code-reviewer data-isolation-reviewer review-findings-fixer; do
-  curl -fsSL -o ".claude/agents/$a.md" "$base/agents/$a.md"
-done
-curl -fsSL -o .claude/skills/review-fix-loop/SKILL.md "$base/skills/review-fix-loop/SKILL.md"
+| On the card | Meaning |
+|---|---|
+| **Not added** · Add | Not in this project yet |
+| **Added** · Remove | Added and unchanged. Remove deletes only the files Thinkmap added |
+| **Update available** · Update | A newer version came with a Thinkmap update |
+| **Added · changed here** | You edited it, so Thinkmap leaves it alone |
+| **Name taken** | Your project has its own file with that name. Thinkmap never overwrites it |
+
+The same from a terminal, or for Claude to run:
+
+```
+thinkmap catalogue                     # list them, and which are added
+thinkmap add fullstack-code-reviewer   # also adds the backend and frontend reviewers
+thinkmap remove review-fix-loop
 ```
 
-Pick only some if you like: `fullstack-code-reviewer` uses the backend and frontend
-reviewers' checklists, and `/review-fix-loop` needs `review-findings-fixer` plus at least one
-reviewer. To remove one, delete its file. Planned: **Add / Remove buttons** in the
-dashboard's Tooling tab, which shows these apart from your project's own agents and skills.
+Thinkmap keeps a list of what it added in `.claude/thinkmap-catalogue.json`; commit it with
+the files. The buttons only work in the map Thinkmap serves on your own machine, which
+accepts them only from its own page. `thinkmap serve --read-only` turns them off.
 
 ## Update
 

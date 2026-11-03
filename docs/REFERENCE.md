@@ -136,13 +136,16 @@ Expected · Discussed · Options · Pending · Built · Risk · Next`. Full spec
 |---|---|
 | `thinkmap init [dir] --name "X" [--force]` | Set up `docs/plan/` from the template |
 | `thinkmap phase <P2> <slug> [dir] [--title "X"]` | Scaffold one phase: `02-slug/phase.md` with valid front matter and `tickets/.gitkeep`. Re-running adds only what is missing |
-| `thinkmap serve [dir] [--port 4400] [--open] [--restart]` | Web viewer with live reload. If a Thinkmap already serves this plan it is reused (same version) or stopped and replaced (other version, or `--restart`). Servers of other projects are never touched; the next free port is used |
+| `thinkmap serve [dir] [--port 4400] [--open] [--restart] [--read-only]` | Web viewer with live reload. If a Thinkmap already serves this plan it is reused (same version) or stopped and replaced (other version, or `--restart`). Servers of other projects are never touched; the next free port is used. `--read-only` hides the Add / Remove buttons on the Tooling tab |
 | `thinkmap status [dir] [P1 \| P1-F02 \| open]` | Terminal summary: phases, in progress, blocked, open questions, next free tickets, and the suggested next step (including "generate tickets" once a phase is fully decided). With a topic ID: that topic's points by kind and its tickets with status and owner |
 | `thinkmap tickets [dir] [--write]` | Checks that every ticket file names its topic (`P2-T05-F04-slug.md`) and every topic lists its tickets under `## Tickets`; `--write` renames the files and rewrites the lists. Ticket IDs never change |
 | `thinkmap validate [dir] [--quiet]` | Check the format and the folder layout; exit 1 on errors (use in hooks and CI) |
 | `thinkmap export [dir] [--out plan.html]` | One static HTML file to share |
 | `thinkmap json [dir]` | The graph as JSON |
 | `thinkmap format [dir] [--write]` | Is `docs/plan/FORMAT.md` the version bundled with this Thinkmap? Exit 1 if not; `--write` refreshes the copy |
+| `thinkmap catalogue [dir]` | The ready-made agents and skills Thinkmap offers, and which this project has added (also on the Tooling tab) |
+| `thinkmap add <name…> [dir] [--force]` | Copy catalogue items, plus what they need, into the project's `.claude/` and record them in `.claude/thinkmap-catalogue.json`. Updates an added item when a newer version came with Thinkmap. Never overwrites the project's own file; `--force` replaces an added item you changed |
+| `thinkmap remove <name…> [dir] [--force]` | Delete catalogue items Thinkmap added — never the project's own files. Refuses an item another added item needs, or one you changed, unless `--force` |
 | `thinkmap update [--check] [--force]` | Fetch the newest version — works for the npx cache, a project dependency and a clone (as a plugin it tells you the `claude plugin update` command) |
 | `thinkmap version` | Version and where Thinkmap runs from |
 

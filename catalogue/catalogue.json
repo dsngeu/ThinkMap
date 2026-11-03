@@ -40,7 +40,7 @@
       "name": "review-fix-loop",
       "kind": "skill",
       "path": "skills/review-fix-loop",
-      "summary": "/review-fix-loop — runs the reviewers you pick, has review-findings-fixer fix the findings, re-reviews, up to 3 rounds, with a report.",
+      "summary": "Runs the reviewers you pick, has review-findings-fixer fix the findings, re-reviews, up to 3 rounds, with a report.",
       "requires": ["review-findings-fixer"]
     }
   ]
