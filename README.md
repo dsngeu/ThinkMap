@@ -62,6 +62,68 @@ Inside Claude Code, in any project:
 | `/thinkmap-ticket P1-T03` | This session takes ticket P1-T03 and gets everything it needs to build it |
 | `/thinkmap-status` | A quick summary in the terminal |
 
+## Ready-made review agents
+
+Thinkmap also offers a small team of code-review **agents** and one **skill** that any
+project can add. Each one first reads your project's `CLAUDE.md`, docs and package files to
+learn your stack, and treats your project's rules as stronger than its own checklist.
+
+| Name | Kind | What it does | Changes code? |
+|---|---|---|---|
+| `backend-code-reviewer` | agent | Reviews backend code: bugs, permissions, security, database, API, tests | No |
+| `frontend-code-reviewer` | agent | Reviews frontend code: bugs, data caching, XSS, accessibility, tests | No |
+| `fullstack-code-reviewer` | agent | Reviews both sides together and how they fit (shared types, permissions, errors). Before a commit it says whether the diff is ready | No |
+| `data-isolation-reviewer` | agent | Checks no user can reach another user's data, and no customer another customer's | No |
+| `review-findings-fixer` | agent | Takes a review's findings, checks each one, fixes real bugs with a test, pushes back on wrong ones | Yes, never commits |
+| `/review-fix-loop` | skill | Runs the reviewers you pick, has the fixer fix, reviews again — up to 3 rounds | Through the fixer |
+
+**Agent or skill?** An *agent* is a separate Claude with a fresh context and its own tool
+limits: it does one job and reports back. The reviewers can only read, so a review can never
+change your code. A *skill* is a set of instructions your main session follows when you type
+`/name` — the loop has to be a skill, because only your main session can start agents.
+
+### How the review-fix loop works
+
+```mermaid
+flowchart TD
+    start(["You type /review-fix-loop"]) --> pick["You pick the reviewers<br/>and what to review:<br/>uncommitted changes or a module"]
+    pick --> review["The reviewers check the code in parallel<br/>read-only · each lists its findings"]
+    review --> any{"Anything left<br/>to fix?"}
+    any -->|no| report
+    any -->|yes| check["review-findings-fixer checks<br/>each finding against the code"]
+    check -->|real bug| fix["Fix it with a test,<br/>then typecheck · lint · tests"]
+    check -->|"not a bug, or needs<br/>your decision"| park["Parked: listed for you,<br/>never sent again"]
+    fix --> rounds{"3 fix rounds<br/>done?"}
+    rounds -->|"no — review again"| review
+    rounds -->|yes| final["One last review<br/>confirms the fixes"]
+    final --> report(["Report in the chat and in<br/>docs/reviews/DATE-SCOPE.md"])
+    park --> report
+```
+
+A fix counts as done only when the **next** review no longer reports it — never on the
+fixer's word alone. The report shows each round: what was found, what was fixed, what was
+pushed back, and what still needs you. Nothing is committed; you read the diff and commit.
+
+### Add them to a project
+
+They are plain files in [`catalogue/`](catalogue/). Adding one means copying it into your
+project's `.claude/` folder, so it is shared with your team through git like any other file.
+Run this in your project to add all six, then start a new Claude session:
+
+```bash
+base=https://raw.githubusercontent.com/dsngeu/ThinkMap/master/catalogue
+mkdir -p .claude/agents .claude/skills/review-fix-loop
+for a in backend-code-reviewer frontend-code-reviewer fullstack-code-reviewer data-isolation-reviewer review-findings-fixer; do
+  curl -fsSL -o ".claude/agents/$a.md" "$base/agents/$a.md"
+done
+curl -fsSL -o .claude/skills/review-fix-loop/SKILL.md "$base/skills/review-fix-loop/SKILL.md"
+```
+
+Pick only some if you like: `fullstack-code-reviewer` uses the backend and frontend
+reviewers' checklists, and `/review-fix-loop` needs `review-findings-fixer` plus at least one
+reviewer. To remove one, delete its file. Planned: **Add / Remove buttons** in the
+dashboard's Tooling tab, which shows these apart from your project's own agents and skills.
+
 ## Update
 
 ```

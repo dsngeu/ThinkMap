@@ -13,6 +13,7 @@
     "template",
     "skills",
     "hooks",
+    "catalogue",
     ".claude-plugin"
   ],
   "engines": {

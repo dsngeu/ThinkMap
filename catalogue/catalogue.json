@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "name": "fullstack-code-reviewer",
+      "kind": "agent",
+      "path": "agents/fullstack-code-reviewer.md",
+      "summary": "Reviews a module end to end, or the uncommitted changes before a commit — backend, frontend and the contract between them.",
+      "requires": ["backend-code-reviewer", "frontend-code-reviewer"]
+    },
+    {
+      "name": "backend-code-reviewer",
+      "kind": "agent",
+      "path": "agents/backend-code-reviewer.md",
+      "summary": "Reviews server code: correctness, data isolation, authorization, security, database, API contract, tests.",
+      "requires": []
+    },
+    {
+      "name": "frontend-code-reviewer",
+      "kind": "agent",
+      "path": "agents/frontend-code-reviewer.md",
+      "summary": "Reviews client code: correctness, data fetching and cache, XSS and tokens, accessibility, UX states, tests.",
+      "requires": []
+    },
+    {
+      "name": "data-isolation-reviewer",
+      "kind": "agent",
+      "path": "agents/data-isolation-reviewer.md",
+      "summary": "Finds code that lets one user reach another user's records, or one customer see another customer's data.",
+      "requires": []
+    },
+    {
+      "name": "review-findings-fixer",
+      "kind": "agent",
+      "path": "agents/review-findings-fixer.md",
+      "summary": "Fixes a review's findings: checks each one, pushes back on wrong ones, fixes with a test. Never commits.",
+      "requires": []
+    },
+    {
+      "name": "review-fix-loop",
+      "kind": "skill",
+      "path": "skills/review-fix-loop",
+      "summary": "/review-fix-loop — runs the reviewers you pick, has review-findings-fixer fix the findings, re-reviews, up to 3 rounds, with a report.",
+      "requires": ["review-findings-fixer"]
+    }
+  ]
+}
