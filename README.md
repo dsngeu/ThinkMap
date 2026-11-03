@@ -1,294 +1,92 @@
 # Thinkmap
 
-**Know your project: what's decided, what's open, what's built.**
+**Claude's planning memory for your project.**
+What you decided, what's still open, what's being built — written down by Claude while you
+talk, and shown as one clear dashboard.
 
 [![Tests](https://github.com/dsngeu/ThinkMap/actions/workflows/test.yml/badge.svg)](https://github.com/dsngeu/ThinkMap/actions/workflows/test.yml)
 [![Release](https://img.shields.io/github/v/release/dsngeu/ThinkMap?label=release)](https://github.com/dsngeu/ThinkMap/releases)
 [![Live demo](https://img.shields.io/badge/live%20demo-dsngeu.github.io%2FThinkMap-8b5cf6)](https://dsngeu.github.io/ThinkMap/)
-[![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-d97757)](#as-a-claude-code-plugin-recommended)
-![Node 20+](https://img.shields.io/badge/node-%3E%3D20-brightgreen)
-![Zero dependencies](https://img.shields.io/badge/dependencies-0-blue)
+[![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-d97757)](#install)
 [![License: MIT](https://img.shields.io/github/license/dsngeu/ThinkMap)](LICENSE)
 
-Thinkmap turns a folder of Markdown planning files into a live, click-to-expand mind map.
-Every topic has six buckets, the way a person keeps a project in their head:
+## Why
 
-| | Bucket | Holds |
-|---|---|---|
-| 💬 | **We discussed** | things we talked through |
-| ✅ | **We decided** | agreements, each with the reason |
-| ❓ | **Still open** | questions nobody has answered yet |
-| 💡 | **Suggested** | ideas (often from an AI assistant) waiting for a yes/no |
-| ⚠️ | **Take care of** | rules and risks to remember while building |
-| 🔨 | **Work** | tickets: what is being built, by whom, how far |
+You plan a feature with Claude. Good decisions get made — and stay buried in the chat.
+Next session, Claude doesn't know them. Neither does your teammate. A week later nobody
+remembers *why* you picked Postgres, or which questions were never answered.
 
-The files are the source of truth. People and AI coding assistants (it was built for
-[Claude Code](https://claude.com/claude-code)) write them while planning; the map updates live.
+Thinkmap fixes that:
 
-```
-[Project] ─► [Phase 1] ─► [Topic: Signup] ─► [✅ We decided (7)] ─► [note] ─► full story panel
-```
+- **Claude writes the plan as you talk.** Say "let's go with Postgres" and it is saved in
+  your repo as a decision, with the reason. Open questions, ideas and risks too.
+- **Every new session starts informed.** Claude reads the plan first — no re-explaining.
+- **You see where things stand at a glance.** A local dashboard shows what is decided, what
+  is waiting for your answer, and what is being built, phase by phase.
+- **From decisions to code.** Claude turns decisions into tickets; a session picks one up
+  with its full context, and commits link back to it.
 
-Zero dependencies. Node 20+. One HTML file. Nothing about your project leaves your machine
-(the only network call is an optional version check against GitHub).
+The plan is plain Markdown in `docs/plan/` — reviewed in pull requests like code. Nothing
+leaves your machine.
 
-## See it in action
+## See it
 
-**[Live demo → dsngeu.github.io/ThinkMap](https://dsngeu.github.io/ThinkMap/)** — this repo's
-own plan, exported as a static page on every push. Open a phase, then a topic, then read a decision.
+**[Live demo →](https://dsngeu.github.io/ThinkMap/)** (this repo's own plan)
 
-### Screenshots
+![Thinkmap home: overall progress, the decisions waiting for you, and the roadmap of phases](docs/screenshots/home.png)
 
-**Home** — overall progress, the decisions waiting for you, and the roadmap of phases. Click a
-phase to drill down to its topics, then a topic, then a single note.
-
-![Thinkmap home: overall progress ring, decisions waiting for you, and the phase roadmap](docs/screenshots/home.png)
-
-**Mind map** — the same plan as a tree you unfold card by card (the **Map** button, top right).
+Click a phase to see its topics, a topic to see its decisions, a decision to read why.
+Prefer a tree? The **Map** button shows the same plan as a mind map:
 
 ![Thinkmap mind map: project, phases, topics and notes as an unfolding tree](docs/screenshots/mind-map.png)
 
-## Install and open
+## Install
 
-Two ways in. Both need Node 20+ and Git.
+Inside [Claude Code](https://claude.com/claude-code), once per machine:
 
-### As a Claude Code plugin (recommended)
-
-Inside a `claude` session, once per machine:
 ```
 /plugin marketplace add dsngeu/ThinkMap
 /plugin install thinkmap@thinkmap
 ```
-Then, in any project:
-```
-/thinkmap-init        # once: creates docs/plan/ (and a Planning section in CLAUDE.md)
-/thinkmap             # opens the live map
-```
-What the plugin gives every session in that project, without any CLAUDE.md editing:
 
-| Piece | What it does |
+## Use
+
+Inside Claude Code, in any project:
+
+| You | What happens |
 |---|---|
-| `thinkmap-format` (automatic) | While you discuss or decide, Claude writes decisions, open questions, ideas and cautions into the plan files. The rules come from one file, `template/FORMAT.md`. |
-| `/thinkmap` | Opens the map: starts the viewer, reuses one already showing this plan, or replaces it when it runs an older version (after a plugin update) |
-| `/thinkmap-status [P1 \| P1-F02 \| open]` | Terminal summary — Claude may also run it on its own |
-| `/thinkmap-tickets <P1 \| P1-F02>` | Breaks the decided points of a phase (or one topic) into tickets: one table to approve first, files written only after "go ahead". `thinkmap status` suggests it when a phase is fully decided and has no tickets |
-| `/thinkmap-ticket <ID>` | Claims a ticket for this session (in-progress, owner, Handoff log) and loads its context; refuses to double-claim. "Work on P1-T03" triggers it too |
-| `/thinkmap-init` | Sets up `docs/plan/` in a new project |
-| Hook: validate on save | After any edit under `docs/plan/`, format errors go straight back to Claude |
-| Hook: session briefing | Every new session starts with the plan status and where the rules are |
+| `/thinkmap-init` | Once per project: creates `docs/plan/` |
+| *Just talk* | Claude records decisions, open questions, ideas and risks as you discuss |
+| `/thinkmap` | Opens the dashboard in your browser. It updates live as the plan changes |
+| `/thinkmap-tickets P1` | Turns the decisions of phase 1 into tickets. You approve the list first |
+| `/thinkmap-ticket P1-T03` | This session takes ticket P1-T03 and gets everything it needs to build it |
+| `/thinkmap-status` | A quick summary in the terminal |
 
-**Updating the plugin** (it does not update itself). In a Claude session or a terminal:
-```
-claude plugin marketplace update thinkmap     # refresh the listing from GitHub
-claude plugin update thinkmap@thinkmap        # fetch the new version
-```
-Then `/reload-plugins` or start a new session; `claude plugin list` shows the version. The
-first new session in each project tells you if its `docs/plan/FORMAT.md` copy needs
-`format --write`. Details and the npx/clone paths: [Updating](#updating).
-
-Try it without installing: `claude --plugin-dir path/to/ThinkMap`.
-
-### With npx (no Claude Code needed)
-
-Nothing to install: `npx` fetches Thinkmap from GitHub the first time (say **y** when
-npm asks "Ok to proceed?").
-
-**New project (no `docs/plan/` yet):**
-```bash
-cd your-project
-npx github:dsngeu/ThinkMap init --name "Your Project"   # creates docs/plan/ with an example topic
-npx github:dsngeu/ThinkMap serve --open                 # opens http://localhost:4400
-```
-`--name` is the title shown on the map's root card (defaults to the folder name).
-`init` also prints a short **Planning** section — paste it into the project's `CLAUDE.md`
-(or your assistant's instructions file) so every session writes decisions into the plan
-files instead of leaving them in chat.
-
-**Project that already has `docs/plan/`:** skip `init` (it refuses to touch a non-empty
-folder) and just open the map:
-```bash
-npx github:dsngeu/ThinkMap serve --open
-```
-
-**Other ways to run it**
-- Project dependency: `npm i -D github:dsngeu/ThinkMap`, then `npx thinkmap serve --open`.
-- One clone for all projects: `git clone https://github.com/dsngeu/ThinkMap.git ~/thinkmap`,
-  then `node ~/thinkmap/bin/thinkmap.js serve --open` inside any project.
-
-The `/plugin …` and `/thinkmap…` commands are typed inside a `claude` session, not in the
-terminal; the `npx` commands are for the terminal.
-
-## What you see
-
-You drill down one level at a time: **Project → Phase → Topic → Note**. Each screen shows only
-the next level; the breadcrumb at the top takes you back up.
-
-- **Home**: the project with one overall progress ring, a *waiting for you* card (the decisions
-  that need an answer, top three shown), and the phases as a **roadmap**: done ✓, *you are here*,
-  next, not planned.
-- **Phase**: its topics as cards, each with one progress ring and a plain status:
-  *3 to decide*, *Building · 2/4*, *Ready for tickets*, *Done*.
-- **Topic**: tabs — *To decide · Decided · Take care · Tickets · Discussed · Dropped* — so you
-  read one list at a time.
-- **Note**: a clean reading page — *What this is · Why · What we expect · Options · Next step…* —
-  the tickets that build it, and ← → to step through the list.
-- **Ticket**: a Ready → In progress → Done stepper, owner, acceptance criteria as a checklist,
-  the decisions it delivers, code, commits and the handoff log.
-- **Needs you** (top bar): every open question and suggestion, grouped by topic.
-- **Search** (`⌘K` or `/`) across phases, topics, notes, tickets and tooling.
-- **Map** (top bar): the mind map as a second view; click a note to open its page.
-- **Open in editor** (VS Code, exact line) · **View the file** (rendered or raw, line highlighted) ·
-  every page has its own link · light & dark themes · works on a phone · static export.
-- **Tooling** (from Home): the project's own Claude Code **agents, skills and hooks**, read from `.claude/`
-  (`agents/`, `skills/`, `commands/`, the `hooks` block of `settings.json`, plus a plugin's own folders
-  when `.claude-plugin/plugin.json` exists). Tap one to see what it does, how it starts, which tools it
-  may use, and the file. Project files only — never your personal `~/.claude`. Hooks are shown, never run.
-
-## The files
+## Update
 
 ```
-docs/plan/
-├── FORMAT.md                      a copy of the rules for people and sessions without Thinkmap
-├── project.md                     type: project
-└── 01-basic/                      one folder per phase: NN-slug
-    ├── phase.md                   type: phase     id P1
-    ├── F02-signup.md              type: feature   id P1-F02   ← a "topic"; ## Points are the notes, ## Tickets its tickets
-    └── tickets/                   always there (a .gitkeep holds it until the first ticket)
-        └── P1-T03-F02-api.md      type: ticket    id P1-T03   ← F02 = the topic it builds
-```
-
-The layout is enforced, not suggested: `thinkmap validate` reports a misnamed folder, a topic in
-`tickets/`, a ticket outside it, a phase without `tickets/`, or any stray `.md` as an error.
-`thinkmap init` creates the first phase and `thinkmap phase P2 <slug>` each further one, so
-nobody builds the tree by hand.
-
-A note is one line plus a labelled body:
-
-```markdown
-- [decided 2026-10-29 claude] P1-F02-02: Confirmation link valid 24h, single use
-  > What: The email link carries a random token; only its hash is stored, with expiry and used-at.
-  > Why: A database leak must not yield working links; single use stops forwarded links.
-  > Expected: Using a link twice, or after 24h, shows "link expired — request a new one".
-  > Built: Not yet — ticket P1-T03.
-```
-
-Kinds: `discussed · decided · open · suggestion · caution · dropped`. Labels: `What · Why ·
-Expected · Discussed · Options · Pending · Built · Risk · Next`. Full spec: [template/FORMAT.md](template/FORMAT.md).
-
-## Commands
-
-| Command | What it does |
-|---|---|
-| `thinkmap init [dir] --name "X" [--force]` | Set up `docs/plan/` from the template |
-| `thinkmap phase <P2> <slug> [dir] [--title "X"]` | Scaffold one phase: `02-slug/phase.md` with valid front matter and `tickets/.gitkeep`. Re-running adds only what is missing |
-| `thinkmap serve [dir] [--port 4400] [--open] [--restart]` | Web viewer with live reload. If a Thinkmap already serves this plan it is reused (same version) or stopped and replaced (other version, or `--restart`). Servers of other projects are never touched; the next free port is used |
-| `thinkmap status [dir] [P1 \| P1-F02 \| open]` | Terminal summary: phases, in progress, blocked, open questions, next free tickets, and the suggested next step (including "generate tickets" once a phase is fully decided). With a topic ID: that topic's points by kind and its tickets with status and owner |
-| `thinkmap tickets [dir] [--write]` | Checks that every ticket file names its topic (`P2-T05-F04-slug.md`) and every topic lists its tickets under `## Tickets`; `--write` renames the files and rewrites the lists. Ticket IDs never change |
-| `thinkmap validate [dir] [--quiet]` | Check the format and the folder layout; exit 1 on errors (use in hooks and CI) |
-| `thinkmap export [dir] [--out plan.html]` | One static HTML file to share |
-| `thinkmap json [dir]` | The graph as JSON |
-| `thinkmap format [dir] [--write]` | Is `docs/plan/FORMAT.md` the version bundled with this Thinkmap? Exit 1 if not; `--write` refreshes the copy |
-| `thinkmap update [--check] [--force]` | Fetch the newest version — works for the npx cache, a project dependency and a clone (as a plugin it tells you the `claude plugin update` command) |
-| `thinkmap version` | Version and where Thinkmap runs from |
-
-`dir` defaults to `./docs/plan`. Commits are linked to tickets when the message contains
-the ID in brackets: `feat: signup endpoint [P1-T03]`.
-
-## Updating
-
-Thinkmap does not update itself, whichever way it was installed. Two steps every time:
-update the tool, then refresh the format copy in each project (explained below).
-
-### The plugin (inside a Claude session)
-
-1. **Update the plugin** — type this in any Claude Code session:
-   ```
-   claude plugin update thinkmap@thinkmap
-   ```
-   (`thinkmap@thinkmap` is *plugin name* @ *marketplace name*.) The same command works in a
-   normal terminal, or use the menu: `/plugin` → **Manage** → thinkmap → **Update**.
-2. **Load the new version:** `/reload-plugins`, or just start a new session.
-3. **Check:** `claude plugin list` shows the new version number.
-4. **In each project**, the first new session says when `docs/plan/FORMAT.md` is an older
-   copy and prints the `format --write` command. Run it, or let Claude run it.
-
-If step 1 says there is nothing new although GitHub has a newer version, refresh the
-marketplace listing first, then update again:
-
-```
-claude plugin marketplace update thinkmap
 claude plugin update thinkmap@thinkmap
 ```
 
-Telling the team: one message with the two commands from steps 1–2 is enough; step 4
-happens on its own in every project they open.
+Then start a new Claude session and run `/thinkmap` — it replaces the old dashboard by itself.
+If the update says there is nothing new, run `claude plugin marketplace update thinkmap` first.
 
-### npx, project dependency or clone
+## More
 
-`npx` keeps the first copy it fetched, `npm i -D github:…` pins a commit, a clone waits for
-`git pull`. One command handles all three:
+- **[Reference](docs/REFERENCE.md)** — every command, the plan file format, using Thinkmap
+  without Claude Code (`npx`), and updating in detail
+- **[Using it in another project](docs/USING-IN-ANOTHER-PROJECT.md)**
+- Questions and ideas: [Discussions](https://github.com/dsngeu/ThinkMap/discussions) ·
+  bugs: [Issues](https://github.com/dsngeu/ThinkMap/issues) · a ⭐ helps others find it
 
-```bash
-thinkmap update            # or: npx github:dsngeu/ThinkMap update
-thinkmap update --check    # just compare with GitHub
-```
+Zero dependencies · Node 20+ · MIT © Deepak Singh
 
-`thinkmap serve` checks GitHub at start and every 6 hours, and shows **⬆ Update available** in the header
-when a newer version exists (one GET of `package.json`; nothing about your project is sent).
-Skip it with `--no-update-check` or `THINKMAP_NO_UPDATE_CHECK=1`.
-
-### After any update: refresh the format copy
-
-`init` leaves `docs/plan/FORMAT.md` in your project for people and sessions without
-Thinkmap, but the validator and the plugin follow the rules bundled with the tool, so the
-copy falls behind with every update (and when you move from npx to the plugin — the copy
-npx created stays at that version). `thinkmap validate`, the session briefing and
-`thinkmap format` all say when that happens; one command fixes it:
+## Contributing
 
 ```bash
-thinkmap format --write    # plugin: node "~/.claude/plugins/cache/thinkmap/thinkmap/<version>/bin/thinkmap.js" format --write
-```
-
-**First npx update from 0.1.0** (which had no `update` command): run it from a fresh fetch once;
-it refreshes every cached copy, including the plain `npx github:dsngeu/ThinkMap` one:
-
-```bash
-npx github:dsngeu/ThinkMap#master update
-```
-
-## Working with an AI assistant
-
-1. Keep the map open on a second screen.
-2. Discuss as usual. Say "record that as decided" or "that's still open" — the assistant
-   writes the files (the plugin's `thinkmap-format` skill tells it how; without the plugin,
-   the `CLAUDE.md` snippet from `init` does).
-3. Hand tickets to separate sessions: `/thinkmap-ticket P1-T03` or just "work on ticket
-   P1-T03". Each session edits only its own ticket, logs in the *Handoff log*, and marks
-   it `done`. The map turns green.
-4. The plugin's hooks validate every save and brief every new session; without the plugin,
-   `thinkmap validate` in your own hook or CI does the first part.
-
-Plugin layout: `.claude-plugin/` (manifest + marketplace), `skills/`, `hooks/`, and the
-engine (`bin/ src/ web/ template/`). See [SPEC.md](SPEC.md).
-
-More: [docs/USING-IN-ANOTHER-PROJECT.md](docs/USING-IN-ANOTHER-PROJECT.md).
-
-## Spread the word
-
-If Thinkmap helps your team, a ⭐ on the repo is how other people find it. Tell a teammate in
-one line: `/plugin marketplace add dsngeu/ThinkMap` then `/plugin install thinkmap@thinkmap`.
-Questions and ideas: [Discussions](https://github.com/dsngeu/ThinkMap/discussions) ·
-bugs: [Issues](https://github.com/dsngeu/ThinkMap/issues). Pull requests welcome — run
-`npm test` and `node bin/thinkmap.js validate docs/plan` first, and record any decision you
-make in `docs/plan/` (this repo plans itself).
-
-## Develop
-
-```bash
-npm test                              # node --test, no dependencies
+npm test                              # no dependencies
 node bin/thinkmap.js serve --open     # this repo plans itself in docs/plan/
 ```
 
-## License
-
-MIT © Deepak Singh
+Run `npm test` and `node bin/thinkmap.js validate docs/plan` before a pull request, and record
+any decision you make in `docs/plan/`.

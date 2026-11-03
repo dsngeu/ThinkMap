@@ -121,6 +121,14 @@ Package everything as one Claude Code plugin and distribute it through a plugin 
   > What: They don't report their process ID, so `serve` finds it with `lsof` (macOS/Linux).
   > Risk: On Windows an old server is not replaced; `serve` says so and starts on the next port.
 
+- [decided 2026-11-03] P1-F03-11: The README sells one story — Claude's planning memory — with one install path
+  > What: Why (decisions get lost in chat) → screenshots → install (two plugin commands) → a
+  > six-row "Use" table → one update command → links. Everything else (npx, commands, file
+  > format, updating in detail) lives in `docs/REFERENCE.md`. No demo video.
+  > Why: The old README explained how before why, offered four ways to install and ran to
+  > 290 lines; a developer could not tell in a minute what Thinkmap does for them.
+  > Built: README rewritten (about 90 lines); details moved, not deleted.
+
 ## Tickets
 
 - P1-T03 · Package as a Claude Code plugin + marketplace · done

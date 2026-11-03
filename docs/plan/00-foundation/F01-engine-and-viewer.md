@@ -5,7 +5,7 @@ title: Format, engine & viewer
 status: auto
 parent: P0
 labels: [core]
-updated: 2026-10-29
+updated: 2026-11-03
 ---
 
 ## Points
@@ -69,7 +69,9 @@ updated: 2026-10-29
   > public so any team can use it.
   > Built: Repo, MIT license, README, this plan.
 
-- [decided 2026-10-29] P0-F01-09: The README opens with a one-minute demo video hosted by GitHub
+- [dropped 2026-11-03] P0-F01-09: The README opens with a one-minute demo video hosted by GitHub
+  > Why: Removed on 2026-11-03 (see P1-F03-11): the video showed the old map; the README now
+  > shows screenshots of the current dashboard and links the live demo.
   > What: `ThinkMap.mov` (76 MB, Retina) is compressed to 720p H.264 (`ThinkMap-demo.mp4`,
   > 9 MB) and uploaded through the github.com README editor; the resulting
   > `github.com/user-attachments/...` URL goes under "See it in action" and renders as an
