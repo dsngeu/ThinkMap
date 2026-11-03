@@ -44,6 +44,17 @@ One minute on video: open the map, expand a phase, click a decision, read its st
      produces on the line below (on its own line, no Markdown around it). -->
 https://github.com/user-attachments/assets/584a6e7b-6f27-4f0b-b423-9c2df8c4b036
 
+### Screenshots
+
+**Home** — overall progress, the decisions waiting for you, and the roadmap of phases. Click a
+phase to drill down to its topics, then a topic, then a single note.
+
+![Thinkmap home: overall progress ring, decisions waiting for you, and the phase roadmap](docs/screenshots/home.png)
+
+**Mind map** — the same plan as a tree you unfold card by card (the **Map** button, top right).
+
+![Thinkmap mind map: project, phases, topics and notes as an unfolding tree](docs/screenshots/mind-map.png)
+
 ## Install and open
 
 Two ways in. Both need Node 20+ and Git.
@@ -116,13 +127,26 @@ terminal; the `npx` commands are for the terminal.
 
 ## What you see
 
-- **Sidebar**: Home, Mind map, every phase with its topics (an amber number = questions waiting for you), and Tooling. On a phone it folds behind ☰.
-- **Home**: what needs your answer, work in progress, things to take care of, and recent activity, with one progress row per phase.
-- **Topic pages** read like a document: open questions, suggestions, cautions, decisions, discussed, dropped, then tickets. Click a note to expand its full story in place — *What this is · Why · What we expect · What we discussed · Still pending · What's built* — plus the tickets that deliver it and commits mentioning it.
-- **Ticket pages**: status, owner, checklist, acceptance criteria, the decisions it delivers, dependencies, code files, commits and the handoff log.
-- **Mind map** (second view): project → phases → topics → notes and tickets, with animation. Click a note to open its page; ↗ on a card opens that phase or topic.
-- **View file** (rendered or raw, line highlighted) · **Open in editor** (VS Code, exact line) · **Show on map** · **Search** (`/`) across notes, tickets and tooling · every page has its own link (`#/t/P1-F01/P1-F01-03`) · light & dark themes · static export for people without the tool.
-- **Tooling tab**: the project's own Claude Code **agents, skills and hooks**, read from `.claude/`
+You drill down one level at a time: **Project → Phase → Topic → Note**. Each screen shows only
+the next level; the breadcrumb at the top takes you back up.
+
+- **Home**: the project with one overall progress ring, a *waiting for you* card (the decisions
+  that need an answer, top three shown), and the phases as a **roadmap**: done ✓, *you are here*,
+  next, not planned.
+- **Phase**: its topics as cards, each with one progress ring and a plain status:
+  *3 to decide*, *Building · 2/4*, *Ready for tickets*, *Done*.
+- **Topic**: tabs — *To decide · Decided · Take care · Tickets · Discussed · Dropped* — so you
+  read one list at a time.
+- **Note**: a clean reading page — *What this is · Why · What we expect · Options · Next step…* —
+  the tickets that build it, and ← → to step through the list.
+- **Ticket**: a Ready → In progress → Done stepper, owner, acceptance criteria as a checklist,
+  the decisions it delivers, code, commits and the handoff log.
+- **Needs you** (top bar): every open question and suggestion, grouped by topic.
+- **Search** (`⌘K` or `/`) across phases, topics, notes, tickets and tooling.
+- **Map** (top bar): the mind map as a second view; click a note to open its page.
+- **Open in editor** (VS Code, exact line) · **View the file** (rendered or raw, line highlighted) ·
+  every page has its own link · light & dark themes · works on a phone · static export.
+- **Tooling** (from Home): the project's own Claude Code **agents, skills and hooks**, read from `.claude/`
   (`agents/`, `skills/`, `commands/`, the `hooks` block of `settings.json`, plus a plugin's own folders
   when `.claude-plugin/plugin.json` exists). Tap one to see what it does, how it starts, which tools it
   may use, and the file. Project files only — never your personal `~/.claude`. Hooks are shown, never run.

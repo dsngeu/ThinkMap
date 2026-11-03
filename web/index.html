@@ -6,308 +6,435 @@
 <title>Thinkmap</title>
 <style>
 :root {
-  --bg: #f6f7f9; --surface: #ffffff; --surface-2: #eef0f3; --text: #111827; --muted: #6b7280;
-  --border: #e3e6eb; --accent: #2563eb; --line: #c9d0da;
-  --k-discussed: #8b5cf6; --k-decided: #16a34a; --k-open: #d97706; --k-suggestion: #2563eb; --k-caution: #dc2626; --k-work: #0891b2; --k-dropped: #6b7280;
-  --s-planned: #0891b2; --s-in-progress: #d97706; --s-blocked: #dc2626; --s-done: #16a34a; --s-dropped: #6b7280; --s-to-discuss: #9ca3af; --s-discussing: #8b5cf6; --s-decided: #2563eb;
+  --bg: #f6f7f9; --surface: #ffffff; --surface-2: #f1f3f6; --surface-3: #e9ecf1;
+  --text: #0f172a; --muted: #5b6474; --faint: #9aa3b2; --border: #e5e8ed; --line: #d5dae2;
+  --accent: #4f46e5; --accent-2: #7c3aed;
+  --ok: #16a34a; --ask: #d97706; --risk: #dc2626; --build: #2563eb; --talk: #7c3aed; --idle: #94a3b8;
+  --shadow: 0 1px 2px rgba(15,23,42,.04), 0 6px 20px rgba(15,23,42,.06);
+  --shadow-hi: 0 2px 4px rgba(15,23,42,.06), 0 16px 40px rgba(15,23,42,.12);
+  --radius: 16px;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0d1117; --surface: #161b22; --surface-2: #1f2630; --text: #e6edf3; --muted: #8b949e;
-    --border: #2a313c; --accent: #58a6ff; --line: #3a4452;
-    --k-decided: #22c55e; --k-caution: #f87171; --k-suggestion: #60a5fa; --k-discussed: #a78bfa; --k-work: #22d3ee; --k-open: #fbbf24; color-scheme: dark;
+    --bg: #0b0d12; --surface: #13161d; --surface-2: #191d26; --surface-3: #222734;
+    --text: #e8ebf1; --muted: #a0a9b8; --faint: #6b7586; --border: #242a36; --line: #303747;
+    --accent: #818cf8; --accent-2: #a78bfa;
+    --ok: #34d399; --ask: #fbbf24; --risk: #f87171; --build: #60a5fa; --talk: #a78bfa; --idle: #6b7586;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25);
+    --shadow-hi: 0 2px 4px rgba(0,0,0,.35), 0 18px 44px rgba(0,0,0,.45);
+    color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0d1117; --surface: #161b22; --surface-2: #1f2630; --text: #e6edf3; --muted: #8b949e;
-  --border: #2a313c; --accent: #58a6ff; --line: #3a4452;
-  --k-decided: #22c55e; --k-caution: #f87171; --k-suggestion: #60a5fa; --k-discussed: #a78bfa; --k-work: #22d3ee; --k-open: #fbbf24; color-scheme: dark;
+  --bg: #0b0d12; --surface: #13161d; --surface-2: #191d26; --surface-3: #222734;
+  --text: #e8ebf1; --muted: #a0a9b8; --faint: #6b7586; --border: #242a36; --line: #303747;
+  --accent: #818cf8; --accent-2: #a78bfa;
+  --ok: #34d399; --ask: #fbbf24; --risk: #f87171; --build: #60a5fa; --talk: #a78bfa; --idle: #6b7586;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25);
+  --shadow-hi: 0 2px 4px rgba(0,0,0,.35), 0 18px 44px rgba(0,0,0,.45);
+  color-scheme: dark;
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html, body { height: 100%; margin: 0; }
-body { background: var(--bg); color: var(--text); font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; overflow: hidden; }
-a { color: var(--accent); }
-code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; overflow-wrap: anywhere; }
-button { font: inherit; color: inherit; cursor: pointer; }
-h1, h2, h3, h4 { margin: 0; line-height: 1.3; }
+body { background: var(--bg); color: var(--text); font: 15px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif; -webkit-font-smoothing: antialiased; display: flex; flex-direction: column; overflow: hidden; }
+a { color: inherit; text-decoration: none; }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .86em; background: var(--surface-2); padding: 1px 5px; border-radius: 5px; overflow-wrap: anywhere; }
+button { font: inherit; color: inherit; cursor: pointer; background: none; border: 0; padding: 0; }
+h1, h2, h3, h4, p { margin: 0; }
+.ic { width: 18px; height: 18px; flex: none; }
 .muted { color: var(--muted); }
-.small { font-size: 12px; }
+.t-ok { --t: var(--ok); } .t-ask { --t: var(--ask); } .t-risk { --t: var(--risk); } .t-build { --t: var(--build); } .t-talk { --t: var(--talk); } .t-idle { --t: var(--idle); } .t-accent { --t: var(--accent); }
 
-/* ---------- header ---------- */
-header { flex: none; height: 52px; display: flex; gap: 12px; align-items: center; padding: 0 16px; background: var(--surface); border-bottom: 1px solid var(--border); }
-.brand { font-weight: 700; font-size: 15px; color: var(--text); text-decoration: none; }
-.proj { color: var(--muted); padding-left: 12px; border-left: 1px solid var(--border); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-.spacer { flex: 1; }
-input[type=search] { font: inherit; color: var(--text); background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; width: 260px; min-width: 0; }
-input[type=search]:focus { outline: 2px solid color-mix(in srgb, var(--accent) 40%, transparent); border-color: var(--accent); }
-.live { font-size: 12px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
-.live i { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); display: inline-block; }
-.live.on i { background: var(--k-decided); }
-.live.off i { background: var(--k-caution); }
-.hbtn { font-size: 12px; border: 1px solid var(--border); background: var(--surface-2); border-radius: 6px; padding: 4px 10px; text-decoration: none; color: var(--text); white-space: nowrap; }
-.hbtn.upd { border-color: var(--k-decided); color: var(--k-decided); font-weight: 600; }
-.hbtn.warn { border-color: var(--k-caution); color: var(--k-caution); }
-#menuBtn { display: none; border: 0; background: none; font-size: 18px; padding: 4px 6px; }
-.pop { position: absolute; right: 16px; top: 56px; z-index: 30; width: 340px; max-width: calc(100vw - 32px); background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 12px 32px rgba(0,0,0,.18); padding: 12px 14px; font-size: 13px; }
-.pop p { margin: 6px 0; }
-.pop pre { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; }
+/* ---------- top bar ---------- */
+header { flex: none; height: 60px; display: flex; align-items: center; gap: 14px; padding: 0 22px; background: color-mix(in srgb, var(--surface) 85%, transparent); backdrop-filter: saturate(1.4) blur(10px); border-bottom: 1px solid var(--border); position: relative; z-index: 10; }
+.logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; letter-spacing: -.01em; white-space: nowrap; }
+.mark { width: 28px; height: 28px; border-radius: 9px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); display: grid; place-items: center; color: #fff; box-shadow: 0 4px 12px color-mix(in srgb, var(--accent) 35%, transparent); }
+.mark svg { width: 16px; height: 16px; }
+.crumbs { display: flex; align-items: center; gap: 2px; min-width: 0; overflow: hidden; font-size: 14px; color: var(--muted); padding-left: 10px; border-left: 1px solid var(--border); }
+.crumbs a { padding: 4px 8px; border-radius: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 240px; }
+.crumbs a:hover { background: var(--surface-2); color: var(--text); }
+.crumbs a:last-child { color: var(--text); font-weight: 600; }
+.crumbs .sep { color: var(--faint); flex: none; display: grid; }
+.crumbs .sep .ic { width: 14px; height: 14px; }
+.grow { flex: 1; }
+.tbtn { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); font-size: 13.5px; white-space: nowrap; transition: border-color .15s, color .15s, background .15s; }
+.tbtn:hover { color: var(--text); border-color: var(--line); }
+.tbtn.on { background: var(--text); color: var(--bg); border-color: var(--text); }
+.tbtn kbd { font: 11px ui-monospace, Menlo, monospace; padding: 2px 6px; border-radius: 5px; background: var(--surface-2); color: var(--muted); }
+.tbtn.need { color: color-mix(in srgb, var(--ask) 75%, var(--text)); border-color: color-mix(in srgb, var(--ask) 40%, var(--border)); background: color-mix(in srgb, var(--ask) 8%, var(--surface)); font-weight: 600; }
+.tbtn.need .n { min-width: 22px; height: 22px; padding: 0 6px; border-radius: 99px; background: var(--ask); color: #fff; font-size: 12px; display: inline-grid; place-items: center; }
+.live { width: 8px; height: 8px; border-radius: 50%; background: var(--idle); flex: none; }
+.live.on { background: var(--ok); box-shadow: 0 0 0 4px color-mix(in srgb, var(--ok) 18%, transparent); }
+.live.off { background: var(--risk); }
 
-/* ---------- layout ---------- */
-.app { flex: 1; display: flex; min-height: 0; }
-#side { width: 264px; flex: none; overflow-y: auto; background: var(--surface); border-right: 1px solid var(--border); padding: 12px 10px 16px; display: flex; flex-direction: column; }
-#main { flex: 1; min-width: 0; overflow: auto; position: relative; }
-#page { max-width: 860px; margin: 0 auto; padding: 28px 32px 80px; }
-#scrim { display: none; }
+/* ---------- page ---------- */
+#main { flex: 1; min-height: 0; overflow: auto; position: relative; }
+#page { max-width: 1080px; margin: 0 auto; padding: 36px 32px 96px; }
+#page.enter > * { animation: rise .38s cubic-bezier(.2,.8,.2,1) both; }
+#page.enter > *:nth-child(2) { animation-delay: .04s; } #page.enter > *:nth-child(3) { animation-delay: .08s; } #page.enter > *:nth-child(n+4) { animation-delay: .12s; }
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } }
+@media (prefers-reduced-motion: reduce) { #page.enter > * { animation: none; } }
 
-/* ---------- sidebar ---------- */
-.nav { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 8px; color: var(--text); text-decoration: none; font-size: 13.5px; line-height: 1.3; }
-.nav:hover { background: var(--surface-2); }
-.nav.on { background: color-mix(in srgb, var(--accent) 12%, var(--surface)); color: var(--accent); font-weight: 600; }
-.nav .nt { flex: 1; min-width: 0; }
-.nav .ni { width: 20px; text-align: center; flex: none; }
-.navh { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); padding: 16px 10px 6px; }
-.nav.ph { font-weight: 600; }
-.nav.tp { padding-left: 38px; font-size: 13px; color: color-mix(in srgb, var(--text) 85%, var(--muted)); }
-.nav.tp.on { color: var(--accent); }
-.num { flex: none; width: 20px; height: 20px; border-radius: 50%; background: var(--c, var(--accent)); color: #fff; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
-.badge { flex: none; min-width: 18px; height: 18px; padding: 0 6px; border-radius: 99px; background: color-mix(in srgb, var(--k-open) 18%, var(--surface)); color: color-mix(in srgb, var(--k-open) 80%, var(--text)); font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
-.tick { flex: none; color: var(--k-decided); font-size: 12px; }
-.cnt { flex: none; font-size: 11px; color: var(--muted); }
-.sidefoot { margin-top: auto; padding: 18px 10px 0; font-size: 11px; color: var(--muted); }
+.eyebrow { font-size: 12.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+.eyebrow .ic { width: 15px; height: 15px; }
+h1 { font-size: 34px; line-height: 1.15; letter-spacing: -.025em; font-weight: 750; margin-top: 8px; }
+.lede { color: var(--muted); font-size: 16.5px; max-width: 720px; margin-top: 10px; }
+.lede p { margin: 4px 0; }
+.lede ul { margin: 6px 0; padding-left: 20px; }
+h2.sec { font-size: 19px; letter-spacing: -.01em; font-weight: 700; display: flex; align-items: baseline; gap: 10px; }
+h2.sec .n { font-size: 14px; font-weight: 500; color: var(--faint); }
+.sechead { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin: 44px 0 16px; }
+.sechead p { color: var(--muted); font-size: 14px; margin-top: 4px; }
 
-/* ---------- pages ---------- */
-.crumbs { font-size: 12.5px; color: var(--muted); margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-.crumbs a { color: var(--muted); text-decoration: none; }
-.crumbs a:hover { color: var(--accent); text-decoration: underline; }
-h1 { font-size: 26px; letter-spacing: -.01em; display: flex; gap: 10px; align-items: center; }
-h1 .num { width: 28px; height: 28px; font-size: 14px; }
-.lead { color: var(--muted); margin: 8px 0 0; font-size: 14.5px; }
-.lead p { margin: 4px 0; }
-.lead ul { margin: 4px 0; padding-left: 20px; }
-.meta { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12.5px; color: var(--muted); margin-top: 12px; align-items: center; }
-section.blk { margin-top: 34px; }
-.sh { font-size: 15px; display: flex; align-items: center; gap: 8px; }
-.sh .n { font-size: 12px; font-weight: 500; color: var(--muted); }
-.shint { font-size: 12.5px; color: var(--muted); margin: 2px 0 10px; }
-.empty { font-size: 13px; color: var(--muted); padding: 10px 0; }
+.pill { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 11px; border-radius: 99px; font-size: 12.5px; font-weight: 600; white-space: nowrap; color: color-mix(in srgb, var(--t) 80%, var(--text)); background: color-mix(in srgb, var(--t) 13%, transparent); text-transform: none; letter-spacing: 0; }
+.pill i { width: 7px; height: 7px; border-radius: 50%; background: var(--t); }
+.pill .ic { width: 14px; height: 14px; }
 
-/* summary line: coloured dot + words */
-.sum { display: inline-flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12.5px; color: var(--muted); }
-.sum span { display: inline-flex; align-items: center; gap: 6px; }
-.sum i { width: 7px; height: 7px; border-radius: 50%; background: var(--c); display: inline-block; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+:where(a.card) { display: block; }
+a.card { transition: transform .18s cubic-bezier(.2,.8,.2,1), box-shadow .18s, border-color .18s; }
+a.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-hi); border-color: var(--line); }
 
-/* stat tiles */
-.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 22px; }
-.stat { text-align: left; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; }
-.stat:hover { border-color: var(--c); }
-.stat .v { font-size: 24px; font-weight: 700; color: var(--c); line-height: 1.1; }
-.stat .k { font-size: 12px; color: var(--muted); margin-top: 2px; }
+/* ring */
+.ring { position: relative; display: inline-block; width: 56px; height: 56px; flex: none; }
+.ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.ring .bg { stroke: var(--surface-3); }
+.ring .fg { stroke: var(--t); }
+.ring b { position: absolute; inset: 0; display: grid; place-items: center; font-size: 13px; font-weight: 700; letter-spacing: -.02em; }
+.ring.big { width: 120px; height: 120px; }
+.ring.big b { font-size: 28px; }
+.ring.sm { width: 42px; height: 42px; }
+.ring.sm b { font-size: 11px; }
 
-/* meters */
-.meters { display: grid; gap: 6px; margin-top: 14px; max-width: 420px; }
-.meter { display: grid; grid-template-columns: 64px 1fr 44px; align-items: center; gap: 10px; font-size: 12px; color: var(--muted); }
-.track { height: 6px; border-radius: 99px; background: var(--surface-2); overflow: hidden; display: block; }
-.track i { display: block; height: 100%; background: var(--c); border-radius: 99px; }
-.meter .mv { text-align: right; color: var(--text); }
+/* ---------- home ---------- */
+.hero { display: grid; grid-template-columns: 1fr auto; gap: 32px; align-items: center; padding: 34px 36px; border-radius: 24px; background:
+  radial-gradient(900px 300px at 0% 0%, color-mix(in srgb, var(--accent) 11%, transparent), transparent 60%),
+  radial-gradient(600px 300px at 100% 100%, color-mix(in srgb, var(--accent-2) 10%, transparent), transparent 60%), var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow); }
+.hero h1 { font-size: 40px; }
+.hero .facts { display: flex; flex-wrap: wrap; gap: 10px 22px; margin-top: 20px; font-size: 14px; color: var(--muted); }
+.hero .facts b { color: var(--text); font-weight: 650; }
+.hero .side { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.hero .side span { font-size: 13px; color: var(--muted); }
 
-/* list rows (links) */
-.list { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-.row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; text-decoration: none; color: var(--text); border-top: 1px solid var(--border); }
-.row:first-child { border-top: 0; }
-.row:hover { background: var(--surface-2); }
-.ric { flex: none; width: 28px; height: 28px; border-radius: 8px; background: color-mix(in srgb, var(--c) 13%, var(--surface)); display: flex; align-items: center; justify-content: center; font-size: 14px; }
-.rt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-.rt b, .rt .ntitle { font-weight: 500; }
-.rs { font-size: 12px; color: var(--muted); margin-top: 1px; }
-.clamp1 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.pill { flex: none; font-size: 11px; padding: 1px 9px; border-radius: 99px; border: 1px solid var(--c); color: var(--c); white-space: nowrap; }
-.prow .rt b { font-weight: 600; }
-.prow .pm { flex: none; width: 170px; display: grid; gap: 4px; }
-.prow .meter { grid-template-columns: 52px 1fr 36px; font-size: 11px; }
-.day { font-size: 12px; font-weight: 600; color: var(--muted); margin: 14px 0 6px; }
-.day:first-of-type { margin-top: 4px; }
+.attention { margin-top: 22px; display: grid; grid-template-columns: auto 1fr auto; gap: 20px; align-items: center; padding: 20px 24px; border-radius: 20px; background: color-mix(in srgb, var(--ask) 7%, var(--surface)); border: 1px solid color-mix(in srgb, var(--ask) 28%, var(--border)); }
+.attention .big { width: 52px; height: 52px; border-radius: 14px; background: var(--ask); color: #fff; display: grid; place-items: center; font-size: 22px; font-weight: 750; }
+.attention h3 { font-size: 17px; letter-spacing: -.01em; }
+.attention ul { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 4px; min-width: 0; }
+.attention li a { display: flex; gap: 8px; align-items: center; font-size: 14px; color: var(--muted); min-width: 0; }
+.attention li a:hover { color: var(--text); }
+.attention li a .ic { width: 15px; height: 15px; color: var(--ask); }
+.attention li a span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.attention li a em { font-style: normal; color: var(--faint); font-size: 12.5px; white-space: nowrap; flex: none; }
+.btn { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 11px; font-weight: 600; font-size: 14px; background: var(--text); color: var(--bg); white-space: nowrap; transition: transform .15s, opacity .15s; }
+.btn:hover { transform: translateY(-1px); opacity: .92; }
+.btn.soft { background: var(--surface); color: var(--text); border: 1px solid var(--border); height: 34px; }
+.btn .ic { width: 16px; height: 16px; }
+.allclear { margin-top: 22px; display: flex; gap: 14px; align-items: center; padding: 16px 22px; border-radius: 18px; background: color-mix(in srgb, var(--ok) 8%, var(--surface)); border: 1px solid color-mix(in srgb, var(--ok) 25%, var(--border)); color: var(--muted); }
+.allclear .ic { color: var(--ok); width: 22px; height: 22px; }
 
-/* notes (expand in place) */
-.note { border-top: 1px solid var(--border); }
-.note:first-child { border-top: 0; }
-.nhead { width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: none; border: 0; text-align: left; }
-.nhead:hover { background: var(--surface-2); }
-.nmeta { flex: none; font-size: 11.5px; color: var(--muted); white-space: nowrap; }
-.chev { flex: none; color: var(--muted); transition: transform .15s; font-size: 16px; line-height: 1; }
-.note.open .chev { transform: rotate(90deg); }
-.note.open .nhead { background: color-mix(in srgb, var(--c) 6%, var(--surface)); }
-.note.k-dropped .ntitle { text-decoration: line-through; color: var(--muted); }
-.note.flash .nhead { animation: flash 1.6s ease-out; }
-@keyframes flash { from { background: color-mix(in srgb, var(--k-open) 30%, var(--surface)); } }
-.nbody { padding: 4px 14px 16px 54px; }
-.nsec { margin-top: 10px; }
-.nl { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--c); }
-.nx p { margin: 2px 0; }
-.nx ul { margin: 2px 0; padding-left: 18px; }
-.nexthint { font-size: 12.5px; color: var(--muted); margin-top: 12px; padding: 8px 10px; background: var(--surface-2); border-radius: 8px; }
-.sub { margin-top: 14px; }
-.sub .lbl { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin-bottom: 6px; }
-.sub .list { border-radius: 10px; }
-.sub .row { padding: 7px 10px; }
-.sub .ric { width: 22px; height: 22px; font-size: 12px; border-radius: 6px; }
+/* roadmap */
+.road { list-style: none; margin: 0; padding: 0; position: relative; }
+.road::before { content: ""; position: absolute; left: 27px; top: 34px; bottom: 34px; width: 2px; background: var(--line); border-radius: 2px; }
+.road li { position: relative; padding-left: 72px; margin-bottom: 14px; }
+.road .node { position: absolute; left: 8px; top: 50%; margin-top: -20px; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 15px; background: var(--surface); border: 2px solid var(--line); color: var(--muted); z-index: 1; }
+.road .done .node { background: var(--ok); border-color: var(--ok); color: #fff; }
+.road .now .node { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 18%, transparent); }
+.road .todo .node { border-style: dashed; }
+.road .node .ic { width: 18px; height: 18px; stroke-width: 2.6; }
+.stepcard { display: grid; grid-template-columns: 1fr auto; gap: 18px; align-items: center; padding: 20px 22px; }
+.road .now .stepcard { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 8%, transparent), var(--shadow); }
+.road .todo .stepcard { background: transparent; box-shadow: none; border-style: dashed; }
+.stepcard .top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.stepcard h3 { font-size: 18px; letter-spacing: -.01em; }
+.stepcard p { color: var(--muted); font-size: 14px; margin-top: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.stepcard .sub { font-size: 13px; color: var(--faint); margin-top: 8px; }
+.here { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
 
-/* actions */
-.actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
-.actions a, .actions button { font-size: 12px; border: 1px solid var(--border); background: var(--surface); border-radius: 6px; padding: 4px 10px; text-decoration: none; color: var(--text); }
-.actions a:hover, .actions button:hover { border-color: var(--accent); color: var(--accent); }
+.duo { display: grid; grid-template-columns: 1.4fr 1fr; gap: 22px; }
+.feed { padding: 6px; }
+.feed a { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 10px 12px; border-radius: 10px; }
+.feed a:hover { background: var(--surface-2); }
+.feed .t { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.feed .d { font-size: 12.5px; color: var(--faint); white-space: nowrap; }
+.dotic { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; color: var(--t); background: color-mix(in srgb, var(--t) 13%, transparent); flex: none; }
+.dotic .ic { width: 16px; height: 16px; }
+.minis { display: grid; gap: 12px; }
+.mini { display: flex; align-items: center; gap: 14px; padding: 16px 18px; }
+.mini .t { font-weight: 600; font-size: 14.5px; }
+.mini .s { font-size: 13px; color: var(--muted); }
+.mini .go { margin-left: auto; color: var(--faint); display: grid; }
 
-/* facts + rendered markdown */
-.facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-top: 16px; }
-.fact { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 7px 11px; min-width: 0; }
-.fact .k { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
-.fact .v { font-size: 13px; font-weight: 500; overflow-wrap: anywhere; }
-.tag { font-size: 11px; background: var(--surface-2); border-radius: 4px; padding: 1px 6px; }
-.doc { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 4px 18px 14px; margin-top: 10px; }
-.doc h2 { font-size: 17px; margin: 16px 0 6px; }
-.doc h3 { font-size: 14px; margin: 14px 0 4px; }
-.doc h4 { font-size: 13px; margin: 10px 0 4px; }
-.doc p { margin: 6px 0; }
-.doc ul { padding-left: 20px; margin: 6px 0; }
-.doc li { margin: 4px 0; }
-.doc li.cb { list-style: none; margin-left: -18px; }
-.doc blockquote { margin: 4px 0 4px 6px; padding: 2px 10px; border-left: 3px solid var(--border); color: var(--muted); }
-pre { background: var(--surface-2); padding: 8px 10px; border-radius: 8px; overflow: auto; font-size: 12px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
-.callout { border-left: 3px solid var(--c); background: color-mix(in srgb, var(--c) 8%, var(--surface)); border-radius: 0 10px 10px 0; padding: 10px 14px; margin-top: 14px; font-size: 13px; }
-.log { border-left: 2px solid var(--border); margin-left: 6px; padding-left: 14px; }
-.log div { position: relative; padding: 2px 0 8px; font-size: 13px; }
-.log div::before { content: ""; position: absolute; left: -19px; top: 8px; width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
-.commit { display: flex; gap: 10px; align-items: baseline; padding: 6px 0; border-bottom: 1px dashed var(--border); font-size: 13px; }
-.commit .s { color: var(--muted); font-size: 11px; display: block; }
-.issue { font-size: 13px; padding: 10px 14px; border-top: 1px solid var(--border); }
+/* ---------- phase: topic grid ---------- */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+.tcard { padding: 20px; display: flex; flex-direction: column; gap: 12px; min-height: 172px; }
+.tcard .row1 { display: flex; gap: 14px; align-items: flex-start; justify-content: space-between; }
+.tcard h3 { font-size: 16.5px; line-height: 1.35; letter-spacing: -.01em; }
+.tcard .desc { color: var(--muted); font-size: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.tcard .foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--faint); }
+.tcard.needs { border-color: color-mix(in srgb, var(--ask) 45%, var(--border)); }
+.phasehead { display: grid; grid-template-columns: 1fr auto; gap: 28px; align-items: center; }
+.stats { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 22px; }
+.stat { padding: 12px 16px; border-radius: 14px; background: var(--surface); border: 1px solid var(--border); min-width: 120px; }
+.stat b { display: block; font-size: 20px; letter-spacing: -.02em; color: var(--t, var(--text)); }
+.stat span { font-size: 12.5px; color: var(--muted); }
+
+/* ---------- topic: tabs + lists ---------- */
+.tabs { display: flex; gap: 4px; padding: 4px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--border); margin-top: 30px; overflow-x: auto; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tabs a { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; border-radius: 10px; font-size: 14px; font-weight: 550; color: var(--muted); white-space: nowrap; }
+.tabs a:hover { color: var(--text); }
+.tabs a.on { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+.tabs a .ic { width: 16px; height: 16px; color: var(--t); }
+.tabs a .n { font-size: 12px; color: var(--faint); font-weight: 600; }
+.tabhint { color: var(--muted); font-size: 14px; margin: 18px 4px 12px; }
+.list { overflow: hidden; }
+.item { display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: center; padding: 15px 18px; border-top: 1px solid var(--border); transition: background .15s; }
+.item:first-child { border-top: 0; }
+.item:hover { background: var(--surface-2); }
+.item .t { font-weight: 600; font-size: 15px; line-height: 1.4; }
+.item .s { font-size: 13.5px; color: var(--muted); margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.item .r { display: flex; align-items: center; gap: 10px; color: var(--faint); font-size: 13px; white-space: nowrap; }
+.item .r .ic { width: 16px; height: 16px; }
+.item.dropped .t { text-decoration: line-through; color: var(--muted); }
+.group { font-size: 12.5px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 28px 4px 10px; display: flex; gap: 8px; align-items: center; }
+.group a:hover { color: var(--text); }
+.empty { text-align: center; padding: 48px 20px; color: var(--muted); }
+.empty .ic { width: 34px; height: 34px; color: var(--ok); margin-bottom: 10px; }
+.empty h3 { color: var(--text); font-size: 17px; margin-bottom: 4px; }
+
+/* ---------- note + ticket reading page ---------- */
+.reader { max-width: 760px; margin: 0 auto; }
+.reader h1 { font-size: 30px; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; color: var(--muted); font-size: 14px; margin-top: 14px; }
+.meta .ic { width: 15px; height: 15px; vertical-align: -3px; }
+.meta a { color: var(--accent); }
+.blocks { display: grid; gap: 14px; margin-top: 28px; }
+.block { padding: 18px 22px; border-left: 4px solid var(--t); border-radius: 6px var(--radius) var(--radius) 6px; }
+.block .lbl { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--t); margin-bottom: 6px; }
+.block p { margin: 3px 0; }
+.block ul { margin: 4px 0; padding-left: 20px; }
+.callout { display: flex; gap: 14px; padding: 16px 18px; border-radius: 14px; background: color-mix(in srgb, var(--t) 8%, var(--surface)); border: 1px solid color-mix(in srgb, var(--t) 25%, var(--border)); margin-top: 18px; font-size: 14px; color: var(--muted); }
+.callout > .ic { color: var(--t); margin-top: 2px; }
+.callout b { color: var(--text); }
+.callout a { color: var(--accent); }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 30px; }
+.actions a, .actions button { display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 12px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface); font-size: 13px; color: var(--muted); }
+.actions a:hover, .actions button:hover { color: var(--text); border-color: var(--line); }
+.actions .ic { width: 15px; height: 15px; }
+.pager { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 40px; }
+.pager a { padding: 16px 18px; }
+.pager .k { font-size: 12px; color: var(--faint); display: flex; align-items: center; gap: 6px; }
+.pager .k .ic { width: 14px; height: 14px; }
+.pager .t { font-weight: 600; font-size: 14.5px; margin-top: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.pager .next { text-align: right; }
+.pager .next .k { justify-content: flex-end; }
+.doc { padding: 6px 24px 18px; }
+.doc h2 { font-size: 17px; margin: 18px 0 6px; } .doc h3 { font-size: 15px; margin: 16px 0 6px; } .doc h4 { font-size: 14px; margin: 12px 0 4px; }
+.doc p { margin: 8px 0; } .doc ul { padding-left: 22px; margin: 8px 0; } .doc li { margin: 6px 0; }
+.doc li.cb { list-style: none; margin-left: -22px; display: flex; gap: 10px; }
+.box { flex: none; width: 18px; height: 18px; border-radius: 6px; border: 2px solid var(--line); margin-top: 3px; display: grid; place-items: center; }
+.box.x { background: var(--ok); border-color: var(--ok); color: #fff; }
+.box .ic { width: 12px; height: 12px; stroke-width: 3; }
+.doc blockquote { margin: 6px 0; padding: 2px 12px; border-left: 3px solid var(--line); color: var(--muted); }
+pre { background: var(--surface-2); padding: 12px 14px; border-radius: 10px; overflow: auto; font: 12.5px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
+.stepper { display: flex; align-items: center; margin-top: 26px; }
+.stepper .st { display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--faint); font-weight: 550; white-space: nowrap; }
+.stepper .st i { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--line); display: grid; place-items: center; font-style: normal; font-size: 12px; }
+.stepper .st.done { color: var(--muted); } .stepper .st.done i { background: var(--ok); border-color: var(--ok); color: #fff; }
+.stepper .st.cur { color: var(--text); } .stepper .st.cur i { border-color: var(--t); background: var(--t); color: #fff; }
+.stepper .st i .ic { width: 13px; height: 13px; stroke-width: 3; }
+.stepper .ln { flex: 1; height: 2px; background: var(--line); margin: 0 12px; min-width: 20px; }
+.stepper .ln.done { background: var(--ok); }
+.log { position: relative; padding-left: 22px; }
+.log::before { content: ""; position: absolute; left: 6px; top: 8px; bottom: 8px; width: 2px; background: var(--line); }
+.log div { position: relative; padding: 4px 0 10px; font-size: 14px; color: var(--muted); }
+.log div::before { content: ""; position: absolute; left: -21px; top: 11px; width: 10px; height: 10px; border-radius: 50%; background: var(--surface); border: 2px solid var(--accent); }
+.kv { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; margin-top: 22px; }
+.kv div { padding: 12px 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); min-width: 0; }
+.kv span { display: block; font-size: 12px; color: var(--faint); }
+.kv b { font-weight: 600; font-size: 14px; overflow-wrap: anywhere; }
+.kv a { color: var(--accent); }
+.issue { padding: 14px 18px; border-top: 1px solid var(--border); font-size: 14px; }
 .issue:first-child { border-top: 0; }
-.bad { color: var(--k-caution); }
-.ftabs { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
-.ftabs button { border: 0; background: var(--surface); padding: 4px 12px; font-size: 12px; }
-.ftabs button.on { background: var(--accent); color: #fff; }
-.fm { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; margin: 12px 0; }
-.fm div { background: var(--surface-2); border-radius: 6px; padding: 4px 8px; font-size: 12px; overflow-wrap: anywhere; }
+.ftabs { display: inline-flex; padding: 3px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border); }
+.ftabs button { height: 30px; padding: 0 12px; border-radius: 8px; font-size: 13px; color: var(--muted); }
+.ftabs button.on { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+.fm { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 6px; margin: 16px 0; }
+.fm div { background: var(--surface-2); border-radius: 8px; padding: 6px 10px; font-size: 12.5px; overflow-wrap: anywhere; }
 .fm b { color: var(--muted); font-weight: 500; margin-right: 6px; }
-mark.hl { background: color-mix(in srgb, var(--k-open) 28%, transparent); color: inherit; border-radius: 4px; padding: 1px 3px; }
-.raw { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; line-height: 1.55; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 0; overflow: auto; margin-top: 12px; }
-.raw div { display: flex; white-space: pre; padding: 0 12px; }
-.raw .ln { width: 36px; flex: none; text-align: right; color: var(--muted); margin-right: 14px; user-select: none; }
-.raw .hlrow { background: color-mix(in srgb, var(--k-open) 22%, transparent); }
+mark.hl { background: color-mix(in srgb, var(--ask) 30%, transparent); color: inherit; border-radius: 4px; padding: 1px 3px; }
+.raw { font: 12.5px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; padding: 12px 0; overflow: auto; }
+.raw div { display: flex; white-space: pre; padding: 0 14px; }
+.raw .ln { width: 38px; flex: none; text-align: right; color: var(--faint); margin-right: 14px; user-select: none; }
+.raw .hlrow { background: color-mix(in srgb, var(--ask) 18%, transparent); }
 
-/* tooling grid */
-.tgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
-.tcard { text-decoration: none; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; display: flex; gap: 10px; align-items: flex-start; }
-.tcard:hover { border-color: var(--c); }
-.tcard .t { font-weight: 600; font-size: 13.5px; overflow-wrap: anywhere; display: block; }
-.tcard .s { font-size: 12px; color: var(--muted); margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.tcard .trg { font-size: 11px; margin-top: 6px; color: var(--c); overflow-wrap: anywhere; display: block; }
+/* ---------- search palette ---------- */
+#palette { position: fixed; inset: 0; z-index: 50; background: rgba(8,10,15,.42); backdrop-filter: blur(3px); display: flex; justify-content: center; align-items: flex-start; padding: 12vh 16px 16px; }
+.pal { width: 100%; max-width: 640px; background: var(--surface); border: 1px solid var(--border); border-radius: 18px; box-shadow: 0 30px 80px rgba(0,0,0,.35); overflow: hidden; animation: pop .18s cubic-bezier(.2,.8,.2,1); }
+@keyframes pop { from { opacity: 0; transform: translateY(-8px) scale(.98); } }
+.pal .in { display: flex; align-items: center; gap: 12px; padding: 0 18px; border-bottom: 1px solid var(--border); color: var(--faint); }
+.pal input { flex: 1; height: 58px; border: 0; outline: 0; background: none; color: var(--text); font: inherit; font-size: 17px; min-width: 0; }
+.pal .res { max-height: 56vh; overflow: auto; padding: 8px; }
+.pal .gh { font-size: 11.5px; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); padding: 10px 12px 6px; }
+.pal .hit { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 8px 12px; border-radius: 10px; }
+.pal .hit.on { background: var(--surface-2); }
+.pal .hit .t { font-size: 14.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pal .hit .s { font-size: 12.5px; color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
+.pal .none { padding: 30px; text-align: center; color: var(--muted); }
+.pal .foot { display: flex; gap: 16px; padding: 10px 18px; border-top: 1px solid var(--border); font-size: 12px; color: var(--faint); }
+.pal kbd { font: 11px ui-monospace, Menlo, monospace; padding: 1px 6px; border-radius: 5px; background: var(--surface-2); border: 1px solid var(--border); }
+
+/* ---------- tooling ---------- */
+.tools { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+.tool { padding: 18px; display: flex; gap: 14px; }
+.tool .t { font-weight: 650; font-size: 15px; overflow-wrap: anywhere; }
+.tool .s { font-size: 13.5px; color: var(--muted); margin-top: 3px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.tool .k { font-size: 12.5px; color: var(--t); margin-top: 8px; overflow-wrap: anywhere; }
 
 /* ---------- mind map (second view) ---------- */
-#stage { position: absolute; inset: 0; overflow: auto; }
+#stage { position: absolute; inset: 0; overflow: auto; background: radial-gradient(circle at 1px 1px, var(--line) 1px, transparent 0) 0 0 / 22px 22px; }
 #canvas { position: relative; }
 #links { position: absolute; left: 0; top: 0; pointer-events: none; overflow: visible; }
-#links path { fill: none; stroke: var(--c); stroke-width: 2; opacity: .5; transition: opacity .25s; }
+#links path { fill: none; stroke: var(--line); stroke-width: 2; transition: opacity .25s; }
 #links path.ghost { opacity: 0; }
-.card { position: absolute; display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 9px 12px; text-align: left; box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 12px rgba(0,0,0,.04); transition: left .38s cubic-bezier(.2,.8,.2,1), top .38s cubic-bezier(.2,.8,.2,1), opacity .25s, box-shadow .15s; cursor: pointer; }
-.card.ghost { opacity: 0; pointer-events: none; }
-.card:hover { box-shadow: 0 2px 4px rgba(0,0,0,.06), 0 10px 24px rgba(0,0,0,.1); z-index: 2; }
-.card.sel { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 40%, transparent); }
-.card .body { flex: 1; min-width: 0; }
-.card .t { font-weight: 600; font-size: 13.5px; line-height: 1.3; }
-.card .s { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
-.card .track { margin-top: 7px; height: 4px; }
-.card.point .t, .card.ticket .t { font-weight: 500; font-size: 13px; }
-.card.point.dropped .t { text-decoration: line-through; color: var(--muted); }
-.card.project { border: 2px solid var(--accent); }
-.card.project .t { font-size: 16px; }
-.card.phase, .card.feature { border-left: 4px solid var(--c); }
-.card .more { flex: none; min-width: 24px; height: 24px; padding: 0 7px; border-radius: 99px; border: 1.5px solid color-mix(in srgb, var(--c) 45%, var(--border)); background: var(--surface); font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; color: var(--c); }
-.card.open .more { background: var(--c); color: #fff; border-color: transparent; }
-.card .go { flex: none; width: 24px; height: 24px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface-2); color: var(--muted); font-size: 12px; padding: 0; }
-.card .go:hover { color: #fff; background: var(--accent); border-color: var(--accent); }
-.card .ric { width: 26px; height: 26px; }
-.maptools { position: absolute; right: 16px; bottom: 16px; z-index: 5; display: flex; gap: 8px; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 6px 10px; font-size: 12px; color: var(--muted); box-shadow: 0 4px 12px rgba(0,0,0,.08); }
+.mcard { position: absolute; display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 10px 12px; box-shadow: var(--shadow); transition: left .38s cubic-bezier(.2,.8,.2,1), top .38s cubic-bezier(.2,.8,.2,1), opacity .25s, box-shadow .15s; cursor: pointer; }
+.mcard.ghost { opacity: 0; pointer-events: none; }
+.mcard:hover { box-shadow: var(--shadow-hi); z-index: 2; }
+.mcard.sel { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 45%, transparent); }
+.mcard .body { flex: 1; min-width: 0; }
+.mcard .t { font-weight: 650; font-size: 14px; line-height: 1.3; }
+.mcard .s { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.mcard.point .t, .mcard.ticket .t { font-weight: 500; font-size: 13.5px; }
+.mcard.point.dropped .t { text-decoration: line-through; color: var(--muted); }
+.mcard.project { border: 2px solid var(--accent); }
+.mcard.project .t { font-size: 17px; }
+.mcard .more { flex: none; min-width: 26px; height: 26px; padding: 0 8px; border-radius: 99px; border: 1.5px solid var(--line); font-size: 12px; font-weight: 650; display: grid; place-items: center; color: var(--muted); }
+.mcard.open .more { background: var(--text); color: var(--bg); border-color: var(--text); }
+.mcard .goto { flex: none; width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; color: var(--faint); }
+.mcard .goto:hover { background: var(--accent); color: #fff; }
+.mcard .goto .ic { width: 14px; height: 14px; }
+.maptools { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 5; display: flex; gap: 12px; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 7px 7px 7px 16px; font-size: 13px; color: var(--muted); box-shadow: var(--shadow-hi); white-space: nowrap; }
+
+.pop { position: absolute; right: 22px; top: 66px; z-index: 30; width: 360px; max-width: calc(100vw - 32px); padding: 16px 18px; font-size: 14px; }
+.pop p { margin: 6px 0; }
 
 /* ---------- phone ---------- */
 @media (max-width: 760px) {
-  header { gap: 8px; padding: 0 12px; }
-  #menuBtn { display: inline-block; }
-  .proj, .live span { display: none; }
-  input[type=search] { width: auto; flex: 1; }
-  .spacer { display: none; }
-  #side { position: fixed; top: 52px; bottom: 0; left: 0; z-index: 25; width: 280px; max-width: 85vw; transform: translateX(-100%); transition: transform .25s ease; box-shadow: 0 0 24px rgba(0,0,0,.25); }
-  body.side-open #side { transform: none; }
-  body.side-open #scrim { display: block; position: fixed; inset: 52px 0 0 0; background: rgba(0,0,0,.35); z-index: 24; }
-  #page { padding: 18px 16px 60px; }
-  h1 { font-size: 21px; }
-  .stats { grid-template-columns: repeat(2, 1fr); }
-  .prow .pm { display: none; }
-  .nmeta { display: none; }
-  .nbody { padding-left: 14px; }
+  header { padding: 0 14px; gap: 8px; height: 56px; }
+  .logo b, .tbtn .lbl, .tbtn kbd, .crumbs { display: none; }
+  .tbtn { padding: 0 10px; }
+  #page { padding: 22px 16px 80px; }
+  h1, .hero h1, .reader h1 { font-size: 26px; }
+  .hero { grid-template-columns: 1fr; padding: 24px 20px; gap: 16px; }
+  .hero .side { flex-direction: row; justify-content: flex-start; }
+  .ring.big { width: 80px; height: 80px; } .ring.big b { font-size: 19px; }
+  .attention { grid-template-columns: auto 1fr; padding: 18px; gap: 14px; }
+  .attention .btn { grid-column: 1 / -1; justify-content: center; }
+  .road::before { left: 19px; } .road li { padding-left: 52px; } .road .node { left: 0; width: 38px; height: 38px; margin-top: -19px; }
+  .stepcard { grid-template-columns: 1fr; padding: 16px 18px; } .stepcard .ring { display: none; }
+  .duo { grid-template-columns: 1fr; }
+  .phasehead { grid-template-columns: 1fr; } .phasehead > .ring { display: none; }
+  .grid { grid-template-columns: 1fr; }
+  .item { grid-template-columns: auto 1fr; padding: 14px; } .item .r { display: none; }
+  .pager { grid-template-columns: 1fr; }
+  .sechead { flex-direction: column; align-items: flex-start; }
   .maptools .hint { display: none; }
+  .stepper .st { font-size: 12px; }
 }
 </style>
 <!--PLAN_DATA-->
 </head>
 <body>
 <header>
-  <button id="menuBtn" aria-label="Open the plan menu">☰</button>
-  <a class="brand" href="#/">Thinkmap</a>
-  <span class="proj" id="title"></span>
-  <span class="spacer"></span>
-  <input type="search" id="q" placeholder="Search the plan…   /" aria-label="Search the plan">
-  <a class="hbtn warn" id="issuesBtn" href="#/issues" hidden></a>
-  <button class="hbtn upd" id="updBtn" hidden title="A newer Thinkmap is on GitHub">⬆ Update</button>
-  <span class="live" id="live"><i></i><span>connecting…</span></span>
+  <a class="logo" href="#/" title="Home"><span class="mark" id="markIc"></span><b>Thinkmap</b></a>
+  <nav class="crumbs" id="crumbs" aria-label="Where you are"></nav>
+  <span class="grow"></span>
+  <button class="tbtn" id="searchBtn" title="Search (⌘K or /)"><span id="searchIc"></span><span class="lbl">Search</span><kbd>⌘K</kbd></button>
+  <a class="tbtn need" id="needBtn" href="#/inbox" hidden title="Questions and ideas waiting for your decision"><span class="lbl">Needs you</span><span class="n" id="needN"></span></a>
+  <a class="tbtn" id="mapBtn" href="#/map" title="Mind map view"><span id="mapIc"></span><span class="lbl">Map</span></a>
+  <button class="tbtn" id="updBtn" hidden title="A newer Thinkmap is on GitHub">Update</button>
+  <span class="live" id="live" title="connecting…"></span>
 </header>
-<div class="pop" id="updbox" hidden>
+<div class="card pop" id="updbox" hidden>
   <p>Thinkmap <b id="updLatest"></b> is on GitHub; this is <b id="updCur"></b>. In a terminal, from your project:</p>
   <pre id="updHow"></pre>
-  <p class="muted">Then restart <code>thinkmap serve</code>.</p>
+  <p class="muted">Then run <code>/thinkmap</code> again; it replaces the old server.</p>
 </div>
-<div class="app">
-  <nav id="side" aria-label="Plan"></nav>
-  <div id="scrim"></div>
-  <main id="main">
-    <div id="page"></div>
-    <div id="stage" hidden><div id="canvas"><svg id="links"></svg><div id="content"></div></div></div>
-    <div class="maptools" id="maptools" hidden><span class="hint">Click a card to open its branch · click a note to read it</span><button class="hbtn" id="collapseBtn">Fold all</button></div>
-  </main>
-</div>
+<main id="main">
+  <div id="page"></div>
+  <div id="stage" hidden><div id="canvas"><svg id="links"></svg><div id="content"></div></div></div>
+  <div class="maptools" id="maptools" hidden><span class="hint">Click a card to unfold it · click a note to read it</span><button class="btn soft" id="collapseBtn">Fold all</button></div>
+</main>
+<div id="palette" hidden><div class="pal" role="dialog" aria-label="Search">
+  <div class="in"><span id="palIc"></span><input id="q" placeholder="Search decisions, questions, tickets…" autocomplete="off" spellcheck="false"></div>
+  <div class="res" id="res"></div>
+  <div class="foot"><span><kbd>↑</kbd> <kbd>↓</kbd> move</span><span><kbd>↵</kbd> open</span><span><kbd>esc</kbd> close</span></div>
+</div></div>
 
 <script>
 (() => {
+  // ---------- icons: simple line icons drawn inline (no libraries) ----------
+  const P = {
+    check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+    ask: '<circle cx="12" cy="12" r="9"/><path d="M9.6 9.2a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .9-1 1.6v.4"/><path d="M12 17h.01"/>',
+    idea: '<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1.1 1.3 1.1 2.1V16h5v-.1c0-.8.5-1.6 1.1-2.1A6 6 0 0 0 12 3z"/>',
+    risk: '<path d="M12 3.5l9 16H3z"/><path d="M12 10v4M12 17h.01"/>',
+    talk: '<path d="M4 5h16v11H9l-5 4z"/>',
+    drop: '<circle cx="12" cy="12" r="9"/><path d="M8.5 8.5l7 7M15.5 8.5l-7 7"/>',
+    ticket: '<rect x="3.5" y="5" width="17" height="14" rx="3"/><path d="M8 10h8M8 14h5"/>',
+    search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.8-3.8"/>',
+    map: '<circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.3 11l7.4-3.8M8.3 13l7.4 3.8"/>',
+    chev: '<path d="M9 6l6 6-6 6"/>',
+    left: '<path d="M19 12H5M11 6l-6 6 6 6"/>',
+    right: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/>',
+    tools: '<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>',
+    file: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/>',
+    edit: '<path d="M4 20h4L19.5 8.5l-4-4L4 16z"/>',
+    copy: '<rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M16 8V5.5A1.5 1.5 0 0 0 14.5 4h-9A1.5 1.5 0 0 0 4 5.5v9A1.5 1.5 0 0 0 5.5 16H8"/>',
+    warn: '<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5M12 16h.01"/>',
+    logo: '<circle cx="12" cy="5.5" r="2.2"/><circle cx="5.5" cy="17" r="2.2"/><circle cx="18.5" cy="17" r="2.2"/><path d="M11 7.5L6.6 15M13 7.5l4.4 7.5M8 17h8"/>',
+    up: '<path d="M7 17L17 7M9 7h8v8"/>',
+    layers: '<path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/>',
+  };
+  const icon = (n) => `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n] || ''}</svg>`;
+
   // ---------- vocabulary ----------
   const KIND = {
-    open: { icon: '❓', title: 'Open questions', one: 'Open question', hint: 'Nobody has answered these yet' },
-    suggestion: { icon: '💡', title: 'Suggestions', one: 'Suggestion', hint: 'Ideas waiting for a yes or no' },
-    caution: { icon: '⚠️', title: 'Take care of', one: 'Caution', hint: 'Rules and risks to keep in mind while building' },
-    decided: { icon: '✅', title: 'Decided', one: 'Decided', hint: 'Agreements, each with its reason' },
-    discussed: { icon: '💬', title: 'Discussed', one: 'Discussed', hint: 'Talked through; no action needed' },
-    dropped: { icon: '✖', title: 'Dropped', one: 'Dropped', hint: 'Decided not to do, with the reason' },
+    open: { ic: 'ask', tone: 'ask', tab: 'decide', one: 'Open question' },
+    suggestion: { ic: 'idea', tone: 'ask', tab: 'decide', one: 'Suggestion' },
+    caution: { ic: 'risk', tone: 'risk', tab: 'care', one: 'Take care' },
+    decided: { ic: 'check', tone: 'ok', tab: 'decided', one: 'Decided' },
+    discussed: { ic: 'talk', tone: 'talk', tab: 'discussed', one: 'Discussed' },
+    dropped: { ic: 'drop', tone: 'idle', tab: 'dropped', one: 'Dropped' },
   };
-  const ORDER = ['open', 'suggestion', 'caution', 'decided', 'discussed', 'dropped'];
-  const TICKET = { planned: { icon: '◻', label: 'ready' }, 'in-progress': { icon: '🔨', label: 'in progress' }, blocked: { icon: '⛔', label: 'blocked' }, done: { icon: '✅', label: 'done' }, dropped: { icon: '✖', label: 'dropped' }, 'to-discuss': { icon: '◻', label: 'not ready' }, discussing: { icon: '◻', label: 'not ready' }, decided: { icon: '◻', label: 'not ready' } };
+  const TABS = [
+    { key: 'decide', label: 'To decide', ic: 'ask', tone: 'ask', kinds: ['open', 'suggestion'], hint: 'Questions and ideas waiting for a decision.' },
+    { key: 'decided', label: 'Decided', ic: 'check', tone: 'ok', kinds: ['decided'], hint: 'What was agreed, each with its reason.' },
+    { key: 'care', label: 'Take care', ic: 'risk', tone: 'risk', kinds: ['caution'], hint: 'Rules and risks to keep in mind while building.' },
+    { key: 'tickets', label: 'Tickets', ic: 'ticket', tone: 'build', kinds: [], hint: 'The work that builds what was decided here.' },
+    { key: 'discussed', label: 'Discussed', ic: 'talk', tone: 'talk', kinds: ['discussed'], hint: 'Talked through; no action needed.' },
+    { key: 'dropped', label: 'Dropped', ic: 'drop', tone: 'idle', kinds: ['dropped'], hint: 'Decided not to do, with the reason.' },
+  ];
+  const TICKET = { planned: { label: 'Ready', tone: 'idle', step: 0 }, 'in-progress': { label: 'In progress', tone: 'build', step: 1 }, blocked: { label: 'Blocked', tone: 'risk', step: 1 }, done: { label: 'Done', tone: 'ok', step: 2 }, dropped: { label: 'Dropped', tone: 'idle', step: -1 }, 'to-discuss': { label: 'Not ready', tone: 'idle', step: 0 }, discussing: { label: 'Not ready', tone: 'idle', step: 0 }, decided: { label: 'Not ready', tone: 'idle', step: 0 } };
   const GROUP = {
-    agent: { icon: '🤖', title: 'Agents', one: 'Agent', hint: 'Subagents Claude can hand work to, each with its own instructions and tool limits', color: '--k-discussed' },
-    skill: { icon: '🧩', title: 'Skills', one: 'Skill', hint: 'Instructions Claude follows: by slash command, on its own when the task matches, or both', color: '--k-suggestion' },
-    hook: { icon: '🪝', title: 'Hooks', one: 'Hook', hint: 'Scripts Claude Code runs on events. Unlike instructions, they cannot be forgotten', color: '--k-work' },
+    agent: { ic: 'layers', title: 'Agents', one: 'Agent', hint: 'Subagents Claude can hand work to, each with its own instructions and tool limits.', tone: 'talk' },
+    skill: { ic: 'idea', title: 'Skills', one: 'Skill', hint: 'Instructions Claude follows: by slash command, on its own when the task matches, or both.', tone: 'accent' },
+    hook: { ic: 'tools', title: 'Hooks', one: 'Hook', hint: 'Scripts Claude Code runs on events. Unlike instructions, they cannot be forgotten.', tone: 'build' },
   };
   const LABELS = { what: 'What this is', why: 'Why', expected: 'What we expect', discussed: 'What we discussed', options: 'Options on the table', pending: 'Still pending', built: "What's built", risk: 'What goes wrong if we forget', next: 'Next step', how: 'How it works', see: 'See also' };
+  const LABEL_TONE = { why: 'ok', expected: 'build', options: 'accent', pending: 'ask', built: 'build', risk: 'risk', next: 'accent', discussed: 'talk' };
   const NEXT = {
-    open: 'Waiting for an answer. When decided, change <code>open</code> → <code>decided</code> on this line and write <code>Why:</code>.',
-    suggestion: 'Waiting for a yes or no. Accept: <code>suggestion</code> → <code>decided</code>. Reject: → <code>dropped</code> with <code>Why:</code>.',
-    caution: 'Keep this in mind while building. Tickets that touch it should mention it.',
+    open: '<b>Waiting for an answer.</b> When it is decided, change <code>open</code> → <code>decided</code> on this line in the file and add a <code>Why:</code> line.',
+    suggestion: '<b>Waiting for a yes or no.</b> Accept: change <code>suggestion</code> → <code>decided</code>. Reject: → <code>dropped</code> with a <code>Why:</code> line.',
+    caution: '<b>Keep this in mind while building.</b> Tickets that touch it should mention it in their notes.',
   };
-  const PHASE_COLORS = ['#d97706', '#8b5cf6', '#0891b2', '#16a34a', '#db2777', '#2563eb', '#64748b', '#ea580c'];
 
   // ---------- helpers ----------
   const $ = (s) => document.querySelector(s);
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const cssVar = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-  const kcolor = (k) => cssVar(`--k-${k}`) || '#999';
-  const scolor = (s) => cssVar(`--s-${s}`) || '#999';
   const store = {
     get(k, d) { try { const v = localStorage.getItem(`thinkmap:${k}`); return v === null ? d : JSON.parse(v); } catch { return d; } },
     set(k, v) { try { localStorage.setItem(`thinkmap:${k}`, JSON.stringify(v)); } catch { /* storage unavailable */ } },
@@ -316,108 +443,99 @@ mark.hl { background: color-mix(in srgb, var(--k-open) 28%, transparent); color:
   const fmtDate = (d) => { if (!d) return ''; const [y, m, dd] = d.split('-'); return `${Number(dd)} ${MONTHS[Number(m) - 1]}${y !== String(new Date().getFullYear()) ? ` ${y}` : ''}`; };
   const plural = (n, one, many) => `${n} ${n === 1 ? one : many || `${one}s`}`;
   const pct = (a, b) => (b ? Math.round((a / b) * 100) : 0);
-
-  const state = { g: null, byId: new Map(), phaseColor: new Map(), q: '', openNotes: new Set(), expanded: new Set(store.get('expanded', [])), pos: new Map(), files: new Map(), fmode: store.get('fmode', 'rendered'), revealId: null, lastToggled: null };
-
-  // ---------- routes: #/  #/p/P1  #/t/P1-F01[/P1-F01-03]  #/k/P1-T01  #/tooling[/id]  #/issues  #/file/id  #/map ----------
   const href = (...p) => `#/${p.map((x) => encodeURIComponent(x)).join('/')}`;
   const route = () => location.hash.replace(/^#\/?/, '').split('/').filter(Boolean).map((x) => { try { return decodeURIComponent(x); } catch { return x; } });
+
+  const state = { g: null, byId: new Map(), q: '', hit: 0, flat: [], expanded: new Set(store.get('expanded', [])), pos: new Map(), files: new Map(), fmode: store.get('fmode', 'rendered'), revealId: null, lastToggled: null, lastRoute: null };
 
   // ---------- data ----------
   const nodesOf = (t) => (state.g?.nodes || []).filter((n) => n.type === t);
   const project = () => nodesOf('project')[0];
-  const realChildren = (n) => (n.children || []).map((id) => state.byId.get(id)).filter(Boolean);
-  const pointsOf = (f) => realChildren(f).filter((c) => c.type === 'point');
-  const ticketsOf = (f) => realChildren(f).filter((c) => c.type === 'ticket');
+  const kidsOf = (n) => (n.children || []).map((id) => state.byId.get(id)).filter(Boolean);
+  const pointsOf = (f) => kidsOf(f).filter((c) => c.type === 'point');
+  const ticketsOf = (f) => kidsOf(f).filter((c) => c.type === 'ticket');
   const featuresOf = (ph) => nodesOf('feature').filter((f) => f.phase === ph.id);
   const topicOf = (n) => { let p = n; while (p && p.type !== 'feature') p = state.byId.get(p.parent); return p; };
-  const phaseNum = (ph) => esc(ph.id.replace(/^P/, ''));
+  const phaseNum = (ph) => esc(String(ph.id).replace(/^P/, ''));
   function counts(features) {
     const c = { open: 0, suggestion: 0, caution: 0, decided: 0, discussed: 0, dropped: 0, work: 0, done: 0 };
     for (const f of features) {
       for (const p of pointsOf(f)) c[p.kind] = (c[p.kind] || 0) + 1;
-      const t = ticketsOf(f); c.work += t.length; c.done += t.filter((x) => x.status === 'done').length;
+      for (const t of ticketsOf(f)) { c.work++; if (t.status === 'done') c.done++; }
     }
     return c;
   }
   const countsOf = (n) => counts(n.type === 'feature' ? [n] : n.type === 'phase' ? featuresOf(n) : nodesOf('feature'));
   const asks = (c) => c.open + c.suggestion;
-  const isDone = (n) => { const p = n.progress; return p && (p.points.total + p.tickets.total) > 0 && p.points.settled === p.points.total && p.tickets.done === p.tickets.total; };
-  const colorOf = (n) => (n.type === 'phase' ? state.phaseColor.get(n.id) : n.type === 'feature' ? state.phaseColor.get(n.phase) : n.type === 'point' ? kcolor(n.kind) : n.type === 'ticket' ? scolor(n.status) : cssVar('--accent')) || '#999';
-  const iconOf = (m) => (m.type === 'point' ? (KIND[m.kind] || KIND.dropped).icon : m.type === 'ticket' ? (TICKET[m.status] || TICKET.planned).icon : m.type === 'feature' ? '◆' : m.type === 'tool' ? GROUP[m.group].icon : '▣');
+  const progressOf = (n) => { const p = n.progress || { points: { total: 0, settled: 0 }, tickets: { total: 0, done: 0 } }; return { done: p.points.settled + p.tickets.done, total: p.points.total + p.tickets.total, p }; };
+  // One plain-word status for a project, phase or topic.
+  function stage(n) {
+    const c = countsOf(n); const { p } = progressOf(n);
+    if (!p.points.total && !p.tickets.total) return { key: 'empty', label: 'Not planned yet', tone: 'idle' };
+    if (p.tickets.total && p.tickets.done === p.tickets.total && p.points.settled === p.points.total) return { key: 'done', label: 'Done', tone: 'ok' };
+    if (asks(c)) return { key: 'decide', label: `${asks(c)} to decide`, tone: 'ask' };
+    if (p.tickets.total) return { key: 'build', label: `Building · ${p.tickets.done}/${p.tickets.total}`, tone: 'build' };
+    return { key: 'ready', label: 'Ready for tickets', tone: 'build' };
+  }
+  const currentPhase = () => nodesOf('phase').find((ph) => !['done', 'empty'].includes(stage(ph).key));
   function linkTo(n) {
     if (!n) return '#/';
     if (n.type === 'phase') return href('p', n.id);
     if (n.type === 'feature') return href('t', n.id);
-    if (n.type === 'point') { const f = topicOf(n); return f ? href('t', f.id, n.id) : '#/'; }
+    if (n.type === 'point') return href('n', n.id);
     if (n.type === 'ticket') return href('k', n.id);
     if (n.type === 'tool') return href('tooling', n.id);
     return '#/';
   }
+  const kindOf = (p) => KIND[p.kind] || KIND.dropped;
+  const toneOfNode = (n) => (n.type === 'point' ? kindOf(n).tone : n.type === 'ticket' ? (TICKET[n.status] || TICKET.planned).tone : n.type === 'tool' ? GROUP[n.group].tone : stage(n).tone);
+  const iconOfNode = (n) => (n.type === 'point' ? kindOf(n).ic : n.type === 'ticket' ? 'ticket' : n.type === 'tool' ? GROUP[n.group].ic : 'layers');
 
-  // ---------- small building blocks ----------
-  function sumHtml(c) {
-    const items = [
-      asks(c) && ['--k-open', `${asks(c)} need${asks(c) === 1 ? 's' : ''} an answer`],
-      c.caution && ['--k-caution', `${c.caution} to take care of`],
-      c.decided && ['--k-decided', `${c.decided} decided`],
-      c.work && ['--k-work', `${c.done}/${c.work} tickets done`],
-    ].filter(Boolean);
-    return items.length ? `<span class="sum">${items.map(([v, t]) => `<span style="--c:var(${v})"><i></i>${t}</span>`).join('')}</span>` : '<span class="sum">Nothing recorded yet</span>';
-  }
-  const meter = (label, a, b, cv, val) => (b ? `<div class="meter" style="--c:var(${cv})" title="${a} of ${b}"><span>${label}</span><span class="track"><i style="width:${pct(a, b)}%"></i></span><span class="mv">${val ?? `${pct(a, b)}%`}</span></div>` : '');
-  const meters = (n) => { const p = n.progress; if (!p) return ''; const m = meter('Decided', p.points.settled, p.points.total, '--k-decided') + meter('Built', p.tickets.done, p.tickets.total, '--k-work', `${p.tickets.done}/${p.tickets.total}`); return m ? `<div class="meters">${m}</div>` : ''; };
-  const crumbs = (list) => `<nav class="crumbs">${list.map(([t, h]) => `<a href="${h}">${esc(t)}</a>`).join('<span>›</span>')}<span>›</span></nav>`;
-  const crumbsFor = (n) => {
-    const out = [['Home', '#/']];
-    const ph = n.phase && state.byId.get(n.phase);
-    if (ph && n.type !== 'phase') out.push([`${ph.id} ${ph.title}`, linkTo(ph)]);
-    const f = topicOf(n);
-    if (f && n.type !== 'feature' && n.type !== 'phase') out.push([f.title, linkTo(f)]);
-    return crumbs(out);
+  // ---------- building blocks ----------
+  const ring = (done, total, tone, cls = '') => {
+    const v = pct(done, total); const C = 2 * Math.PI * 15.5;
+    return `<span class="ring ${cls} t-${tone}" title="${done} of ${total} settled or built"><svg viewBox="0 0 36 36"><circle class="bg" cx="18" cy="18" r="15.5" fill="none" stroke-width="3.2"/><circle class="fg" cx="18" cy="18" r="15.5" fill="none" stroke-width="3.2" stroke-linecap="round" stroke-dasharray="${C.toFixed(2)}" stroke-dashoffset="${(C * (1 - v / 100)).toFixed(2)}"/></svg><b>${total ? `${v}%` : '–'}</b></span>`;
   };
-  const sec = (id, icon, title, n, hint, inner, cv) => `<section class="blk" id="${id}"><h2 class="sh" style="--c:var(${cv || '--text'})">${icon ? `<span>${icon}</span>` : ''}${esc(title)}${n !== null && n !== undefined ? ` <span class="n">${n}</span>` : ''}</h2>${hint ? `<p class="shint">${hint}</p>` : '<div style="height:10px"></div>'}${inner}</section>`;
+  const pill = (label, tone, ic) => `<span class="pill t-${tone}">${ic ? icon(ic) : '<i></i>'}${esc(label)}</span>`;
+  const dotic = (ic, tone) => `<span class="dotic t-${tone}">${icon(ic)}</span>`;
+  const sechead = (title, n, sub, more) => `<div class="sechead"><div><h2 class="sec">${esc(title)}${n !== undefined && n !== null ? ` <span class="n">${n}</span>` : ''}</h2>${sub ? `<p>${sub}</p>` : ''}</div>${more || ''}</div>`;
   const noteSnippet = (n) => { const s = noteSections(n.notes); const w = s.find((x) => x.key === 'what') || s[0]; return w ? w.text.split('\n')[0] : ''; };
-
-  // A link row for any node
-  function row(n, opts = {}) {
+  const inlineMd = (s) => esc(s).replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\*\*([^*]+)\*\*/g, '$1');
+  // A row in a list, for any node.
+  function item(n, opts = {}) {
     if (!n) return '';
-    const col = colorOf(n);
+    const tone = toneOfNode(n);
     let sub = ''; let right = '';
-    if (n.type === 'point') sub = [opts.topic !== false && topicOf(n)?.title, fmtDate(n.date), n.from].filter(Boolean).map(esc).join(' · ');
-    else if (n.type === 'ticket') {
-      sub = [n.id, n.owner || 'nobody yet', n.checklist?.total ? `☑ ${n.checklist.done}/${n.checklist.total}` : ''].filter(Boolean).map(esc).join(' · ');
-      right = `<span class="pill" style="--c:${scolor(n.status)}">${(TICKET[n.status] || TICKET.planned).label}</span>`;
-    } else if (n.type === 'feature' || n.type === 'phase') sub = sumHtml(countsOf(n));
+    if (n.type === 'point') { sub = opts.topic ? esc(topicOf(n)?.title || '') : inlineMd(noteSnippet(n)); right = esc([fmtDate(n.date), n.from].filter(Boolean).join(' · ')); }
+    else if (n.type === 'ticket') { sub = esc([n.id, n.owner || 'no owner yet', n.checklist?.total ? `${n.checklist.done}/${n.checklist.total} criteria met` : ''].filter(Boolean).join(' · ')); right = pill((TICKET[n.status] || TICKET.planned).label, tone); }
     else if (n.type === 'tool') sub = esc(n.description || '');
-    const badge = (n.type === 'feature' || n.type === 'phase') && asks(countsOf(n)) ? `<span class="badge" title="Need an answer">${asks(countsOf(n))}</span>` : '';
-    return `<a class="row" href="${linkTo(n)}"><span class="ric" style="--c:${col}">${iconOf(n)}</span><span class="rt"><b class="clamp1">${esc(n.title || n.name)}</b>${sub ? `<span class="rs ${n.type === 'tool' ? 'clamp1' : ''}">${sub}</span>` : ''}</span>${badge}${right}</a>`;
+    else sub = esc(stage(n).label);
+    return `<a class="item ${n.kind === 'dropped' ? 'dropped' : ''}" href="${linkTo(n)}">${dotic(iconOfNode(n), tone)}<span><div class="t">${inlineMd(n.title || n.name)}</div>${sub ? `<div class="s">${sub}</div>` : ''}</span><span class="r">${right}${icon('chev')}</span></a>`;
   }
-  const rowList = (ids) => `<div class="list">${ids.map((id) => (state.byId.get(id) ? row(state.byId.get(id)) : `<div class="row bad">${esc(id)} (missing)</div>`)).join('')}</div>`;
-  const subList = (label, ids) => (ids?.length ? `<div class="sub"><div class="lbl">${label}</div>${rowList(ids)}</div>` : '');
-  const commitsHtml = (list) => list.map((c) => `<div class="commit"><code>${esc(c.hash)}</code><span>${esc(c.subject)}<span class="s">${esc(c.author)} · ${esc(c.date)}</span></span></div>`).join('');
-  const fact = (k, v) => (v ? `<div class="fact"><div class="k">${k}</div><div class="v">${v}</div></div>` : '');
-  const editorLink = (n) => (state.g.root ? `vscode://file/${encodeURI(`${state.g.root}/${n.file}`)}:${n.line || 1}` : null);
-  function actions(n, { map = true } = {}) {
+  const itemList = (list, opts) => `<div class="card list">${list.map((n) => item(n, opts)).join('')}</div>`;
+  const idList = (ids) => itemList(ids.map((id) => state.byId.get(id)).filter(Boolean));
+  const editorLink = (n) => (state.g.root && n.file ? `vscode://file/${encodeURI(`${state.g.root}/${n.file}`)}:${n.line || 1}` : null);
+  function actions(n) {
     const ed = editorLink(n);
     return `<div class="actions">
-      ${ed ? `<a href="${ed}" title="Opens the file in VS Code at this line">✎ Open in editor</a>` : ''}
-      ${window.__PLAN__ || !n.file ? '' : `<a href="${href('file', n.id)}" title="Show the Markdown file, with this line highlighted">📄 View file</a>`}
-      <button data-copy="${esc(n.id)}">⧉ Copy ID</button>
-      ${map ? `<button data-reveal="${esc(n.id)}">🗺 Show on map</button>` : ''}
+      ${ed ? `<a href="${ed}" title="Open the file in VS Code at this line">${icon('edit')}Open in editor</a>` : ''}
+      ${window.__PLAN__ || !n.file ? '' : `<a href="${href('file', n.id)}">${icon('file')}View the file</a>`}
+      <button data-copy="${esc(n.id)}">${icon('copy')}Copy ID</button>
+      <button data-reveal="${esc(n.id)}">${icon('map')}Show on map</button>
     </div>`;
   }
+  const commitsHtml = (list) => `<div class="card doc">${list.map((c) => `<p><code>${esc(c.hash)}</code> ${esc(c.subject)} <span class="muted">· ${esc(c.author)} · ${esc(c.date)}</span></p>`).join('')}</div>`;
 
   // ---------- markdown ----------
   function md(text) {
-    const inline = (s) => esc(s).replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+    const inline = (s) => esc(s).replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener" style="color:var(--accent)">$1</a>');
     let out = ''; let inList = false; let inCode = false; let buf = [];
     const closeList = () => { if (inList) { out += '</ul>'; inList = false; } };
     for (const raw of String(text || '').split('\n')) {
       if (/^\s*(```|~~~)/.test(raw)) { if (inCode) { out += `<pre>${esc(buf.join('\n'))}</pre>`; buf = []; inCode = false; } else { closeList(); inCode = true; } continue; }
       if (inCode) { buf.push(raw); continue; }
       const cb = /^\s*[-*]\s+\[([ xX])\]\s+(.*)$/.exec(raw); const li = /^\s*[-*]\s+(.*)$/.exec(raw);
-      if (cb || li) { if (!inList) { out += '<ul>'; inList = true; } out += cb ? `<li class="cb">${cb[1] === ' ' ? '☐' : '☑'} ${inline(cb[2])}</li>` : `<li>${inline(li[1])}</li>`; continue; }
+      if (cb || li) { if (!inList) { out += '<ul>'; inList = true; } out += cb ? `<li class="cb"><span class="box ${cb[1] === ' ' ? '' : 'x'}">${cb[1] === ' ' ? '' : icon('check')}</span><span>${inline(cb[2])}</span></li>` : `<li>${inline(li[1])}</li>`; continue; }
       closeList();
       const h = /^(#{1,6})\s+(.*)$/.exec(raw); const q = /^\s*>\s?(.*)$/.exec(raw);
       if (h) { const lvl = h[1].length; out += lvl === 1 ? `<h2>${inline(h[2])}</h2>` : lvl === 2 ? `<h3>${inline(h[2])}</h3>` : `<h4>${inline(h[2])}</h4>`; }
@@ -427,7 +545,6 @@ mark.hl { background: color-mix(in srgb, var(--k-open) 28%, transparent); color:
     closeList();
     return out;
   }
-  // Labelled note lines ("What: …", "Why: …") become sections; unlabelled lines continue the previous one.
   function noteSections(notes) {
     const out = [];
     for (const line of notes || []) {
@@ -441,40 +558,8 @@ mark.hl { background: color-mix(in srgb, var(--k-open) 28%, transparent); color:
   }
   // Points and the generated "## Tickets" list are shown as their own sections, not as intro text.
   const aboutText = (n) => (n.sections || []).filter((s) => s.text && !/^(points|tickets)$/i.test(s.heading || ''));
-
-  // ---------- notes (expand in place) ----------
-  function noteBody(p) {
-    const secs = noteSections(p.notes);
-    const title = (s) => (s.key === 'why' ? (p.kind === 'dropped' ? 'Why we dropped it' : p.kind === 'decided' ? 'Why we decided this' : 'Why') : s.key ? LABELS[s.key] : (p.kind === 'suggestion' ? 'The idea' : 'Detail'));
-    const colorFor = (s) => ({ risk: '--k-caution', pending: '--k-open', built: '--k-work', next: '--k-suggestion', options: '--k-suggestion' }[s.key] || `--k-${p.kind}`);
-    const body = secs.length
-      ? secs.map((s) => `<div class="nsec" style="--c:var(${colorFor(s)})"><div class="nl">${title(s)}</div><div class="nx">${md(s.text)}</div></div>`).join('')
-      : '<p class="muted small">No details written yet. In the file, add indented lines under this point: <code>&gt; What: …</code>, <code>&gt; Why: …</code>.</p>';
-    return `${body}${NEXT[p.kind] ? `<div class="nexthint">${NEXT[p.kind]}</div>` : ''}
-      ${subList('Delivered by these tickets', p.implementedBy)}
-      ${p.commits?.length ? `<div class="sub"><div class="lbl">Commits mentioning this</div>${commitsHtml(p.commits)}</div>` : ''}
-      ${actions(p)}`;
-  }
-  function noteEl(p) {
-    const open = state.openNotes.has(p.id);
-    const k = KIND[p.kind] || KIND.dropped;
-    const snip = noteSnippet(p);
-    return `<div class="note ${open ? 'open' : ''} k-${esc(p.kind)}" id="note-${esc(p.id)}" style="--c:${kcolor(p.kind)}">
-      <button class="nhead" data-note="${esc(p.id)}" aria-expanded="${open}">
-        <span class="ric">${k.icon}</span>
-        <span class="rt"><span class="ntitle">${esc(p.title)}</span>${!open && snip ? `<span class="rs clamp1">${esc(snip)}</span>` : ''}</span>
-        <span class="nmeta">${[fmtDate(p.date), p.from].filter(Boolean).map(esc).join(' · ')}</span>
-        <span class="chev">›</span>
-      </button>
-      ${open ? `<div class="nbody">${noteBody(p)}</div>` : ''}
-    </div>`;
-  }
-  function toggleNote(id) {
-    if (state.openNotes.has(id)) state.openNotes.delete(id); else state.openNotes.add(id);
-    const el = document.getElementById(`note-${id}`);
-    const p = state.byId.get(id);
-    if (el && p) el.outerHTML = noteEl(p);
-  }
+  const firstLine = (n) => { const a = aboutText(n)[0]; return a ? a.text.split('\n\n')[0].replace(/\n/g, ' ').trim() : ''; };
+  const intro = (n) => (firstLine(n) ? `<div class="lede">${inlineMd(firstLine(n))}</div>` : '');
 
   // ---------- pages ----------
   function events() {
@@ -483,90 +568,134 @@ mark.hl { background: color-mix(in srgb, var(--k-open) 28%, transparent); color:
       if (n.type === 'point' && n.date) ev.push({ date: n.date, n });
       if (n.type === 'ticket' && n.updated && (n.status === 'done' || n.status === 'in-progress')) ev.push({ date: n.updated, n });
     }
-    return ev;
+    return ev.sort((a, b) => b.date.localeCompare(a.date));
   }
 
   function homePage() {
     const p = project();
     if (!p) return emptyPage();
-    const c = counts(nodesOf('feature'));
-    const points = nodesOf('point');
-    const ask = points.filter((x) => x.kind === 'open' || x.kind === 'suggestion');
-    const care = points.filter((x) => x.kind === 'caution');
-    const tickets = nodesOf('ticket');
-    const active = tickets.filter((t) => t.status === 'in-progress' || t.status === 'blocked');
-    const ready = tickets.filter((t) => t.status === 'planned');
-    const intro = aboutText(p)[0];
     const phases = nodesOf('phase');
-    const phaseRow = (ph) => {
-      const fs = featuresOf(ph); const pr = ph.progress;
-      return `<a class="row prow" href="${linkTo(ph)}"><span class="num" style="--c:${state.phaseColor.get(ph.id)}">${phaseNum(ph)}</span><span class="rt"><b class="clamp1">${esc(ph.title)}</b><span class="rs">${fs.length ? `${plural(fs.length, 'topic')} · ${sumHtml(countsOf(ph))}` : 'Not planned yet'}</span></span>${asks(countsOf(ph)) ? `<span class="badge">${asks(countsOf(ph))}</span>` : ''}<span class="pm">${meter('Decided', pr.points.settled, pr.points.total, '--k-decided')}${meter('Built', pr.tickets.done, pr.tickets.total, '--k-work', `${pr.tickets.done}/${pr.tickets.total}`)}</span></a>`;
+    const c = counts(nodesOf('feature'));
+    const prog = progressOf(p);
+    const ask = nodesOf('point').filter((x) => x.kind === 'open' || x.kind === 'suggestion');
+    const cur = currentPhase();
+    const tools = state.g.tooling?.items?.length || 0;
+    const { errors = 0, warnings = 0 } = state.g.stats || {};
+    const step = (ph) => {
+      const s = stage(ph); const pr = progressOf(ph); const fs = featuresOf(ph); const pc = countsOf(ph);
+      const cls = s.key === 'done' ? 'done' : s.key === 'empty' ? 'todo' : ph === cur ? 'now' : '';
+      const sub = fs.length ? [plural(fs.length, 'topic'), pc.decided && `${pc.decided} decided`, pr.p.tickets.total && `${pr.p.tickets.done}/${pr.p.tickets.total} tickets done`].filter(Boolean).join(' · ') : 'Nothing planned in this phase yet';
+      return `<li class="${cls}"><span class="node">${s.key === 'done' ? icon('check') : phaseNum(ph)}</span>
+        <a class="card stepcard" href="${linkTo(ph)}"><div>
+          <div class="top">${ph === cur ? '<span class="here">You are here</span>' : ''}<h3>${esc(ph.title)}</h3>${pill(s.label, s.tone)}</div>
+          ${firstLine(ph) ? `<p>${inlineMd(firstLine(ph))}</p>` : ''}
+          <div class="sub">${sub}</div>
+        </div>${pr.total ? ring(pr.done, pr.total, s.tone) : ''}</a></li>`;
     };
-    const byDay = new Map();
-    for (const e of events()) { if (!byDay.has(e.date)) byDay.set(e.date, []); byDay.get(e.date).push(e.n); }
-    const days = [...byDay.keys()].sort().reverse().slice(0, 5);
-    const recent = days.map((d) => { const l = byDay.get(d); return `<div class="day">${fmtDate(d)}</div><div class="list">${l.slice(0, 8).map((n) => row(n)).join('')}${l.length > 8 ? `<div class="row muted small">and ${l.length - 8} more</div>` : ''}</div>`; }).join('');
-    const stat = (id, v, k, cv) => `<button class="stat" data-scroll="${id}" style="--c:var(${cv})"><div class="v">${v}</div><div class="k">${k}</div></button>`;
+    const recent = events().slice(0, 6);
+    const attention = ask.length
+      ? `<div class="attention"><span class="big">${ask.length}</span><div style="min-width:0"><h3>${ask.length === 1 ? 'One decision is' : `${ask.length} decisions are`} waiting for you</h3><ul>${ask.slice(0, 3).map((n) => `<li><a href="${linkTo(n)}">${icon(kindOf(n).ic)}<span>${inlineMd(n.title)}</span><em>· ${esc(topicOf(n)?.title || '')}</em></a></li>`).join('')}</ul></div><a class="btn" href="#/inbox">Review all ${icon('right')}</a></div>`
+      : `<div class="allclear">${icon('check')}<span><b style="color:var(--text)">Nothing is waiting for you.</b> Every question in the plan has an answer.</span></div>`;
+    const mini = (to, ic, tone, t, s) => `<a class="card mini" href="${to}">${dotic(ic, tone)}<span><div class="t">${t}</div><div class="s">${s}</div></span><span class="go">${icon('chev')}</span></a>`;
     return `
-      <h1>${esc(p.title)}</h1>
-      ${intro ? `<div class="lead">${md(intro.text)}</div>` : ''}
-      <div class="stats">
-        ${stat('sec-ask', ask.length, 'need your answer', '--k-open')}
-        ${stat('sec-care', care.length, 'to take care of', '--k-caution')}
-        ${stat('sec-phases', c.decided, 'decided', '--k-decided')}
-        ${stat('sec-work', `${c.done}/${c.work}`, 'tickets done', '--k-work')}
-      </div>
-      ${sec('sec-phases', '', 'Phases', phases.length, 'Each phase groups related topics. Open one to see its decisions and tickets.', phases.length ? `<div class="list">${phases.map(phaseRow).join('')}</div>` : '<p class="empty">No phases yet.</p>')}
-      ${sec('sec-ask', '❓', 'Needs your answer', ask.length, 'Open questions and suggestions waiting for a decision.', ask.length ? `<div class="list">${ask.map((n) => row(n)).join('')}</div>` : '<p class="empty">Nothing waiting. Every question has an answer.</p>', '--k-open')}
-      ${sec('sec-work', '🔨', 'Work', tickets.length ? `${c.done}/${c.work} done` : 0, active.length ? 'Being built or blocked right now.' : ready.length ? 'Nothing in progress. These are ready to start.' : '', active.length ? `<div class="list">${active.map((n) => row(n)).join('')}</div>` : ready.length ? `<div class="list">${ready.map((n) => row(n)).join('')}</div>` : `<p class="empty">${tickets.length ? 'All tickets are done.' : 'No tickets yet.'}</p>`, '--k-work')}
-      ${sec('sec-care', '⚠️', 'Take care of', care.length, KIND.caution.hint, care.length ? `<div class="list">${care.map((n) => row(n)).join('')}</div>` : '<p class="empty">No cautions recorded.</p>', '--k-caution')}
-      ${days.length ? sec('sec-recent', '🕑', 'Recent activity', null, 'What was decided, asked or built, newest first.', recent) : ''}`;
+      <section class="hero"><div>
+        <div class="eyebrow">${icon('layers')}Project</div>
+        <h1>${esc(p.title)}</h1>
+        ${intro(p)}
+        <div class="facts"><span><b>${phases.length}</b> phases</span><span><b>${nodesOf('feature').length}</b> topics</span><span><b>${c.decided}</b> decisions</span><span><b>${c.done}/${c.work}</b> tickets done</span></div>
+      </div><div class="side">${ring(prog.done, prog.total, 'accent', 'big')}<span>overall progress</span></div></section>
+      ${attention}
+      ${sechead('Roadmap', phases.length, 'Your project, phase by phase. Open one to see its topics.')}
+      ${phases.length ? `<ol class="road">${phases.map(step).join('')}</ol>` : '<div class="card empty"><h3>No phases yet</h3><p>Add one with <code>thinkmap phase P1 &lt;slug&gt;</code>.</p></div>'}
+      <div class="duo">
+        <div>${sechead('Recent activity', null, 'What was decided, asked or built lately.')}<div class="card feed">${recent.length ? recent.map((e) => `<a href="${linkTo(e.n)}">${dotic(iconOfNode(e.n), toneOfNode(e.n))}<span class="t">${inlineMd(e.n.title)}</span><span class="d">${fmtDate(e.date)}</span></a>`).join('') : '<p class="muted" style="padding:14px">Nothing dated yet.</p>'}</div></div>
+        <div>${sechead('Also in this project', null, 'Reference, when you need it.')}<div class="minis">
+          ${c.caution ? mini('#/care', 'risk', 'risk', `${plural(c.caution, 'thing', 'things')} to take care of`, 'Rules and risks to remember while building') : ''}
+          ${mini('#/tooling', 'tools', 'accent', 'Claude Code tooling', tools ? plural(tools, 'agent, skill or hook', 'agents, skills and hooks') : 'None in this project')}
+          ${errors || warnings ? mini('#/issues', 'warn', errors ? 'risk' : 'idle', errors ? plural(errors, 'format error') : plural(warnings, 'format warning'), errors ? 'Some plan files break the format' : 'Small fixes; the plan still reads fine') : ''}
+        </div></div>
+      </div>`;
   }
 
   function emptyPage() {
     const g = state.g;
     const errs = (g.issues || []).filter((i) => i.level === 'error').slice(0, 5);
     const cli = g.app?.cli || 'npx github:dsngeu/ThinkMap';
-    return `<h1>No plan found</h1>
-      <div class="lead">Thinkmap needs a <code>project.md</code> with <code>type: project</code> in <code>${esc(g.planDir && g.planDir !== '.' ? g.planDir : g.root || 'docs/plan')}</code>.</div>
-      ${sec('e1', '', 'New project', null, 'Create the folder from the template. This page updates by itself afterwards.', `<pre>${esc(cli)} init --name "Your Project"</pre>`)}
-      ${sec('e2', '', 'Plan lives elsewhere', null, 'Restart with its path:', `<pre>${esc(cli)} serve path/to/plan --open</pre>`)}
-      ${errs.length ? sec('e3', '', 'Format errors', errs.length, '', `<div class="list">${errs.map((i) => `<div class="issue"><code>${esc(i.file)}</code> ${esc(i.message)}</div>`).join('')}</div>`) : ''}`;
+    return `<section class="hero"><div><div class="eyebrow">${icon('layers')}Thinkmap</div><h1>No plan found</h1>
+      <div class="lede">Thinkmap needs a <code>project.md</code> with <code>type: project</code> in <code>${esc(g.planDir && g.planDir !== '.' ? g.planDir : g.root || 'docs/plan')}</code>.</div></div></section>
+      ${sechead('New project', null, 'Create the folder from the template. This page updates by itself afterwards.')}<pre>${esc(cli)} init --name "Your Project"</pre>
+      ${sechead('Plan lives elsewhere', null, 'Restart with its path:')}<pre>${esc(cli)} serve path/to/plan --open</pre>
+      ${errs.length ? `${sechead('Format errors', errs.length)}<div class="card">${errs.map((i) => `<div class="issue"><code>${esc(i.file)}</code> ${esc(i.message)}</div>`).join('')}</div>` : ''}`;
   }
 
   function phasePage(ph) {
     const fs = featuresOf(ph);
+    const s = stage(ph); const pr = progressOf(ph);
     const tks = fs.flatMap(ticketsOf);
-    const about = aboutText(ph);
-    return `${crumbs([['Home', '#/']])}
-      <h1><span class="num" style="--c:${state.phaseColor.get(ph.id)}">${phaseNum(ph)}</span>${esc(ph.title)}</h1>
-      ${about.length ? `<div class="lead">${about.map((s) => md(s.text)).join('')}</div>` : ''}
-      <div class="meta">${sumHtml(countsOf(ph))}</div>
-      ${meters(ph)}
-      ${actions(ph)}
-      ${sec('topics', '', 'Topics', fs.length, 'Each topic holds what was discussed, decided and still open about one subject.', fs.length ? `<div class="list">${fs.map((f) => row(f)).join('')}</div>` : '<p class="empty">No topics in this phase yet.</p>')}
-      ${tks.length ? sec('tickets', '🔨', 'Tickets', tks.length, 'What is being built in this phase.', `<div class="list">${tks.map((t) => row(t)).join('')}</div>`, '--k-work') : ''}
-      ${ph.dependsOn?.length ? sec('dep', '', 'Depends on', ph.dependsOn.length, '', rowList(ph.dependsOn)) : ''}`;
+    const card = (f) => {
+      const fsg = stage(f); const fp = progressOf(f); const fc = countsOf(f);
+      const bits = [fc.decided && `${fc.decided} decided`, fc.work && `${fc.done}/${fc.work} tickets`].filter(Boolean).join(' · ');
+      return `<a class="card tcard ${asks(fc) ? 'needs' : ''}" href="${linkTo(f)}"><div class="row1"><h3>${esc(f.title)}</h3>${fp.total ? ring(fp.done, fp.total, fsg.tone, 'sm') : ''}</div>
+        ${firstLine(f) ? `<p class="desc">${inlineMd(firstLine(f))}</p>` : ''}
+        <div class="foot">${pill(fsg.label, fsg.tone)}<span>${bits || 'Empty'}</span></div></a>`;
+    };
+    return `<div class="phasehead"><div>
+        <div class="eyebrow">${icon('layers')}Phase ${phaseNum(ph)}${ph === currentPhase() ? ' · you are here' : ''}</div>
+        <h1>${esc(ph.title)}</h1>${intro(ph)}
+        <div class="stats">
+          <div class="stat t-${s.tone}"><b>${esc(s.label)}</b><span>status</span></div>
+          <div class="stat"><b>${fs.length}</b><span>topics</span></div>
+          <div class="stat t-ok"><b>${pct(pr.p.points.settled, pr.p.points.total)}%</b><span>decided</span></div>
+          <div class="stat t-build"><b>${pr.p.tickets.done}/${pr.p.tickets.total}</b><span>tickets done</span></div>
+        </div></div>${pr.total ? ring(pr.done, pr.total, s.tone, 'big') : ''}</div>
+      ${sechead('Topics', fs.length, 'Each topic holds one subject: its questions, decisions, cautions and tickets.')}
+      ${fs.length ? `<div class="grid">${fs.map(card).join('')}</div>` : '<div class="card empty"><h3>No topics yet</h3><p>Add a topic file <code>F01-slug.md</code> to this phase folder.</p></div>'}
+      ${tks.length ? `${sechead('All tickets in this phase', tks.length, '')}${itemList(tks)}` : ''}
+      ${actions(ph)}`;
   }
 
-  function topicPage(f) {
-    const pts = pointsOf(f);
-    const tks = ticketsOf(f);
-    const about = aboutText(f);
-    const blocks = ORDER.map((k) => {
-      const l = pts.filter((p) => p.kind === k);
-      if (!l.length) return '';
-      return sec(`k-${k}`, KIND[k].icon, KIND[k].title, l.length, KIND[k].hint, `<div class="list">${l.map(noteEl).join('')}</div>`, `--k-${k}`);
-    }).join('');
-    return `${crumbsFor(f)}
-      <h1>${esc(f.title)}</h1>
-      ${about.length ? `<div class="lead">${about.map((s) => `${s.heading ? `<b>${esc(s.heading)}</b>` : ''}${md(s.text)}`).join('')}</div>` : ''}
-      <div class="meta">${sumHtml(countsOf(f))}${f.labels?.length ? ` · ${f.labels.map((l) => `<span class="tag">${esc(l)}</span>`).join(' ')}` : ''} · updated ${fmtDate(f.updated)}</div>
-      ${actions(f)}
-      ${blocks || '<p class="empty" style="margin-top:24px">No notes in this topic yet.</p>'}
-      ${tks.length ? sec('k-work', '🔨', 'Work', `${tks.filter((t) => t.status === 'done').length}/${tks.length} done`, 'Tickets that build what was decided here.', `<div class="list">${tks.map((t) => row(t)).join('')}</div>`, '--k-work') : ''}
-      ${f.dependsOn?.length ? sec('dep', '', 'Depends on', f.dependsOn.length, '', rowList(f.dependsOn)) : ''}
-      ${f.blocks?.length ? sec('blk', '', 'Blocks', f.blocks.length, '', rowList(f.blocks)) : ''}`;
+  function topicPage(f, tabKey) {
+    const pts = pointsOf(f); const tks = ticketsOf(f);
+    const s = stage(f); const pr = progressOf(f);
+    const n = Object.fromEntries(TABS.map((t) => [t.key, t.key === 'tickets' ? tks.length : pts.filter((p) => t.kinds.includes(p.kind)).length]));
+    const shown = TABS.filter((t) => n[t.key] || ['decide', 'decided'].includes(t.key));
+    const tab = shown.find((t) => t.key === tabKey) || (n.decide ? shown[0] : shown.find((t) => n[t.key]) || shown[0]);
+    const list = tab.key === 'tickets' ? tks : pts.filter((p) => tab.kinds.includes(p.kind));
+    const body = list.length ? itemList(list)
+      : `<div class="card empty">${icon('check')}<h3>${tab.key === 'decide' ? 'Nothing left to decide' : 'Nothing here yet'}</h3><p>${tab.key === 'decide' ? 'Every question in this topic has an answer.' : esc(tab.hint)}</p></div>`;
+    return `<div class="phasehead"><div>
+        <div class="eyebrow">${icon('layers')}Topic · ${esc(f.id)}</div>
+        <h1>${esc(f.title)}</h1>${intro(f)}
+        <div class="meta">${pill(s.label, s.tone)}<span>${pct(pr.p.points.settled, pr.p.points.total)}% decided</span>${pr.p.tickets.total ? `<span>${pr.p.tickets.done}/${pr.p.tickets.total} tickets done</span>` : ''}<span>updated ${fmtDate(f.updated)}</span></div>
+      </div>${pr.total ? ring(pr.done, pr.total, s.tone, 'big') : ''}</div>
+      <nav class="tabs" aria-label="Notes in this topic">${shown.map((t) => `<a class="${t === tab ? 'on' : ''} t-${t.tone}" href="${href('t', f.id, t.key)}">${icon(t.ic)}${t.label}<span class="n">${n[t.key]}</span></a>`).join('')}</nav>
+      <p class="tabhint">${esc(tab.hint)}</p>
+      ${body}
+      ${f.dependsOn?.length ? `${sechead('Depends on', f.dependsOn.length, '')}${idList(f.dependsOn)}` : ''}
+      ${actions(f)}`;
+  }
+
+  function notePage(p) {
+    const k = kindOf(p); const f = topicOf(p);
+    const secs = noteSections(p.notes);
+    const title = (s) => (s.key === 'why' ? (p.kind === 'dropped' ? 'Why we dropped it' : p.kind === 'decided' ? 'Why we decided this' : 'Why') : s.key ? LABELS[s.key] : (p.kind === 'suggestion' ? 'The idea' : 'Details'));
+    const blocks = secs.length
+      ? secs.map((s) => `<div class="card block t-${s.key === 'what' || !s.key ? k.tone : LABEL_TONE[s.key] || k.tone}"><div class="lbl">${title(s)}</div>${md(s.text)}</div>`).join('')
+      : '<div class="card block t-idle"><div class="lbl">No details yet</div><p class="muted">Add indented lines under this point in the file: <code>&gt; What: …</code>, <code>&gt; Why: …</code></p></div>';
+    const sibs = f ? pointsOf(f).filter((x) => kindOf(x).tab === k.tab) : [];
+    const i = sibs.indexOf(p); const prev = sibs[i - 1]; const next = sibs[i + 1];
+    const tab = TABS.find((t) => t.key === k.tab);
+    return `<article class="reader">
+      <div class="eyebrow">${pill(k.one, k.tone, k.ic)}<span>${esc(p.id)}</span></div>
+      <h1 style="margin-top:14px">${inlineMd(p.title)}</h1>
+      <div class="meta">${p.date ? `<span>${icon('clock')} ${fmtDate(p.date)}</span>` : ''}${p.from ? `<span>raised by ${esc(p.from)}</span>` : ''}${f ? `<span>in <a href="${href('t', f.id, k.tab)}">${esc(f.title)}</a></span>` : ''}${sibs.length > 1 ? `<span>${i + 1} of ${sibs.length} ${esc(tab.label.toLowerCase())}</span>` : ''}</div>
+      <div class="blocks">${blocks}</div>
+      ${NEXT[p.kind] ? `<div class="callout t-${k.tone}">${icon(k.ic)}<span>${NEXT[p.kind]}</span></div>` : ''}
+      ${p.implementedBy?.length ? `${sechead('Built by', p.implementedBy.length, 'The tickets that deliver this.')}${idList(p.implementedBy)}` : ''}
+      ${p.commits?.length ? `${sechead('Commits mentioning this', p.commits.length, '')}${commitsHtml(p.commits)}` : ''}
+      ${actions(p)}
+      ${prev || next ? `<nav class="pager">${prev ? `<a class="card prev" href="${linkTo(prev)}"><div class="k">${icon('left')}Previous</div><div class="t">${inlineMd(prev.title)}</div></a>` : '<span></span>'}${next ? `<a class="card next" href="${linkTo(next)}"><div class="k">Next${icon('right')}</div><div class="t">${inlineMd(next.title)}</div></a>` : ''}</nav>` : ''}
+    </article>`;
   }
 
   function ticketPage(n) {
@@ -575,70 +704,71 @@ mark.hl { background: color-mix(in srgb, var(--k-open) 28%, transparent); color:
     const goal = part('goal'); const ac = part('acceptance criteria'); const oos = part('out of scope'); const notes = part('notes');
     const other = (n.sections || []).filter((x) => x.text && x.heading && !/^(goal|acceptance criteria|out of scope|notes|handoff log)$/i.test(x.heading));
     const waiting = n.dependsOn.filter((d) => state.byId.get(d)?.status !== 'done');
-    const doc = (title, text) => (text ? sec(title.toLowerCase().replace(/\W+/g, '-'), '', title, null, '', `<div class="doc">${md(text)}</div>`) : '');
-    return `${crumbsFor(n)}
-      <h1>${esc(n.title)}</h1>
-      <div class="meta"><span class="pill" style="--c:${scolor(n.status)}">${s.icon} ${s.label}</span><code>${esc(n.id)}</code><span>${n.owner ? `owner ${esc(n.owner)}` : 'nobody yet'}</span><span>updated ${fmtDate(n.updated)}</span>${n.labels?.map((l) => `<span class="tag">${esc(l)}</span>`).join(' ') || ''}</div>
-      <div class="lead">${goal?.text ? md(goal.text) : 'No goal written yet.'}</div>
-      ${n.checklist?.total ? `<div class="meters">${meter('Checklist', n.checklist.done, n.checklist.total, '--k-work', `${n.checklist.done}/${n.checklist.total}`)}</div>` : ''}
-      ${n.status === 'blocked' || waiting.length ? `<div class="callout" style="--c:var(--k-caution)"><b>Waiting on</b>${waiting.length ? `<div style="margin-top:8px">${rowList(waiting)}</div>` : '<p>See the notes.</p>'}</div>` : ''}
-      ${actions(n)}
+    const labels = ['Ready', n.status === 'blocked' ? 'Blocked' : 'In progress', 'Done'];
+    const isDone = n.status === 'done';
+    const stepper = s.step < 0 ? '' : `<div class="stepper t-${s.tone}">${labels.map((label, i) => {
+      const cls = i < s.step || (isDone && i === s.step) ? 'done' : i === s.step ? 'cur' : '';
+      return `${i ? `<span class="ln ${i <= s.step ? 'done' : ''}"></span>` : ''}<span class="st ${cls}"><i>${cls === 'done' ? icon('check') : i + 1}</i>${label}</span>`;
+    }).join('')}</div>`;
+    const doc = (title, text) => (text ? `${sechead(title, null, '')}<div class="card doc">${md(text)}</div>` : '');
+    const f = topicOf(n);
+    return `<article class="reader">
+      <div class="eyebrow">${pill(`Ticket · ${s.label}`, s.tone, 'ticket')}<span>${esc(n.id)}</span></div>
+      <h1 style="margin-top:14px">${inlineMd(n.title)}</h1>
+      ${goal?.text ? `<div class="lede">${md(goal.text)}</div>` : ''}
+      ${stepper}
+      <div class="kv"><div><span>Owner</span><b>${esc(n.owner || 'nobody yet')}</b></div><div><span>Updated</span><b>${fmtDate(n.updated)}</b></div>${n.checklist?.total ? `<div><span>Acceptance criteria</span><b>${n.checklist.done} of ${n.checklist.total} met</b></div>` : ''}${f ? `<div><span>Topic</span><b><a href="${linkTo(f)}">${esc(f.title)}</a></b></div>` : ''}</div>
+      ${n.status === 'blocked' || waiting.length ? `<div class="callout t-risk">${icon('risk')}<span><b>Waiting on</b> ${waiting.length ? waiting.map((d) => `<a href="${linkTo(state.byId.get(d))}">${esc(d)}</a>`).join(', ') : 'see the notes'}</span></div>` : ''}
       ${doc('Acceptance criteria', ac?.text)}
-      ${n.implements?.length ? sec('impl', '✅', 'Delivers these decisions', n.implements.length, '', rowList(n.implements), '--k-decided') : ''}
-      ${n.dependsOn?.length ? sec('dep', '', 'Depends on', n.dependsOn.length, '', rowList(n.dependsOn)) : ''}
-      ${n.blocks?.length ? sec('blk', '', 'Blocks', n.blocks.length, '', rowList(n.blocks)) : ''}
-      ${doc('Out of scope', oos?.text)}
-      ${doc('Notes', notes?.text)}
-      ${other.map((x) => doc(x.heading, x.text)).join('')}
-      ${n.code?.length ? sec('code', '', 'Code', n.code.length, '', `<div class="doc">${n.code.map((c) => `<div class="commit"><code>${esc(c.path)}</code><span class="${c.exists ? '' : 'muted'}">${c.exists ? '✓ exists' : 'not created yet'}</span></div>`).join('')}</div>`) : ''}
-      ${n.commits?.length ? sec('commits', '', 'Commits', n.commits.length, '', `<div class="doc">${commitsHtml(n.commits)}</div>`) : ''}
-      ${sec('log', '', 'Handoff log', n.handoff?.length || 0, 'Each session working on this ticket adds a line.', n.handoff?.length ? `<div class="doc"><div class="log" style="margin-top:10px">${n.handoff.map((h) => `<div>${esc(h)}</div>`).join('')}</div></div>` : '<p class="empty">No entries yet.</p>')}`;
+      ${n.implements?.length ? `${sechead('Delivers these decisions', n.implements.length, '')}${idList(n.implements)}` : ''}
+      ${n.dependsOn?.length ? `${sechead('Depends on', n.dependsOn.length, '')}${idList(n.dependsOn)}` : ''}
+      ${n.blocks?.length ? `${sechead('Blocks', n.blocks.length, '')}${idList(n.blocks)}` : ''}
+      ${doc('Out of scope', oos?.text)}${doc('Notes', notes?.text)}${other.map((x) => doc(x.heading, x.text)).join('')}
+      ${n.code?.length ? `${sechead('Code', n.code.length, '')}<div class="card doc">${n.code.map((c) => `<p><code>${esc(c.path)}</code> <span class="muted">${c.exists ? '· exists' : '· not created yet'}</span></p>`).join('')}</div>` : ''}
+      ${n.commits?.length ? `${sechead('Commits', n.commits.length, '')}${commitsHtml(n.commits)}` : ''}
+      ${sechead('Handoff log', n.handoff?.length || 0, 'Each session working on this ticket adds a line.')}
+      ${n.handoff?.length ? `<div class="card doc" style="padding:18px 22px"><div class="log">${n.handoff.map((h) => `<div>${esc(h)}</div>`).join('')}</div></div>` : '<p class="muted">No entries yet.</p>'}
+      ${actions(n)}
+    </article>`;
   }
 
+  // Lists across the whole project, grouped by topic.
+  function groupedPage(kinds, eyebrow, title, lede, tone, ic, emptyText) {
+    const list = nodesOf('point').filter((x) => kinds.includes(x.kind));
+    const byTopic = new Map();
+    for (const n of list) { const f = topicOf(n); if (!byTopic.has(f)) byTopic.set(f, []); byTopic.get(f).push(n); }
+    return `<div class="eyebrow">${pill(eyebrow, tone, ic)}</div><h1 style="margin-top:12px">${title(list.length)}</h1><div class="lede">${lede}</div>
+      ${list.length ? [...byTopic].map(([f, l]) => `<div class="group"><a href="${linkTo(f)}">${esc(f?.title || 'No topic')}</a><span style="color:var(--faint)">· ${l.length}</span></div>${itemList(l)}`).join('') : `<div class="card empty" style="margin-top:28px">${icon('check')}<h3>${emptyText}</h3></div>`}`;
+  }
+  const inboxPage = () => groupedPage(['open', 'suggestion'], 'Needs you', (n) => (n ? `${plural(n, 'decision')} waiting for you` : 'All caught up'), 'Open questions and suggestions across the whole project, grouped by topic. Open one to read the options.', 'ask', 'ask', 'Nothing is waiting for a decision');
+  const carePage = () => groupedPage(['caution'], 'Take care', (n) => `${plural(n, 'thing', 'things')} to take care of`, 'Rules and risks recorded across the project. Whoever builds in these topics should keep them in mind.', 'risk', 'risk', 'No cautions recorded');
+
   const tbadge = (t) => (t.group === 'skill' ? (t.slash ? `${t.slash}${/on its own/.test(t.trigger) ? ' · also automatic' : ''}` : 'automatic') : t.group === 'agent' ? `subagent${t.model ? ` · ${t.model}` : ''}${t.tools?.length ? ` · ${plural(t.tools.length, 'tool')}` : ''}` : `${t.event}${t.matcher ? ` · ${t.matcher}` : ''}${t.hookType === 'prompt' ? ' · prompt' : ''}`);
-  const toolCard = (i) => `<a class="tcard" href="${href('tooling', i.id)}" style="--c:${cssVar(GROUP[i.group].color)}"><span class="ric">${GROUP[i.group].icon}</span><span class="rt"><span class="t">${esc(i.group === 'skill' && i.slash ? i.slash : i.name)}</span><span class="s">${esc(i.description || 'No description. Open the file to see what it does.')}</span><span class="trg">${esc(tbadge(i))}</span></span></a>`;
   function toolingPage() {
     const t = state.g.tooling || { items: [], notes: [] };
-    const notes = t.notes?.length ? `<div class="callout" style="--c:var(--k-caution)">${t.notes.map(esc).join('<br>')}</div>` : '';
-    if (!t.items.length) {
-      return `${crumbs([['Home', '#/']])}<h1>Tooling</h1>
-        <div class="lead">No agents, skills or hooks in this project. Thinkmap looks in <code>.claude/agents/</code>, <code>.claude/skills/</code>, <code>.claude/commands/</code> and the <code>hooks</code> block of <code>.claude/settings.json</code> (plus a plugin's own folders when <code>.claude-plugin/plugin.json</code> exists). It never reads your personal <code>~/.claude</code>.</div>${notes}`;
-    }
-    return `${crumbs([['Home', '#/']])}<h1>Tooling</h1>
-      <div class="lead">The Claude Code agents, skills and hooks this project ships with.</div>${notes}
-      ${['agent', 'skill', 'hook'].map((g) => { const l = t.items.filter((i) => i.group === g); return l.length ? sec(`g-${g}`, GROUP[g].icon, GROUP[g].title, l.length, GROUP[g].hint, `<div class="tgrid">${l.map(toolCard).join('')}</div>`, GROUP[g].color) : ''; }).join('')}`;
+    const notes = t.notes?.length ? `<div class="callout t-risk">${icon('warn')}<span>${t.notes.map(esc).join('<br>')}</span></div>` : '';
+    const head = `<div class="eyebrow">${icon('tools')}Project</div><h1>Claude Code tooling</h1>`;
+    if (!t.items.length) return `${head}<div class="lede">No agents, skills or hooks in this project. Thinkmap looks in <code>.claude/agents/</code>, <code>.claude/skills/</code>, <code>.claude/commands/</code> and the <code>hooks</code> block of <code>.claude/settings.json</code> (plus a plugin's own folders). It never reads your personal <code>~/.claude</code>.</div>${notes}`;
+    return `${head}<div class="lede">The agents, skills and hooks this project ships with.</div>${notes}
+      ${['agent', 'skill', 'hook'].map((g) => { const l = t.items.filter((i) => i.group === g); return l.length ? `${sechead(GROUP[g].title, l.length, GROUP[g].hint)}<div class="tools">${l.map((i) => `<a class="card tool" href="${href('tooling', i.id)}">${dotic(GROUP[g].ic, GROUP[g].tone)}<span><div class="t">${esc(i.group === 'skill' && i.slash ? i.slash : i.name)}</div><div class="s">${esc(i.description || 'No description.')}</div><div class="k t-${GROUP[g].tone}">${esc(tbadge(i))}</div></span></a>`).join('')}</div>` : ''; }).join('')}`;
   }
   function toolPage(n) {
     const g = GROUP[n.group];
     const ed = editorLink(n);
-    const tags = (l) => l.map((x) => `<span class="tag">${esc(x)}</span>`).join(' ');
-    const facts = [
-      fact('How it starts', esc(n.trigger)),
-      n.group === 'skill' ? fact('Slash command', n.slash ? `<code>${esc(n.slash)}</code>` : '<span class="muted">none, automatic only</span>') : '',
-      n.group === 'hook' ? fact('Event', `<code>${esc(n.event)}</code>`) + fact('Matcher', n.matcher ? `<code>${esc(n.matcher)}</code>` : '<span class="muted">every tool</span>') + fact('Kind', esc(n.hookType)) + fact('Timeout', n.timeout ? `${n.timeout}s` : '') : '',
-      fact('Tools allowed', n.tools?.length ? tags(n.tools) : ''),
-      fact('Model', esc(n.model)),
-      fact('Source', n.source === 'plugin' ? 'this project’s plugin folders' : 'project <code>.claude/</code>'),
-      fact('File', `<code>${esc(n.file)}${n.line > 1 ? `:${n.line}` : ''}</code>`),
-      ...Object.entries(n.meta || {}).map(([k, v]) => fact(esc(k), esc(v))),
-    ].join('');
-    const acts = `<div class="actions">${ed ? `<a href="${ed}">✎ Open in editor</a>` : ''}${n.slash ? `<button data-copy="${esc(n.slash)}">⧉ Copy command</button>` : ''}<button data-copy="${esc(n.file)}">⧉ Copy path</button></div>`;
-    const body = n.group === 'hook'
-      ? sec('cmd', '', n.hookType === 'prompt' ? 'Prompt' : 'Command', null, 'Shown for reading. Thinkmap never runs hooks.', `<pre>${esc(n.command ?? n.prompt ?? '')}</pre>`)
-      : n.body ? sec('ins', '', 'Instructions', null, '', `<div class="doc">${md(n.body)}</div>`) : '<p class="empty">The file has no body.</p>';
-    const warn = n.recognised ? '' : '<div class="callout" style="--c:var(--k-caution)"><b>Unrecognised layout.</b> No front matter with a <code>description</code> was found, so the file is shown as-is.</div>';
-    return `${crumbs([['Home', '#/'], ['Tooling', '#/tooling']])}
-      <h1>${esc(n.group === 'skill' && n.slash ? n.slash : n.name)}</h1>
-      <div class="meta"><span class="pill" style="--c:${cssVar(g.color)}">${g.icon} ${g.one}</span></div>
-      <div class="lead">${esc(n.description || g.hint)}</div>
-      <div class="facts">${facts}</div>${warn}${acts}${body}`;
+    const kv = [['How it starts', esc(n.trigger)], n.group === 'skill' && ['Slash command', n.slash ? `<code>${esc(n.slash)}</code>` : 'none, automatic only'], n.group === 'hook' && ['Event', `<code>${esc(n.event)}</code>`], n.group === 'hook' && ['Matcher', n.matcher ? `<code>${esc(n.matcher)}</code>` : 'every tool'], n.tools?.length && ['Tools allowed', esc(n.tools.join(', '))], n.model && ['Model', esc(n.model)], ['File', `<code>${esc(n.file)}</code>`]].filter((x) => x && x[1]);
+    const body = n.group === 'hook' ? `${sechead(n.hookType === 'prompt' ? 'Prompt' : 'Command', null, 'Shown for reading. Thinkmap never runs hooks.')}<pre>${esc(n.command ?? n.prompt ?? '')}</pre>` : n.body ? `${sechead('Instructions', null, '')}<div class="card doc">${md(n.body)}</div>` : '';
+    return `<article class="reader"><div class="eyebrow">${pill(g.one, g.tone, g.ic)}</div><h1 style="margin-top:14px">${esc(n.group === 'skill' && n.slash ? n.slash : n.name)}</h1>
+      <div class="lede">${esc(n.description || g.hint)}</div>
+      <div class="kv">${kv.map(([k, v]) => `<div><span>${k}</span><b>${v}</b></div>`).join('')}</div>
+      <div class="actions">${ed ? `<a href="${ed}">${icon('edit')}Open in editor</a>` : ''}${n.slash ? `<button data-copy="${esc(n.slash)}">${icon('copy')}Copy command</button>` : ''}<button data-copy="${esc(n.file)}">${icon('copy')}Copy path</button></div>
+      ${body}</article>`;
   }
 
   function issuesPage() {
     const list = state.g.issues || [];
-    return `${crumbs([['Home', '#/']])}<h1>Format issues</h1>
-      <div class="lead">Problems the validator found in the plan files. Run <code>thinkmap validate</code> in a terminal for the same list.</div>
-      <section class="blk">${list.length ? `<div class="list">${list.map((i) => `<div class="issue"><b class="${i.level === 'error' ? 'bad' : ''}">${esc(i.level)}</b> · <code>${esc(i.file)}</code>${i.id ? ` · ${esc(i.id)}` : ''}<div>${esc(i.message)}</div></div>`).join('')}</div>` : '<p class="empty">No issues 🎉</p>'}</section>`;
+    return `<div class="eyebrow">${icon('warn')}Plan files</div><h1>Format check</h1>
+      <div class="lede">What the validator found. Warnings are small fixes; the plan still reads fine. Run <code>thinkmap validate</code> in a terminal for the same list${list.some((i) => /tickets --write/.test(i.message)) ? ', and <code>thinkmap tickets --write</code> to fix ticket names and lists in one go' : ''}.</div>
+      <div class="card" style="margin-top:26px">${list.length ? list.map((i) => `<div class="issue">${pill(i.level, i.level === 'error' ? 'risk' : 'idle')} <code>${esc(i.file)}</code><div class="muted" style="margin-top:6px">${esc(i.message)}</div></div>`).join('') : '<div class="empty">No issues</div>'}</div>`;
   }
 
   async function loadFile(path) {
@@ -646,94 +776,79 @@ mark.hl { background: color-mix(in srgb, var(--k-open) 28%, transparent); color:
     let text = null;
     try { const r = await fetch(`api/file?path=${encodeURIComponent(path)}`); if (r.ok) text = await r.text(); } catch { /* offline */ }
     state.files.set(path, text);
-    const r = route();
-    if (r[0] === 'file') { renderPage(); requestAnimationFrame(() => $('#page [data-hl]')?.scrollIntoView({ block: 'center' })); }
+    if (route()[0] === 'file') { renderPage(false); requestAnimationFrame(() => $('#page [data-hl]')?.scrollIntoView({ block: 'center' })); }
   }
   function filePage(n) {
     const text = state.files.get(n.file);
     if (text === undefined) loadFile(n.file);
     const mode = state.fmode;
-    const head = `${crumbs([['Home', '#/'], [n.title, linkTo(n)]])}
-      <h1 style="font-size:18px"><code style="font-size:15px">${esc(n.file)}</code></h1>
+    const head = `<div class="eyebrow">${icon('file')}File</div><h1 style="font-size:22px"><code>${esc(n.file)}</code></h1>
       <div class="meta"><span class="ftabs"><button class="${mode === 'rendered' ? 'on' : ''}" data-fmode="rendered">Rendered</button><button class="${mode === 'raw' ? 'on' : ''}" data-fmode="raw">Raw</button></span><a href="${linkTo(n)}">← Back to ${esc(n.title)}</a></div>`;
-    if (text === undefined || text === 'loading') return `${head}<p class="empty">Loading…</p>`;
-    if (text === null) return `${head}<p class="bad">Could not load the file.</p>`;
+    if (text === undefined || text === 'loading') return `${head}<p class="muted" style="margin-top:20px">Loading…</p>`;
+    if (text === null) return `${head}<p style="margin-top:20px;color:var(--risk)">Could not load the file.</p>`;
     const lines = text.split(/\r?\n/);
     let body = lines; let fmEnd = -1;
     if (lines[0] === '---') { fmEnd = lines.indexOf('---', 1); if (fmEnd > 0) body = lines.slice(fmEnd + 1); }
     const target = (n.line || 1) - 1;
-    if (mode === 'raw') return `${head}<div class="raw">${lines.map((l, i) => `<div class="${i === target ? 'hlrow' : ''}" ${i === target ? 'data-hl' : ''}><span class="ln">${i + 1}</span><span>${esc(l) || ' '}</span></div>`).join('')}</div>`;
+    if (mode === 'raw') return `${head}<div class="card raw" style="margin-top:20px">${lines.map((l, i) => `<div class="${i === target ? 'hlrow' : ''}" ${i === target ? 'data-hl' : ''}><span class="ln">${i + 1}</span><span>${esc(l) || ' '}</span></div>`).join('')}</div>`;
     const fm = fmEnd > 0 ? lines.slice(1, fmEnd).map((l) => /^([\w-]+):\s*(.*)$/.exec(l)).filter(Boolean).map((m) => `<div><b>${esc(m[1])}</b>${esc(m[2])}</div>`).join('') : '';
     const bodyTarget = target - (fmEnd > 0 ? fmEnd + 1 : 0);
     const marked = body.map((l, i) => (i === bodyTarget ? l.replace(/^(\s*(?:[-*]\s+|>\s?)?)(.*)$/, '$1⟦hl⟧$2⟦/hl⟧') : l)).join('\n');
-    return `${head}${fm ? `<div class="fm">${fm}</div>` : ''}<div class="doc">${md(marked).replace('⟦hl⟧', '<mark class="hl" data-hl>').replace('⟦/hl⟧', '</mark>')}</div>`;
+    return `${head}${fm ? `<div class="fm">${fm}</div>` : ''}<div class="card doc">${md(marked).replace('⟦hl⟧', '<mark class="hl" data-hl>').replace('⟦/hl⟧', '</mark>')}</div>`;
   }
 
-  function searchPage() {
-    const q = state.q;
-    const hit = (...parts) => parts.join(' ').toLowerCase().includes(q);
-    const groups = [
-      ['Topics and phases', state.g.nodes.filter((n) => (n.type === 'phase' || n.type === 'feature') && hit(n.id, n.title))],
-      ['Notes', nodesOf('point').filter((n) => hit(n.id, n.title, (n.notes || []).join(' ')))],
-      ['Tickets', nodesOf('ticket').filter((n) => hit(n.id, n.title, n.owner || '', (n.sections || []).map((s) => s.text).join(' ')))],
-      ['Tooling', (state.g.tooling?.items || []).map((t) => state.byId.get(t.id)).filter((t) => t && hit(t.name, t.slash || '', t.description || '', t.trigger || '', t.file))],
-    ].filter(([, l]) => l.length);
-    const total = groups.reduce((a, [, l]) => a + l.length, 0);
-    return `<h1>Search</h1><div class="lead">${total ? `${plural(total, 'result')} for “${esc(q)}”` : `Nothing matches “${esc(q)}”.`} Press Esc to clear.</div>
-      ${groups.map(([t, l]) => sec(`s-${t}`, '', t, l.length, '', `<div class="list">${l.slice(0, 50).map((n) => row(n)).join('')}</div>`)).join('')}`;
+  // ---------- breadcrumb ----------
+  function renderCrumbs(r) {
+    const out = [];
+    const add = (n) => out.push([n.title || n.name, linkTo(n)]);
+    const n = r[1] && state.byId.get(r[1]);
+    if (['p', 't', 'n', 'k', 'file'].includes(r[0]) && n) {
+      const ph = state.byId.get(n.phase); const f = topicOf(n);
+      if (ph && n.type !== 'phase') add(ph);
+      if (f && n.type !== 'feature') add(f);
+      add(n);
+      if (r[0] === 'file') out.push(['File', location.hash]);
+    } else if (r[0] === 'inbox') out.push(['Needs you', '#/inbox']);
+    else if (r[0] === 'care') out.push(['Take care', '#/care']);
+    else if (r[0] === 'tooling') { out.push(['Tooling', '#/tooling']); if (n) out.push([n.title, linkTo(n)]); }
+    else if (r[0] === 'issues') out.push(['Format check', '#/issues']);
+    else if (r[0] === 'map') out.push(['Mind map', '#/map']);
+    const all = [[project()?.title || 'Plan', '#/'], ...out];
+    $('#crumbs').innerHTML = all.map(([t, h], i) => `${i ? `<span class="sep">${icon('chev')}</span>` : ''}<a href="${h}">${esc(t)}</a>`).join('');
   }
 
-  // ---------- sidebar ----------
-  function renderSide() {
-    const r = route();
-    const g = state.g;
-    const p = project();
-    const cur = r[0] === 'p' || r[0] === 't' || r[0] === 'k' ? r[1] : null;
-    const curNode = cur && state.byId.get(cur);
-    const curTopic = curNode && topicOf(curNode)?.id;
-    const on = (b) => (b ? ' on" aria-current="page' : '');
-    const total = p ? asks(counts(nodesOf('feature'))) : 0;
-    const tools = g.tooling?.items?.length || 0;
-    let html = `<a class="nav${on(!r.length)}" href="#/"><span class="ni">⌂</span><span class="nt">Home</span>${total ? `<span class="badge" title="Need your answer">${total}</span>` : ''}</a>`;
-    if (p) html += `<a class="nav${on(r[0] === 'map')}" href="#/map"><span class="ni">🗺</span><span class="nt">Mind map</span></a>`;
-    const phases = nodesOf('phase');
-    if (phases.length) html += '<div class="navh">Phases</div>';
-    for (const ph of phases) {
-      const c = countsOf(ph);
-      html += `<a class="nav ph${on(r[0] === 'p' && r[1] === ph.id)}" href="${linkTo(ph)}"><span class="num" style="--c:${state.phaseColor.get(ph.id)}">${phaseNum(ph)}</span><span class="nt">${esc(ph.title)}</span>${asks(c) ? `<span class="badge">${asks(c)}</span>` : isDone(ph) ? '<span class="tick" title="Everything decided and built">✓</span>' : ''}</a>`;
-      for (const f of featuresOf(ph)) {
-        const fc = countsOf(f);
-        html += `<a class="nav tp${on(curTopic === f.id && r[0] !== 'p')}" href="${linkTo(f)}"><span class="nt">${esc(f.title)}</span>${asks(fc) ? `<span class="badge">${asks(fc)}</span>` : ''}</a>`;
-      }
-    }
-    html += '<div class="navh">Project</div>';
-    html += `<a class="nav${on(r[0] === 'tooling')}" href="#/tooling"><span class="ni">🧩</span><span class="nt">Tooling</span><span class="cnt">${tools}</span></a>`;
-    if (g.issues?.length) html += `<a class="nav${on(r[0] === 'issues')}" href="#/issues"><span class="ni">⚠</span><span class="nt">Format issues</span><span class="cnt">${g.issues.length}</span></a>`;
-    html += `<div class="sidefoot">Thinkmap${g.app?.version ? ` v${esc(g.app.version)}` : ''} · reads <code>${esc(g.planDir || 'docs/plan')}</code></div>`;
-    $('#side').innerHTML = html;
-  }
-
-  // ---------- main ----------
+  // ---------- render ----------
   function pageFor(r) {
-    if (state.q) return searchPage();
     if (!r.length) return homePage();
     const n = r[1] && state.byId.get(r[1]);
     if (r[0] === 'p' && n?.type === 'phase') return phasePage(n);
-    if (r[0] === 't' && n?.type === 'feature') return topicPage(n);
+    if (r[0] === 't' && n?.type === 'feature') return topicPage(n, r[2]);
+    if (r[0] === 'n' && n?.type === 'point') return notePage(n);
     if (r[0] === 'k' && n?.type === 'ticket') return ticketPage(n);
+    if (r[0] === 'inbox') return inboxPage();
+    if (r[0] === 'care') return carePage();
     if (r[0] === 'tooling') return n?.type === 'tool' ? toolPage(n) : toolingPage();
     if (r[0] === 'issues') return issuesPage();
     if (r[0] === 'file' && n) return filePage(n);
-    return `${crumbs([['Home', '#/']])}<h1>Not found</h1><div class="lead">Nothing called <code>${esc(r.join('/'))}</code> in this plan. It may have been renamed.</div>`;
+    return `<div class="card empty">${icon('warn')}<h3>Not found</h3><p>Nothing called <code>${esc(r.join('/'))}</code> in this plan. It may have been renamed. <a href="#/" style="color:var(--accent)">Go home</a></p></div>`;
   }
   const isMap = () => route()[0] === 'map' && !!project();
-  function renderPage() { $('#page').innerHTML = pageFor(route()); }
-  function renderMain() {
+  function renderPage(animate) {
+    const pg = $('#page');
+    pg.innerHTML = pageFor(route());
+    if (animate) { pg.classList.remove('enter'); void pg.offsetWidth; pg.classList.add('enter'); } else pg.classList.remove('enter');
+  }
+  function renderAll(animate) {
+    if (!state.g) return;
+    const r = route();
+    renderCrumbs(r);
     const map = isMap();
     $('#page').hidden = map; $('#stage').hidden = !map; $('#maptools').hidden = !map;
-    if (map) renderMap(); else renderPage();
+    $('#mapBtn').classList.toggle('on', map);
+    const need = asks(counts(nodesOf('feature')));
+    $('#needBtn').hidden = !need || r[0] === 'inbox'; $('#needN').textContent = need;
+    if (map) renderMap(); else renderPage(animate);
   }
-  function renderAll() { if (!state.g) return; renderSide(); renderMain(); }
 
   function setGraph(g) {
     state.g = g;
@@ -743,75 +858,71 @@ mark.hl { background: color-mix(in srgb, var(--k-open) 28%, transparent); color:
     const app = g.app || {};
     $('#updBtn').hidden = !app.updateAvailable;
     if (app.updateAvailable) { $('#updLatest').textContent = `v${app.latest}`; $('#updCur').textContent = `v${app.version}`; $('#updHow').textContent = app.updateHint || 'thinkmap update'; }
-    const name = g.project?.title || 'Plan';
-    document.title = `${name} · Thinkmap`;
-    $('#title').textContent = name;
-    nodesOf('phase').forEach((p, i) => state.phaseColor.set(p.id, PHASE_COLORS[i % PHASE_COLORS.length]));
-    const { errors = 0, warnings = 0 } = g.stats || {};
-    const btn = $('#issuesBtn');
-    btn.hidden = !(errors || warnings);
-    btn.textContent = `⚠ ${errors ? plural(errors, 'error') : ''}${errors && warnings ? ', ' : ''}${warnings ? plural(warnings, 'warning') : ''}`;
-    renderAll();
+    document.title = `${g.project?.title || 'Plan'} · Thinkmap`;
+    if (state.lastRoute !== null) renderAll(false); // live update: keep scroll, no animation
+  }
+  function onRoute() {
+    closePalette();
+    const fresh = location.hash !== state.lastRoute;
+    state.lastRoute = location.hash;
+    renderAll(fresh);
+    if (fresh && !isMap() && route()[0] !== 'file') $('#main').scrollTop = 0;
   }
 
-  function onRoute(first) {
-    const r = route();
-    if (!first) { state.q = ''; $('#q').value = ''; }
-    document.body.classList.remove('side-open');
-    if (r[0] === 't' && r[2]) state.openNotes.add(r[2]);
-    renderAll();
-    if (r[0] === 'map') return;
-    if (r[0] === 't' && r[2]) {
-      requestAnimationFrame(() => { const el = document.getElementById(`note-${r[2]}`); if (el) { el.scrollIntoView({ block: 'center' }); el.classList.add('flash'); } });
-    } else if (r[0] !== 'file') $('#main').scrollTop = 0;
+  // ---------- search palette ----------
+  function searchHits(q) {
+    if (!q) return [['Phases', nodesOf('phase')], ['Recent', events().slice(0, 6).map((e) => e.n)]];
+    const hit = (...parts) => parts.join(' ').toLowerCase().includes(q);
+    return [
+      ['Phases and topics', state.g.nodes.filter((n) => (n.type === 'phase' || n.type === 'feature') && hit(n.id, n.title))],
+      ['Notes', nodesOf('point').filter((n) => hit(n.id, n.title, (n.notes || []).join(' ')))],
+      ['Tickets', nodesOf('ticket').filter((n) => hit(n.id, n.title, n.owner || ''))],
+      ['Tooling', (state.g.tooling?.items || []).map((t) => state.byId.get(t.id)).filter((t) => t && hit(t.name, t.slash || '', t.description || ''))],
+    ].map(([t, l]) => [t, l.slice(0, 8)]);
   }
+  function renderPalette() {
+    const groups = searchHits(state.q).filter(([, l]) => l.length);
+    state.flat = groups.flatMap(([, l]) => l);
+    state.hit = Math.max(0, Math.min(state.hit, state.flat.length - 1));
+    let i = -1;
+    const sub = (n) => (n.type === 'point' ? `${kindOf(n).one} · ${topicOf(n)?.title || ''}` : n.type === 'ticket' ? `${n.id} · ${(TICKET[n.status] || TICKET.planned).label}` : n.type === 'feature' ? `Topic · ${state.byId.get(n.phase)?.title || ''}` : n.type === 'phase' ? `Phase ${n.id.replace(/^P/, '')} · ${stage(n).label}` : GROUP[n.group]?.one || '');
+    $('#res').innerHTML = groups.length ? groups.map(([t, l]) => `<div class="gh">${t}</div>${l.map((n) => { i++; return `<a class="hit ${i === state.hit ? 'on' : ''}" href="${linkTo(n)}" data-i="${i}">${dotic(iconOfNode(n), toneOfNode(n))}<span class="t">${inlineMd(n.title || n.name)}</span><span class="s">${esc(sub(n))}</span></a>`; }).join('')}`).join('') : `<div class="none">Nothing matches “${esc(state.q)}”.</div>`;
+    $('#res .hit.on')?.scrollIntoView({ block: 'nearest' });
+  }
+  function openPalette() { if (!state.g) return; $('#palette').hidden = false; state.q = ''; state.hit = 0; $('#q').value = ''; renderPalette(); $('#q').focus(); }
+  function closePalette() { $('#palette').hidden = true; }
 
   // ---------- mind map (second view) ----------
-  const WIDTH = { project: 250, phase: 250, feature: 270, point: 330, ticket: 330 };
-  const GAP_X = 64; const GAP_Y = 10; const PAD = 28;
-  const matches = (n) => !state.q || `${n.id} ${n.title} ${(n.notes || []).join(' ')}`.toLowerCase().includes(state.q);
-  function kids(n) {
+  const WIDTH = { project: 260, phase: 260, feature: 280, point: 340, ticket: 340 };
+  const GAP_X = 70; const GAP_Y = 12; const PAD = 40;
+  function mkids(n) {
     if (n.type === 'project') return nodesOf('phase');
     if (n.type === 'phase') return featuresOf(n);
-    if (n.type === 'feature') { const pts = pointsOf(n); return [...ORDER.flatMap((k) => pts.filter((p) => p.kind === k)), ...ticketsOf(n)]; }
+    if (n.type === 'feature') { const pts = pointsOf(n); return [...['open', 'suggestion', 'caution', 'decided', 'discussed', 'dropped'].flatMap((k) => pts.filter((p) => p.kind === k)), ...ticketsOf(n)]; }
     return [];
   }
-  const subtreeMatches = (n) => matches(n) || kids(n).some(subtreeMatches);
   function cardHtml(n, childCount, open) {
-    const col = colorOf(n);
     const more = childCount ? `<span class="more" title="${open ? 'Fold' : `Open ${childCount}`}">${open ? '−' : childCount}</span>` : '';
-    const go = ['project', 'phase', 'feature'].includes(n.type) ? `<button class="go" data-go="${esc(linkTo(n))}" title="Open this as a page">↗</button>` : '';
-    const bar = (p) => (p && p.points.total ? `<span class="track" style="--c:var(--k-decided)" title="${p.points.settled} of ${p.points.total} decided"><i style="width:${pct(p.points.settled, p.points.total)}%"></i></span>` : '');
+    const go = ['project', 'phase', 'feature'].includes(n.type) ? `<button class="goto" data-go="${esc(n.type === 'project' ? '#/' : linkTo(n))}" title="Open as a page">${icon('up')}</button>` : '';
     let lead = ''; let body = '';
-    if (n.type === 'project') {
-      body = `<div class="t">${esc(n.title)}</div><div class="s">${plural(nodesOf('phase').length, 'phase')} · ${plural(nodesOf('feature').length, 'topic')}</div>${bar(n.progress)}`;
-    } else if (n.type === 'phase') {
-      const c = countsOf(n);
-      lead = `<span class="num" style="--c:${col}">${phaseNum(n)}</span>`;
-      body = `<div class="t">${esc(n.title)}</div><div class="s">${featuresOf(n).length ? `${plural(featuresOf(n).length, 'topic')}${asks(c) ? ` · ${asks(c)} open` : ''}` : 'not planned yet'}</div>${bar(n.progress)}`;
-    } else if (n.type === 'feature') {
-      const c = countsOf(n);
-      body = `<div class="t">${esc(n.title)}</div><div class="s">${[c.decided && `${c.decided} decided`, asks(c) && `${asks(c)} open`, c.caution && `${c.caution} cautions`, c.work && `${c.done}/${c.work} built`].filter(Boolean).join(' · ') || 'nothing yet'}</div>${bar(n.progress)}`;
-    } else if (n.type === 'point') {
-      lead = `<span class="ric" style="--c:${col}">${(KIND[n.kind] || KIND.dropped).icon}</span>`;
-      body = `<div class="t">${esc(n.title)}</div>`;
-    } else if (n.type === 'ticket') {
-      const s = TICKET[n.status] || TICKET.planned;
-      lead = `<span class="ric" style="--c:${col}">${s.icon}</span>`;
-      body = `<div class="t">${esc(n.title)}</div><div class="s">${esc(n.id)} · ${s.label}</div>`;
+    if (['project', 'phase', 'feature'].includes(n.type)) {
+      const pr = progressOf(n); const s = stage(n);
+      lead = pr.total ? ring(pr.done, pr.total, s.tone, 'sm') : '';
+      body = `<div class="t">${esc(n.title)}</div><div class="s">${esc(n.type === 'project' ? `${plural(nodesOf('phase').length, 'phase')} · ${plural(nodesOf('feature').length, 'topic')}` : s.label)}</div>`;
+    } else {
+      lead = dotic(iconOfNode(n), toneOfNode(n));
+      body = `<div class="t">${inlineMd(n.title)}</div>${n.type === 'ticket' ? `<div class="s">${esc(n.id)} · ${(TICKET[n.status] || TICKET.planned).label}</div>` : ''}`;
     }
-    const cls = `card ${n.type} ${open ? 'open' : ''} ${n.id === state.revealId ? 'sel' : ''} ${n.kind === 'dropped' ? 'dropped' : ''}`;
-    return `<div class="${cls}" data-card="${esc(n.id)}" style="--c:${col};width:${WIDTH[n.type]}px">${lead}<div class="body">${body}</div>${go}${more}</div>`;
+    const cls = `mcard ${n.type} ${open ? 'open' : ''} ${n.id === state.revealId ? 'sel' : ''} ${n.kind === 'dropped' ? 'dropped' : ''}`;
+    return `<div class="${cls}" data-card="${esc(n.id)}" style="width:${WIDTH[n.type]}px">${lead}<div class="body">${body}</div>${go}${more}</div>`;
   }
   function visibleTree() {
     const out = [];
     const root = project();
     if (!root) return out;
     const walk = (n, depth, parentId) => {
-      let ks = kids(n);
-      if (state.q) ks = ks.filter(subtreeMatches);
-      const open = state.q ? ks.length > 0 : state.expanded.has(n.id);
-      const r = { n, depth, parentId, childCount: kids(n).length, open: open && ks.length > 0, kidIds: [] };
+      const ks = mkids(n);
+      const r = { n, depth, parentId, childCount: ks.length, open: state.expanded.has(n.id) && ks.length > 0, kidIds: [] };
       out.push(r);
       if (r.open) for (const k of ks) { r.kidIds.push(k.id); walk(k, depth + 1, n.id); }
     };
@@ -824,7 +935,7 @@ mark.hl { background: color-mix(in srgb, var(--k-open) 28%, transparent); color:
     if (!rows.length) return;
     const content = $('#content');
     const prevPos = state.pos;
-    const existing = new Map([...content.querySelectorAll('.card')].map((el) => [el.dataset.card, el]));
+    const existing = new Map([...content.querySelectorAll('.mcard')].map((el) => [el.dataset.card, el]));
     const keep = new Set(rows.map((r) => r.n.id));
     for (const [id, el] of existing) {
       if (keep.has(id) || el.classList.contains('ghost')) continue;
@@ -846,25 +957,19 @@ mark.hl { background: color-mix(in srgb, var(--k-open) 28%, transparent); color:
         const pp = r.parentId && prevPos.get(r.parentId);
         el.style.left = `${pp ? pp.x : PAD}px`; el.style.top = `${pp ? pp.y : 0}px`;
         content.appendChild(el);
-      } else {
-        el.className = fresh.className;
-        el.innerHTML = fresh.innerHTML;
-        el.style.width = fresh.style.width;
-        el.style.setProperty('--c', fresh.style.getPropertyValue('--c'));
-      }
+      } else { el.className = fresh.className; el.innerHTML = fresh.innerHTML; el.style.width = fresh.style.width; }
       el.dataset.parent = r.parentId || '';
       byId.set(r.n.id, el);
     }
     const h = new Map([...byId].map(([id, el]) => [id, el.offsetHeight]));
     const colX = []; let x = PAD;
     const depthType = ['project', 'phase', 'feature', 'point'];
-    for (let d = 0; d < 5; d++) { colX[d] = x; x += (WIDTH[depthType[Math.min(d, 3)]] || 330) + GAP_X; }
+    for (let d = 0; d < 5; d++) { colX[d] = x; x += (WIDTH[depthType[Math.min(d, 3)]] || 340) + GAP_X; }
     const pos = new Map();
     let y = PAD;
     const rowById = new Map(rows.map((r) => [r.n.id, r]));
     const place = (id) => {
-      const r = rowById.get(id);
-      const hh = h.get(id) || 40;
+      const r = rowById.get(id); const hh = h.get(id) || 40;
       if (!r.kidIds.length) { pos.set(id, { x: colX[r.depth], y, h: hh }); y += hh + GAP_Y; return; }
       for (const k of r.kidIds) place(k);
       const first = pos.get(r.kidIds[0]); const last = pos.get(r.kidIds[r.kidIds.length - 1]);
@@ -872,12 +977,11 @@ mark.hl { background: color-mix(in srgb, var(--k-open) 28%, transparent); color:
       if (r.kidIds.length > 1) y += GAP_Y;
     };
     place(rows[0].n.id);
-    const stage = $('#stage');
+    const stageEl = $('#stage');
     const treeH = y + PAD;
-    const offset = Math.max(0, (stage.clientHeight - treeH) / 2);
+    const offset = Math.max(0, (stageEl.clientHeight - treeH) / 2);
     const maxX = Math.max(...[...pos.entries()].map(([id, p]) => p.x + (byId.get(id)?.offsetWidth || 0))) + PAD;
-    const canvasH = Math.max(stage.clientHeight, treeH + offset);
-    const canvasW = Math.max(stage.clientWidth, maxX);
+    const canvasH = Math.max(stageEl.clientHeight, treeH + offset); const canvasW = Math.max(stageEl.clientWidth, maxX);
     $('#canvas').style.width = `${canvasW}px`; $('#canvas').style.height = `${canvasH}px`;
     const svg = $('#links'); svg.setAttribute('width', canvasW); svg.setAttribute('height', canvasH);
     requestAnimationFrame(() => {
@@ -889,22 +993,21 @@ mark.hl { background: color-mix(in srgb, var(--k-open) 28%, transparent); color:
       tick();
       if (state.revealId) {
         const rid = state.revealId;
-        setTimeout(() => { document.querySelector(`[data-card="${CSS.escape(rid)}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' }); }, 420);
+        setTimeout(() => document.querySelector(`[data-card="${CSS.escape(rid)}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' }), 420);
         setTimeout(() => { if (state.revealId === rid) { state.revealId = null; byId.get(rid)?.classList.remove('sel'); } }, 2600);
-        state.lastToggled = null;
-        return;
-      }
-      const last = rows.find((r) => r.open && r.n.id === state.lastToggled);
-      if (last && last.kidIds.length) {
-        const lastK = byId.get(last.kidIds[last.kidIds.length - 1]); const first = byId.get(last.kidIds[0]);
-        const top = pos.get(last.kidIds[0]).y + offset; const bottom = pos.get(last.kidIds[last.kidIds.length - 1]).y + offset + (lastK?.offsetHeight || 0);
-        const right = pos.get(last.kidIds[0]).x + (first?.offsetWidth || 0) + PAD;
-        const view = { top: stage.scrollTop, bottom: stage.scrollTop + stage.clientHeight, right: stage.scrollLeft + stage.clientWidth };
-        const opts = { behavior: 'smooth' };
-        if (bottom - top < stage.clientHeight) { if (top < view.top || bottom > view.bottom) opts.top = Math.max(0, (top + bottom) / 2 - stage.clientHeight / 2); }
-        else if (top < view.top || top > view.bottom) opts.top = Math.max(0, top - 40);
-        if (right > view.right) opts.left = Math.max(0, right - stage.clientWidth);
-        if (opts.top !== undefined || opts.left !== undefined) stage.scrollTo(opts);
+      } else {
+        const last = rows.find((r) => r.open && r.n.id === state.lastToggled);
+        if (last && last.kidIds.length) {
+          const lastK = byId.get(last.kidIds[last.kidIds.length - 1]); const first = byId.get(last.kidIds[0]);
+          const top = pos.get(last.kidIds[0]).y + offset; const bottom = pos.get(last.kidIds[last.kidIds.length - 1]).y + offset + (lastK?.offsetHeight || 0);
+          const right = pos.get(last.kidIds[0]).x + (first?.offsetWidth || 0) + PAD;
+          const view = { top: stageEl.scrollTop, bottom: stageEl.scrollTop + stageEl.clientHeight, right: stageEl.scrollLeft + stageEl.clientWidth };
+          const opts = { behavior: 'smooth' };
+          if (bottom - top < stageEl.clientHeight) { if (top < view.top || bottom > view.bottom) opts.top = Math.max(0, (top + bottom) / 2 - stageEl.clientHeight / 2); }
+          else if (top < view.top || top > view.bottom) opts.top = Math.max(0, top - 40);
+          if (right > view.right) opts.left = Math.max(0, right - stageEl.clientWidth);
+          if (opts.top !== undefined || opts.left !== undefined) stageEl.scrollTo(opts);
+        }
       }
       state.lastToggled = null;
     });
@@ -918,21 +1021,20 @@ mark.hl { background: color-mix(in srgb, var(--k-open) 28%, transparent); color:
       const pe = byId.get(r.parentId); const ce = byId.get(r.n.id);
       if (!pe || !ce) continue;
       const p = rect(pe); const c = rect(ce); const mx = (p.x2 + c.x1) / 2;
-      paths.push(`<path class="${ce.classList.contains('ghost') ? 'ghost' : ''}" style="--c:${colorOf(r.n)}" d="M${p.x2},${p.y} C${mx},${p.y} ${mx},${c.y} ${c.x1},${c.y}"/>`);
+      paths.push(`<path class="${ce.classList.contains('ghost') ? 'ghost' : ''}" d="M${p.x2},${p.y} C${mx},${p.y} ${mx},${c.y} ${c.x1},${c.y}"/>`);
     }
     $('#links').innerHTML = paths.join('');
   }
   function toggle(id) {
     if (state.expanded.has(id)) {
       const n = state.byId.get(id);
-      const drop = (x) => { state.expanded.delete(x.id); for (const k of kids(x)) if (state.expanded.has(k.id)) drop(k); };
+      const drop = (x) => { state.expanded.delete(x.id); for (const k of mkids(x)) if (state.expanded.has(k.id)) drop(k); };
       if (n) drop(n); else state.expanded.delete(id);
     } else state.expanded.add(id);
     state.lastToggled = id;
     store.set('expanded', [...state.expanded]);
     renderMap();
   }
-  // Open the map with the path to a node unfolded, and point at it.
   function reveal(id) {
     let cur = state.byId.get(id);
     if (!cur) return;
@@ -942,65 +1044,58 @@ mark.hl { background: color-mix(in srgb, var(--k-open) 28%, transparent); color:
     state.revealId = id;
     if (route()[0] === 'map') renderMap(); else location.hash = '#/map';
   }
-
-  function setLive(mode, text) { const el = $('#live'); el.className = `live ${mode}`; el.lastElementChild.textContent = text; el.title = text; }
+  function setLive(mode, text) { const el = $('#live'); el.className = `live ${mode}`; el.title = text; }
 
   // ---------- events ----------
+  $('#markIc').innerHTML = icon('logo'); $('#searchIc').innerHTML = icon('search'); $('#mapIc').innerHTML = icon('map'); $('#palIc').innerHTML = icon('search');
   document.addEventListener('click', (e) => {
-    if (!e.target.closest('#updbox') && !e.target.closest('#updBtn')) $('#updbox').hidden = true;
     const t = e.target;
-    const nt = t.closest('[data-note]');
-    if (nt) { toggleNote(nt.dataset.note); return; }
+    if (!t.closest('#updbox') && !t.closest('#updBtn')) $('#updbox').hidden = true;
+    if (t.closest('#updBtn')) { $('#updbox').hidden = !$('#updbox').hidden; return; }
+    if (t.closest('#searchBtn')) { openPalette(); return; }
+    if (t.id === 'palette') { closePalette(); return; }
     const go = t.closest('[data-go]');
     if (go) { e.stopPropagation(); location.hash = go.dataset.go; return; }
     const card = t.closest('[data-card]');
-    if (card) {
-      const n = state.byId.get(card.dataset.card);
-      if (n && (n.type === 'point' || n.type === 'ticket')) location.hash = linkTo(n);
-      else toggle(card.dataset.card);
-      return;
-    }
+    if (card) { const n = state.byId.get(card.dataset.card); if (n && (n.type === 'point' || n.type === 'ticket')) location.hash = linkTo(n); else toggle(card.dataset.card); return; }
     const cp = t.closest('[data-copy]');
-    if (cp) { const orig = cp.textContent; navigator.clipboard?.writeText(cp.dataset.copy).then(() => { cp.textContent = '✓ Copied'; setTimeout(() => { cp.textContent = orig; }, 1200); }); return; }
+    if (cp) { const orig = cp.innerHTML; navigator.clipboard?.writeText(cp.dataset.copy).then(() => { cp.innerHTML = `${icon('check')}Copied`; setTimeout(() => { cp.innerHTML = orig; }, 1200); }); return; }
     const rv = t.closest('[data-reveal]');
     if (rv) { reveal(rv.dataset.reveal); return; }
     const fm = t.closest('[data-fmode]');
-    if (fm) { state.fmode = fm.dataset.fmode; store.set('fmode', state.fmode); renderPage(); requestAnimationFrame(() => $('#page [data-hl]')?.scrollIntoView({ block: 'center' })); return; }
-    const sc = t.closest('[data-scroll]');
-    if (sc) { document.getElementById(sc.dataset.scroll)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
-    if (t.closest('#menuBtn')) { document.body.classList.toggle('side-open'); return; }
-    if (t.closest('#scrim')) { document.body.classList.remove('side-open'); return; }
-    if (t.closest('#updBtn')) { $('#updbox').hidden = !$('#updbox').hidden; }
+    if (fm) { state.fmode = fm.dataset.fmode; store.set('fmode', state.fmode); renderPage(false); requestAnimationFrame(() => $('#page [data-hl]')?.scrollIntoView({ block: 'center' })); }
   });
+  $('#res').addEventListener('mousemove', (e) => { const h = e.target.closest('[data-i]'); if (h && Number(h.dataset.i) !== state.hit) { state.hit = Number(h.dataset.i); $('#res .hit.on')?.classList.remove('on'); h.classList.add('on'); } });
   $('#collapseBtn').addEventListener('click', () => { state.expanded.clear(); store.set('expanded', []); renderMap(); });
-  $('#q').addEventListener('input', (e) => { state.q = e.target.value.trim().toLowerCase(); if (isMap()) renderMap(); else { renderPage(); $('#main').scrollTop = 0; } });
+  $('#q').addEventListener('input', (e) => { state.q = e.target.value.trim().toLowerCase(); state.hit = 0; renderPalette(); });
   document.addEventListener('keydown', (e) => {
-    const typing = e.target.matches('input, select, textarea');
-    if (e.key === 'Escape') {
-      $('#updbox').hidden = true;
-      document.body.classList.remove('side-open');
-      if (state.q || typing) { $('#q').value = ''; state.q = ''; $('#q').blur(); renderMain(); }
+    const pal = !$('#palette').hidden;
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); if (pal) closePalette(); else openPalette(); return; }
+    if (pal) {
+      if (e.key === 'Escape') { e.preventDefault(); closePalette(); }
+      else if (e.key === 'ArrowDown') { e.preventDefault(); state.hit = Math.min(state.hit + 1, state.flat.length - 1); renderPalette(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); state.hit = Math.max(state.hit - 1, 0); renderPalette(); }
+      else if (e.key === 'Enter') { const n = state.flat[state.hit]; if (n) { e.preventDefault(); location.hash = linkTo(n); closePalette(); } }
       return;
     }
-    if (typing) return;
-    if (e.key === '/') { e.preventDefault(); $('#q').focus(); }
+    if (e.target.matches('input, textarea, select')) return;
+    if (e.key === '/') { e.preventDefault(); openPalette(); return; }
+    if (e.key === 'Escape') { $('#updbox').hidden = true; return; }
+    // On a note page, ← and → step through the same list.
+    if (route()[0] === 'n' && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+      const a = $(e.key === 'ArrowLeft' ? '.pager a.prev' : '.pager a.next');
+      if (a) location.hash = a.getAttribute('href');
+    }
   });
-  window.addEventListener('hashchange', () => onRoute(false));
+  window.addEventListener('hashchange', onRoute);
   new ResizeObserver(() => { if (state.g && isMap()) renderMap(); }).observe($('#stage'));
 
   // ---------- boot ----------
-  let booted = false;
-  const boot = (g) => { setGraph(g); if (!booted) { booted = true; onRoute(true); } };
+  const boot = (g) => { const first = state.lastRoute === null; setGraph(g); if (first) onRoute(); };
   if (window.__PLAN__) { setLive('', 'static export'); boot(window.__PLAN__); }
   else {
-    let pulse = null;
     const es = new EventSource('events');
-    es.addEventListener('graph', (e) => {
-      const first = !state.g;
-      boot(JSON.parse(e.data));
-      setLive('on', first ? 'live' : 'updated just now');
-      clearTimeout(pulse); pulse = setTimeout(() => setLive('on', 'live'), 2500);
-    });
+    es.addEventListener('graph', (e) => { boot(JSON.parse(e.data)); setLive('on', 'live: updates as plan files change'); });
     es.onerror = () => setLive('off', 'disconnected. Is thinkmap serve running?');
   }
 })();

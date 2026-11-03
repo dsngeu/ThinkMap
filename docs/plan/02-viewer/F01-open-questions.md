@@ -5,7 +5,7 @@ title: Viewer open questions
 status: auto
 parent: P2
 labels: [viewer]
-updated: 2026-11-02
+updated: 2026-11-03
 ---
 
 ## Points
@@ -38,7 +38,9 @@ updated: 2026-11-02
   > Options: (a) Not supported; one map per folder. (b) `thinkmap serve a/ b/` merges them.
   > Next: Nobody has asked yet.
 
-- [decided 2026-11-02] P2-F01-06: The viewer opens on a sidebar + pages layout; the mind map is the second view
+- [dropped 2026-11-03] P2-F01-06: The viewer opens on a sidebar + pages layout; the mind map is the second view
+  > Why: Replaced a day later by P2-F01-07. On a real plan (7 phases, 17 topics) the sidebar
+  > listed every topic and Home was one long wall of rows; it still felt overwhelming.
   > What: A left sidebar lists Home, Mind map, every phase with its topics, and Tooling. Home
   > shows what needs an answer, work in progress, cautions and recent activity. Topic and
   > ticket pages read like documents; a note expands in place. The mind map stays one click
@@ -48,3 +50,15 @@ updated: 2026-11-02
   > always-on timeline and a half-screen panel. Replaces the layout in P0-F01-04.
   > Discussed: Board columns and one long scrolling page were the other options.
   > Built: `web/index.html` rewritten; URLs are `#/t/<topic>/<note>`, `#/k/<ticket>`, `#/map`.
+
+- [decided 2026-11-03] P2-F01-07: The viewer is a drill-down: Project → Phase → Topic → Note, one level per screen
+  > What: No sidebar. A slim top bar holds the breadcrumb, ⌘K search, a "Needs you" count and
+  > the Map switch. Home: a hero with one progress ring, a "waiting for you" card (top three),
+  > the phases as a roadmap (done, you are here, next, not planned). Phase: topic cards, each
+  > with one ring and a plain status ("3 to decide", "Building · 2/4", "Done"). Topic: tabs,
+  > one list at a time. Note and ticket: their own reading pages, with ← → between notes.
+  > Why: "As humans we want a very clear design and to drill down to the deeper level." Every
+  > screen now answers one question and shows only the next level; colour is used only where
+  > it means something (amber = needs you, green = done/decided, red = take care, blue = building).
+  > Discussed: Line icons replace emoji; the Legend is gone because the words say it.
+  > Built: `web/index.html` rewritten, still one file with no libraries.
