@@ -35,14 +35,7 @@ Zero dependencies. Node 20+. One HTML file. Nothing about your project leaves yo
 ## See it in action
 
 **[Live demo → dsngeu.github.io/ThinkMap](https://dsngeu.github.io/ThinkMap/)** — this repo's
-own plan, exported as a static page on every push. Expand a phase, click a decision, read its story.
-
-One minute on video: open the map, expand a phase, click a decision, read its story.
-
-<!-- GitHub-hosted video. To replace: edit this file on github.com, drag ThinkMap-demo.mp4
-     into the editor, and paste the https://github.com/user-attachments/assets/... URL it
-     produces on the line below (on its own line, no Markdown around it). -->
-https://github.com/user-attachments/assets/584a6e7b-6f27-4f0b-b423-9c2df8c4b036
+own plan, exported as a static page on every push. Open a phase, then a topic, then read a decision.
 
 ### Screenshots
 
