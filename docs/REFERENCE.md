@@ -26,8 +26,8 @@ What the plugin gives every session in that project, without any CLAUDE.md editi
 | `thinkmap-format` (automatic) | While you discuss or decide, Claude writes decisions, open questions, ideas and cautions into the plan files. The rules come from one file, `template/FORMAT.md`. |
 | `/thinkmap` | Opens the map: starts the viewer, reuses one already showing this plan, or replaces it when it runs an older version (after a plugin update) |
 | `/thinkmap-status [P1 \| P1-F02 \| open]` | Terminal summary — Claude may also run it on its own |
-| `/thinkmap-tickets <P1 \| P1-F02>` | Breaks the decided points of a phase (or one topic) into tickets: one table to approve first, files written only after "go ahead". `thinkmap status` suggests it when a phase is fully decided and has no tickets |
-| `/thinkmap-ticket <ID>` | Claims a ticket for this session (in-progress, owner, Handoff log) and loads its context; refuses to double-claim. "Work on P1-T03" triggers it too |
+| `/thinkmap-create-tickets <P1 \| P1-F02>` | Breaks the decided points of a phase (or one topic) into tickets: one table to approve first, files written only after "go ahead". `thinkmap status` suggests it when a phase is fully decided and has no tickets |
+| `/thinkmap-implement-ticket <ID>` | Two gates: first a read-only brief (decisions, cautions, criteria, dependencies, approach, open questions); after "go ahead" it claims the ticket (in-progress, owner, Handoff log), builds it and closes it (criteria ticked, `code:` filled, `done`). Refuses to double-claim. "Work on P1-T03" triggers it too |
 | `/thinkmap-init` | Sets up `docs/plan/` in a new project |
 | Hook: validate on save | After any edit under `docs/plan/`, format errors go straight back to Claude |
 | Hook: session briefing | Every new session starts with the plan status and where the rules are |
@@ -217,7 +217,7 @@ npx github:dsngeu/ThinkMap#master update
 2. Discuss as usual. Say "record that as decided" or "that's still open" — the assistant
    writes the files (the plugin's `thinkmap-format` skill tells it how; without the plugin,
    the `CLAUDE.md` snippet from `init` does).
-3. Hand tickets to separate sessions: `/thinkmap-ticket P1-T03` or just "work on ticket
+3. Hand tickets to separate sessions: `/thinkmap-implement-ticket P1-T03` or just "work on ticket
    P1-T03". Each session edits only its own ticket, logs in the *Handoff log*, and marks
    it `done`. The map turns green.
 4. The plugin's hooks validate every save and brief every new session; without the plugin,

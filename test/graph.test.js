@@ -195,7 +195,7 @@ test('status suggests generating tickets when a phase is fully decided and has n
   const out = formatStatus(g);
   // P1 still has an open question, but P2 is 100% decided with zero tickets — that is the next step
   assert.match(out, /P2 Flow .*all decided — no tickets yet/);
-  assert.match(out, /👉 Suggested: generate tickets for P2 — every point is decided and it has no tickets yet \(\/thinkmap-tickets P2\)/);
+  assert.match(out, /👉 Suggested: generate tickets for P2 — every point is decided and it has no tickets yet \(\/thinkmap-create-tickets P2\)/);
   assert.match(formatStatus(g, { filter: 'P1' }), /👉 Suggested: discuss P1-F01-01/);
   // a phase with no points yet is not "decided"; a phase with a ticket is past this step
   assert.match(formatStatus(build({ ...decided, '02-flow/F01-steps.md': fm({ id: 'P2-F01', type: 'feature', title: 'Steps', status: 'auto', parent: 'P2', updated: '2026-10-29' }) })), /Suggested: discuss P1-F01-01/);

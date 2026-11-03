@@ -52,7 +52,7 @@ looked different on disk, and a fully decided phase that nothing pushed towards 
 
 - [decided 2026-10-30] P2-F03-04: `thinkmap status` suggests generating tickets for a fully decided phase without tickets
   > What: When a phase has points, every counted point is settled and it has zero tickets, the
-  > suggested next step is `generate tickets for P1 … (/thinkmap-tickets P1)` and the phase
+  > suggested next step is `generate tickets for P1 … (/thinkmap-create-tickets P1)` and the phase
   > row says "all decided — no tickets yet". This outranks an open question in another phase.
   > Why: The "all decided, zero tickets" state had no guidance — status kept pointing at an
   > unrelated open question and the session had to know on its own what came next.

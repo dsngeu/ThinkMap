@@ -7,7 +7,7 @@ parent: P2-F03
 implements: [P2-F03-06, P2-F03-07, P2-F03-08]
 owner: claude
 labels: [engine, format, claude-code]
-code: [src/tickets.js, src/init.js, src/graph.js, src/status.js, bin/thinkmap.js, template/FORMAT.md, template/01-first-phase/F01-example-topic.md, template/01-first-phase/tickets/P1-T01-F01-example-ticket.md, skills/thinkmap-tickets/SKILL.md, skills/thinkmap-ticket/SKILL.md, skills/thinkmap-status/SKILL.md, hooks/briefing.mjs, web/index.html, test/graph.test.js]
+code: [src/tickets.js, src/init.js, src/graph.js, src/status.js, bin/thinkmap.js, template/FORMAT.md, template/01-first-phase/F01-example-topic.md, template/01-first-phase/tickets/P1-T01-F01-example-ticket.md, skills/thinkmap-create-tickets/SKILL.md, skills/thinkmap-implement-ticket/SKILL.md, skills/thinkmap-status/SKILL.md, hooks/briefing.mjs, web/index.html, test/graph.test.js]
 updated: 2026-11-03
 ---
 

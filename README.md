@@ -58,8 +58,8 @@ Inside Claude Code, in any project:
 | `/thinkmap-init` | Once per project: creates `docs/plan/` |
 | *Just talk* | Claude records decisions, open questions, ideas and risks as you discuss |
 | `/thinkmap` | Opens the dashboard in your browser. It updates live as the plan changes |
-| `/thinkmap-tickets P1` | Turns the decisions of phase 1 into tickets. You approve the list first |
-| `/thinkmap-ticket P1-T03` | This session takes ticket P1-T03 and gets everything it needs to build it |
+| `/thinkmap-create-tickets P1` | Turns the decisions of phase 1 into tickets. You approve the list first |
+| `/thinkmap-implement-ticket P1-T03` | Shows a brief of ticket P1-T03: decisions, risks, plan. Say "go ahead" and this session builds it and marks it done |
 | `/thinkmap-status` | A quick summary in the terminal |
 
 ## Ready-made review agents

@@ -40,7 +40,7 @@ task matches) or when a person types `/name`.
   > Why: Quick check without the browser; also what the session-start hook shows.
   > Built: `skills/thinkmap-status/SKILL.md`; Claude may also run it on its own. Ticket P1-T01.
 
-- [decided 2026-10-29] P1-F01-05: `/thinkmap-ticket <ID>` — claim a ticket in a new session
+- [decided 2026-10-29] P1-F01-05: `/thinkmap-implement-ticket <ID>` — claim a ticket in a new session
   > What: Sets the ticket `in-progress` with the session as owner, appends a Handoff log
   > line, loads the ticket's goal, acceptance criteria and linked decisions into context,
   > and reminds the session to suggest a commit message with `[ID]` when done.
@@ -48,7 +48,7 @@ task matches) or when a person types `/name`.
   > status visible on everyone's map.
   > Expected: Two sessions cannot both claim the same ticket without noticing (the second
   > sees `in-progress` + owner and asks).
-  > Built: `skills/thinkmap-ticket/SKILL.md`; also triggers on "work on ticket P1-T03". Ticket P1-T01.
+  > Built: `skills/thinkmap-implement-ticket/SKILL.md`; also triggers on "work on ticket P1-T03". Ticket P1-T01.
 
 - [caution 2026-10-29] P1-F01-06: The format has one source of truth — skills must not restate it
   > What: `template/FORMAT.md` is canonical. The `thinkmap-format` skill links to or
@@ -60,14 +60,14 @@ task matches) or when a person types `/name`.
   > tool checks it against the bundled file and `thinkmap format --write` refreshes it.
 
 - [decided 2026-10-29] P1-F01-07: Skill names keep the `thinkmap-*` prefix
-  > What: `thinkmap`, `thinkmap-status`, `thinkmap-ticket`, `thinkmap-init`, `thinkmap-format`.
+  > What: `thinkmap`, `thinkmap-status`, `thinkmap-implement-ticket`, `thinkmap-init`, `thinkmap-format`.
   > Why: A plugin skill is reachable as `/<plugin>:<skill>` and, when nothing else uses the
   > name, as the bare `/<skill>`. Short names like `/init` and `/status` collide with Claude
   > Code's built-in commands, so the bare form would never work; the prefix guarantees it does.
   > Discussed: (a) prefixed vs (b) short — (b) rejected for the collision.
   > Built: `skills/` folders named accordingly; `/thinkmap:thinkmap-status` also works.
 
-- [decided 2026-10-30] P1-F01-08: `/thinkmap-tickets <P1 | P1-F02>` — break decided points into tickets, whole phase at once
+- [decided 2026-10-30] P1-F01-08: `/thinkmap-create-tickets <P1 | P1-F02>` — break decided points into tickets, whole phase at once
   > What: Takes a phase ID (every topic of the phase in one table) or a topic ID (additions to
   > a phase that already has tickets). Gate 1 shows the proposed tickets — IDs continuing the
   > phase numbering, title, topic, `implements`, `depends_on` — and waits. Gate 2 writes the
@@ -77,10 +77,46 @@ task matches) or when a person types `/name`.
   > runs, so the breakdown was done by hand and the folder layout drifted. One run per phase
   > removes the reason to skip the tool. `thinkmap status` names this command when a phase is
   > fully decided and has no tickets (P2-F03-04).
-  > Expected: "all decided, zero tickets" is followed by `/thinkmap-tickets P1`, one table,
+  > Expected: "all decided, zero tickets" is followed by `/thinkmap-create-tickets P1`, one table,
   > one yes, and a valid `tickets/` folder.
-  > Built: `skills/thinkmap-tickets/SKILL.md` (Claude may invoke it; the gates keep the human in charge). Ticket P2-T02.
+  > Built: `skills/thinkmap-create-tickets/SKILL.md` (Claude may invoke it; the gates keep the human in charge). Ticket P2-T02.
+
+- [decided 2026-11-03] P1-F01-09: `/thinkmap-implement-ticket` works in two gates — brief first, then claim, build and close
+  > What: Gate 1 is read-only: the ticket, its implemented points, the topic's cautions, the
+  > dependencies and the project's CLAUDE.md, written up as a brief (objective, decisions,
+  > cautions, criteria, dependencies, proposed approach, open questions), then stop. After
+  > "go ahead", Gate 2 claims the ticket (as before), builds it — recording anything undecided
+  > as an open point and waiting instead of guessing — runs the project's checks, and closes
+  > it: verified criteria ticked, `code:` filled, `done`, `Built:` lines updated.
+  > Why: Merged from a `/ticket` skill Deepak used in another project. The person approves the
+  > approach before any file changes, and a ticket ends closed instead of left in-progress.
+  > Claiming moves to Gate 2 so a brief nobody approves doesn't leave the ticket locked; the
+  > owner is checked in both gates, so the double-claim guard of P1-F01-05 still holds.
+  > Expected: "work on P1-T03" shows a brief and waits; "go ahead" ends with a done ticket,
+  > a valid plan and a suggested commit message.
+  > Built: `skills/thinkmap-implement-ticket/SKILL.md`; README, REFERENCE and the session briefing describe it.
+
+- [decided 2026-11-03] P1-F01-10: `/thinkmap-create-tickets` adds a readiness check, sizes and a cautions-to-tickets list
+  > What: Before the table: decided points in scope, already covered, left out (stop if nothing
+  > to split). The table gains a Size column (S/M/L, split above L) and is in build order;
+  > under it, which tickets carry each caution and why any decided point has no ticket. IDs
+  > also skip numbers already named in `Built:` lines. Acceptance criteria include what the
+  > project's definition of done requires (e.g. an isolation test for a new endpoint).
+  > Why: Merged from a `generate-tickets` skill Deepak used in another project; one skill per
+  > job instead of shipping a second ticket skill.
+  > Built: `skills/thinkmap-create-tickets/SKILL.md`.
+
+- [decided 2026-11-03] P1-F01-11: The two ticket skills are named for what they do — `/thinkmap-create-tickets` and `/thinkmap-implement-ticket`
+  > What: `/thinkmap-tickets` → `/thinkmap-create-tickets` (makes ticket files from decisions);
+  > `/thinkmap-ticket` → `/thinkmap-implement-ticket` (briefs, builds and closes one ticket).
+  > Why: The old names differed by one "s", and you had to read the skill to know which
+  > does what. Same rule as the catalogue (P2-F02-10): the name says what it does. The
+  > `thinkmap-` prefix stays (P1-F01-07). Deepak's names.
+  > Discussed: No aliases for the old names — four ticket commands in the list would be worse.
+  > Existing users must be told in the release notes: the old commands stop working after updating.
+  > Built: Skill folders, `thinkmap status` suggestions, session briefing, tests, README,
+  > REFERENCE, SPEC and plan updated.
 
 ## Tickets
 
-- P1-T01 · Skills — thinkmap-format, /thinkmap-init, /thinkmap, /thinkmap-status, /thinkmap-ticket · done
+- P1-T01 · Skills — thinkmap-format, /thinkmap-init, /thinkmap, /thinkmap-status, /thinkmap-implement-ticket · done

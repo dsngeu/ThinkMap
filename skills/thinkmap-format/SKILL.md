@@ -58,6 +58,6 @@ node "${CLAUDE_PLUGIN_ROOT}/bin/thinkmap.js" validate
 
 ## Working a ticket
 
-Claim it with `/thinkmap-ticket <ID>`: status `in-progress`, your name as owner, a Handoff
+Claim it with `/thinkmap-implement-ticket <ID>`: status `in-progress`, your name as owner, a Handoff
 log line. Edit only the ticket you own. When finished: tick the acceptance criteria, fill
 `code:`, set `done`, and suggest a commit message that ends with `[<ID>]`.

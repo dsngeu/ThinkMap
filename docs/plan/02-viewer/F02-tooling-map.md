@@ -101,7 +101,7 @@ can see what runs automatically in this repo and tap an item to read what it doe
   > `/review-fix-loop`.
   > `fullstack-diff-reviewer` merged into `fullstack-code-reviewer` (its uncommitted mode
   > now adds change hygiene and a ready-to-commit verdict). `generate-tickets` and `ticket`
-  > left out — `/thinkmap-tickets` and `/thinkmap-ticket` already do that job. Model is
+  > merged into `/thinkmap-create-tickets` and `/thinkmap-implement-ticket` instead (P2-F02-12). Model is
   > `inherit` rather than a fixed model, so each user's choice applies.
   > Built: `catalogue/`, shipped in the npm package; `test/catalogue.test.js` checks manifest ↔
   > files ↔ names, no project names, and no clash with the plugin's own skills.
@@ -112,12 +112,13 @@ can see what runs automatically in this repo and tap an item to read what it doe
   > Risk: Five review agents appearing in every Thinkmap user's session uninvited.
   > Built: `test/catalogue.test.js` fails if a root `agents/` folder appears or a name clashes.
 
-- [suggestion 2026-11-03 claude] P2-F02-12: Bring the "brief first, build after go ahead" gate into `/thinkmap-ticket`
-  > What: The source repo's `/ticket` skill wrote a read-only brief (decisions, cautions,
-  > criteria, dependencies, approach, open questions) and built only after "go ahead", then
-  > closed the ticket. `/thinkmap-ticket` only claims and loads context.
-  > Options: (a) Add the brief gate to `/thinkmap-ticket`. (b) Leave it as is.
-  > Next: Deepak decides; a change to a plugin skill, so it goes through a P1 ticket.
+- [decided 2026-11-03] P2-F02-12: The source repo's ticket skills are merged into the built-in ones, not shipped in the catalogue
+  > What: `ticket` → `/thinkmap-implement-ticket` (P1-F01-09), `generate-tickets` → `/thinkmap-create-tickets`
+  > (P1-F01-10), both fixed for the current plan format.
+  > Why: They write plan files, so they must change whenever the format does: plugin skills
+  > update with Thinkmap, catalogue copies are frozen in the project. One skill per job also
+  > avoids two ticket commands side by side. Deepak's call.
+  > Built: See P1-F01-09 and P1-F01-10.
 
 - [caution 2026-11-03 claude] P2-F02-08: A localhost server that writes files is reachable from any web page
   > What: If option (b) of P2-F02-07 is chosen, any site open in the browser can send requests

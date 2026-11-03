@@ -1,13 +1,13 @@
 ---
 id: P1-T01
 type: ticket
-title: Skills — thinkmap-format, /thinkmap-init, /thinkmap, /thinkmap-status, /thinkmap-ticket
+title: Skills — thinkmap-format, /thinkmap-init, /thinkmap, /thinkmap-status, /thinkmap-implement-ticket
 status: done
 owner: claude
 parent: P1-F01
 implements: [P1-F01-01, P1-F01-02, P1-F01-03, P1-F01-04, P1-F01-05]
 labels: [claude-code, skills]
-code: [skills/thinkmap-format/SKILL.md, skills/thinkmap-init/SKILL.md, skills/thinkmap/SKILL.md, skills/thinkmap-status/SKILL.md, skills/thinkmap-ticket/SKILL.md, test/plugin.test.js]
+code: [skills/thinkmap-format/SKILL.md, skills/thinkmap-init/SKILL.md, skills/thinkmap/SKILL.md, skills/thinkmap-status/SKILL.md, skills/thinkmap-implement-ticket/SKILL.md, test/plugin.test.js]
 updated: 2026-10-29
 ---
 
@@ -20,7 +20,7 @@ decisions into the plan files automatically while discussing.
 - [x] `/thinkmap-init` runs `thinkmap init`, adds the Planning section to CLAUDE.md, asks for project name and first phase
 - [x] `/thinkmap` starts the server if needed and prints the URL
 - [x] `/thinkmap-status [P1|open]` prints the summary
-- [x] `/thinkmap-ticket <ID>` claims a ticket: in-progress + owner + handoff line, loads context, warns if already claimed
+- [x] `/thinkmap-implement-ticket <ID>` claims a ticket: in-progress + owner + handoff line, loads context, warns if already claimed
 - [x] Tested in a fresh project (not this repo) — headless `claude --plugin-dir` run in a scratch project: format skill registered, `/thinkmap-status` executed
 
 ## Notes

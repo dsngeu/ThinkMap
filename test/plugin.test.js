@@ -36,7 +36,7 @@ test('marketplace lists this repo root as the thinkmap plugin', () => {
 
 test('skills: the six decided ones, each with name + description; format skill points at FORMAT.md and copies nothing', () => {
   const names = fs.readdirSync(path.join(ROOT, 'skills')).sort();
-  assert.deepEqual(names, ['thinkmap', 'thinkmap-format', 'thinkmap-init', 'thinkmap-status', 'thinkmap-ticket', 'thinkmap-tickets']);
+  assert.deepEqual(names, ['thinkmap', 'thinkmap-create-tickets', 'thinkmap-format', 'thinkmap-implement-ticket', 'thinkmap-init', 'thinkmap-status']);
   for (const n of names) {
     const text = read(`skills/${n}/SKILL.md`);
     const fm = /^---\n([\s\S]*?)\n---/.exec(text);
@@ -53,7 +53,7 @@ test('skills: the six decided ones, each with name + description; format skill p
   // P1-F01-06: no second copy of the format — the point syntax and ID table must not be restated.
   assert.ok(!/\[decided \d{4}/.test(format) && !/P<n>-F<nn>/.test(format), 'format skill must not restate FORMAT.md');
   // P1-F01-08: ticket generation has two gates and takes a phase or a topic.
-  const tickets = read('skills/thinkmap-tickets/SKILL.md');
+  const tickets = read('skills/thinkmap-create-tickets/SKILL.md');
   assert.match(tickets, /^argument-hint: "<P1 \| P1-F02>/m);
   assert.match(tickets, /Gate 1/);
   assert.match(tickets, /Gate 2/);
@@ -115,8 +115,8 @@ test('briefing: status + where the rules are when a plan exists; nothing otherwi
   const text = briefing({ projectDir: dir, pluginRoot: '/plug' });
   assert.match(text, /Briefed — plan status/);
   assert.ok(text.includes('/plug/template/FORMAT.md'));
-  assert.match(text, /\/thinkmap-ticket <ID>/);
-  assert.match(text, /\/thinkmap-tickets <P1\|P1-F02>/);
+  assert.match(text, /\/thinkmap-implement-ticket <ID>/);
+  assert.match(text, /\/thinkmap-create-tickets <P1\|P1-F02>/);
   assert.doesNotMatch(text, /format --write/, 'a fresh init needs no refresh');
   // the copy left by an older install (e.g. npx before the plugin) → the session is told to refresh it
   fs.appendFileSync(path.join(dir, 'docs/plan/FORMAT.md'), '\nold rule\n');

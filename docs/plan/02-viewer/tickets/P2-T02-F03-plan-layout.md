@@ -7,7 +7,7 @@ parent: P2-F03
 implements: [P2-F03-01, P2-F03-02, P2-F03-03, P2-F03-04, P1-F01-08]
 owner: claude
 labels: [engine, format, claude-code]
-code: [src/init.js, src/graph.js, src/status.js, bin/thinkmap.js, template/FORMAT.md, template/01-first-phase/tickets/.gitkeep, skills/thinkmap-tickets/SKILL.md, hooks/briefing.mjs, test/graph.test.js, test/init.test.js, test/plugin.test.js]
+code: [src/init.js, src/graph.js, src/status.js, bin/thinkmap.js, template/FORMAT.md, template/01-first-phase/tickets/.gitkeep, skills/thinkmap-create-tickets/SKILL.md, hooks/briefing.mjs, test/graph.test.js, test/init.test.js, test/plugin.test.js]
 updated: 2026-10-30
 ---
 
@@ -21,8 +21,8 @@ GitHub issue #1.
 - [x] `thinkmap init` leaves `tickets/.gitkeep` in the template phase
 - [x] `thinkmap validate` reports as errors: non-phase top-level folders, phase folders without `phase.md` or `tickets/`, folder number ≠ phase number, topics outside their phase folder or misnamed, tickets outside `tickets/` or misnamed, file prefix ≠ id, a second project node, a `.md` without front matter
 - [x] FORMAT.md §1 states the rules, the `.gitkeep` convention and "never by hand"; the repo's own copy refreshed
-- [x] `thinkmap status` suggests `/thinkmap-tickets P<n>` for a fully decided phase with no tickets, ahead of open questions elsewhere
-- [x] `/thinkmap-tickets <P1 | P1-F02>` skill with Gate 1 (one table, wait) and Gate 2 (write on "go ahead"); briefing lists it
+- [x] `thinkmap status` suggests `/thinkmap-create-tickets P<n>` for a fully decided phase with no tickets, ahead of open questions elsewhere
+- [x] `/thinkmap-create-tickets <P1 | P1-F02>` skill with Gate 1 (one table, wait) and Gate 2 (write on "go ahead"); briefing lists it
 - [x] Tests for all of the above; README and SPEC updated; version 0.5.0
 
 ## Out of scope
