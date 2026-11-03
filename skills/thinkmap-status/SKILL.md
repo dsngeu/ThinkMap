@@ -1,13 +1,13 @@
 ---
 name: thinkmap-status
-description: Print the plan status in the terminal — phases with progress, tickets in progress and blocked, open questions, next free tickets. Optional filter: a phase ID like P1, or "open" for open questions only.
-argument-hint: "[P1 | open] [plan-dir]"
+description: Print the plan status in the terminal — phases with progress, tickets in progress and blocked, open questions, next free tickets. Optional filter: a phase ID like P1, a topic ID like P1-F02 (its points by kind and its tickets with status and owner), or "open" for open questions only.
+argument-hint: "[P1 | P1-F02 | open] [plan-dir]"
 allowed-tools: Bash(node ${CLAUDE_PLUGIN_ROOT}/bin/thinkmap.js *)
 ---
 
 # /thinkmap-status — where does the project stand?
 
-Arguments: `$ARGUMENTS` (optional filter `P<n>` or `open`; optional plan folder, default `docs/plan`).
+Arguments: `$ARGUMENTS` (optional filter `P<n>`, `P<n>-F<nn>` or `open`; optional plan folder, default `docs/plan`).
 
 Run:
 

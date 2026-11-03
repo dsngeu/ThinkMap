@@ -80,3 +80,7 @@ task matches) or when a person types `/name`.
   > Expected: "all decided, zero tickets" is followed by `/thinkmap-tickets P1`, one table,
   > one yes, and a valid `tickets/` folder.
   > Built: `skills/thinkmap-tickets/SKILL.md` (Claude may invoke it; the gates keep the human in charge). Ticket P2-T02.
+
+## Tickets
+
+- P1-T01 · Skills — thinkmap-format, /thinkmap-init, /thinkmap, /thinkmap-status, /thinkmap-ticket · done

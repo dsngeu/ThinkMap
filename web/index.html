@@ -6,704 +6,414 @@
 <title>Thinkmap</title>
 <style>
 :root {
-  --bg: #f5f6f8; --surface: #ffffff; --surface-2: #eef0f3; --text: #111827; --muted: #6b7280;
+  --bg: #f6f7f9; --surface: #ffffff; --surface-2: #eef0f3; --text: #111827; --muted: #6b7280;
   --border: #e3e6eb; --accent: #2563eb; --line: #c9d0da;
-  --k-discussed: #8b5cf6; --k-decided: #16a34a; --k-open: #f59e0b; --k-suggestion: #2563eb; --k-caution: #dc2626; --k-work: #0891b2; --k-dropped: #6b7280;
-  --s-planned: #0891b2; --s-in-progress: #f59e0b; --s-blocked: #dc2626; --s-done: #16a34a; --s-dropped: #6b7280; --s-to-discuss: #9ca3af; --s-discussing: #8b5cf6; --s-decided: #2563eb;
+  --k-discussed: #8b5cf6; --k-decided: #16a34a; --k-open: #d97706; --k-suggestion: #2563eb; --k-caution: #dc2626; --k-work: #0891b2; --k-dropped: #6b7280;
+  --s-planned: #0891b2; --s-in-progress: #d97706; --s-blocked: #dc2626; --s-done: #16a34a; --s-dropped: #6b7280; --s-to-discuss: #9ca3af; --s-discussing: #8b5cf6; --s-decided: #2563eb;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #0d1117; --surface: #161b22; --surface-2: #1f2630; --text: #e6edf3; --muted: #8b949e;
     --border: #2a313c; --accent: #58a6ff; --line: #3a4452;
-    --k-decided: #22c55e; --k-caution: #ef4444; --k-suggestion: #60a5fa; --k-discussed: #a78bfa; --k-work: #22d3ee; color-scheme: dark;
+    --k-decided: #22c55e; --k-caution: #f87171; --k-suggestion: #60a5fa; --k-discussed: #a78bfa; --k-work: #22d3ee; --k-open: #fbbf24; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0d1117; --surface: #161b22; --surface-2: #1f2630; --text: #e6edf3; --muted: #8b949e;
   --border: #2a313c; --accent: #58a6ff; --line: #3a4452;
-  --k-decided: #22c55e; --k-caution: #ef4444; --k-suggestion: #60a5fa; --k-discussed: #a78bfa; --k-work: #22d3ee; color-scheme: dark;
+  --k-decided: #22c55e; --k-caution: #f87171; --k-suggestion: #60a5fa; --k-discussed: #a78bfa; --k-work: #22d3ee; --k-open: #fbbf24; color-scheme: dark;
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html, body { height: 100%; margin: 0; }
-body { background: var(--bg); color: var(--text); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; overflow: hidden; }
+body { background: var(--bg); color: var(--text); font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; overflow: hidden; }
 a { color: var(--accent); }
-code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; white-space: nowrap; }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; overflow-wrap: anywhere; }
 button { font: inherit; color: inherit; cursor: pointer; }
 h1, h2, h3, h4 { margin: 0; line-height: 1.3; }
 .muted { color: var(--muted); }
 .small { font-size: 12px; }
 
-header { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; padding: 10px 16px; background: var(--surface); border-bottom: 1px solid var(--border); }
-.brand { font-weight: 700; font-size: 16px; }
-.tagline { font-size: 12px; color: var(--muted); margin-left: -6px; }
-.proj { font-weight: 600; padding-left: 12px; border-left: 1px solid var(--border); }
-.live { font-size: 12px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
+/* ---------- header ---------- */
+header { flex: none; height: 52px; display: flex; gap: 12px; align-items: center; padding: 0 16px; background: var(--surface); border-bottom: 1px solid var(--border); }
+.brand { font-weight: 700; font-size: 15px; color: var(--text); text-decoration: none; }
+.proj { color: var(--muted); padding-left: 12px; border-left: 1px solid var(--border); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.spacer { flex: 1; }
+input[type=search] { font: inherit; color: var(--text); background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; width: 260px; min-width: 0; }
+input[type=search]:focus { outline: 2px solid color-mix(in srgb, var(--accent) 40%, transparent); border-color: var(--accent); }
+.live { font-size: 12px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 .live i { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); display: inline-block; }
 .live.on i { background: var(--k-decided); }
 .live.off i { background: var(--k-caution); }
-.spacer { flex: 1; }
-.help { font-size: 12px; color: var(--muted); }
-.hbtn { font-size: 12px; border: 1px solid var(--border); background: var(--surface-2); border-radius: 6px; padding: 4px 10px; }
-.warn { border: 1px solid var(--k-caution); color: var(--k-caution); background: transparent; border-radius: 999px; padding: 3px 10px; font-size: 12px; }
-input[type=search] { font: inherit; color: var(--text); background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 5px 10px; width: 210px; }
+.hbtn { font-size: 12px; border: 1px solid var(--border); background: var(--surface-2); border-radius: 6px; padding: 4px 10px; text-decoration: none; color: var(--text); white-space: nowrap; }
+.hbtn.upd { border-color: var(--k-decided); color: var(--k-decided); font-weight: 600; }
+.hbtn.warn { border-color: var(--k-caution); color: var(--k-caution); }
+#menuBtn { display: none; border: 0; background: none; font-size: 18px; padding: 4px 6px; }
+.pop { position: absolute; right: 16px; top: 56px; z-index: 30; width: 340px; max-width: calc(100vw - 32px); background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 12px 32px rgba(0,0,0,.18); padding: 12px 14px; font-size: 13px; }
+.pop p { margin: 6px 0; }
+.pop pre { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; }
 
-main { flex: 1; display: flex; min-height: 0; }
-#stage { flex: 1; min-width: 0; overflow: auto; position: relative; }
-#canvas { position: relative; }
-#links { position: absolute; left: 0; top: 0; pointer-events: none; overflow: visible; }
-#links path { fill: none; stroke: var(--line); stroke-width: 2; transition: opacity .25s; }
-#links path.c { stroke: var(--c); opacity: .6; }
-#links path.ghost { opacity: 0; }
+/* ---------- layout ---------- */
+.app { flex: 1; display: flex; min-height: 0; }
+#side { width: 264px; flex: none; overflow-y: auto; background: var(--surface); border-right: 1px solid var(--border); padding: 12px 10px 16px; display: flex; flex-direction: column; }
+#main { flex: 1; min-width: 0; overflow: auto; position: relative; }
+#page { max-width: 860px; margin: 0 auto; padding: 28px 32px 80px; }
+#scrim { display: none; }
 
-/* mind-map cards */
-.card { position: absolute; display: flex; align-items: flex-start; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 10px 12px; text-align: left; box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 12px rgba(0,0,0,.05); transition: left .38s cubic-bezier(.2,.8,.2,1), top .38s cubic-bezier(.2,.8,.2,1), opacity .25s, box-shadow .15s, transform .15s; opacity: 1; will-change: left, top; cursor: pointer; }
-.card.ghost { opacity: 0; pointer-events: none; }
-.card:hover { box-shadow: 0 2px 4px rgba(0,0,0,.06), 0 10px 24px rgba(0,0,0,.12); z-index: 2; transform: translateY(-1px); }
-.card.open { border-color: color-mix(in srgb, var(--c, var(--accent)) 60%, var(--border)); }
-.card.sel { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent), 0 10px 24px rgba(0,0,0,.12); }
-.card .body { flex: 1; min-width: 0; }
-.card .t { font-weight: 600; line-height: 1.3; font-size: 13.5px; }
-.card .s { font-size: 11.5px; color: var(--muted); margin-top: 3px; line-height: 1.35; }
-.card .clamp { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.card .icw { flex: none; width: 30px; height: 30px; border-radius: 50%; background: color-mix(in srgb, var(--c) 14%, var(--surface)); display: flex; align-items: center; justify-content: center; font-size: 15px; margin-top: 1px; }
-.card .more { flex: none; align-self: center; min-width: 24px; height: 24px; padding: 0 7px; border-radius: 99px; border: 1.5px solid color-mix(in srgb, var(--c, var(--accent)) 45%, var(--border)); background: var(--surface); font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; color: var(--c, var(--accent)); }
-.card.open .more { background: var(--c, var(--accent)); color: #fff; border-color: transparent; }
-.card .info { position: absolute; top: 6px; right: 6px; width: 20px; height: 20px; border-radius: 50%; border: 0; background: var(--surface-2); color: var(--muted); font-size: 11px; font-weight: 700; padding: 0; opacity: 0; transition: opacity .15s; }
-.card:hover .info { opacity: 1; }
-.card .info:hover { background: var(--accent); color: #fff; }
-.kindtag { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--c); margin-bottom: 2px; display: flex; gap: 6px; align-items: center; }
-.kindtag .dt { color: var(--muted); font-weight: 500; letter-spacing: 0; text-transform: none; }
-.chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
-.chip { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; line-height: 1; padding: 3px 7px; border-radius: 99px; background: color-mix(in srgb, var(--c) 12%, var(--surface)); color: color-mix(in srgb, var(--c) 80%, var(--text)); white-space: nowrap; }
-.chip b { font-weight: 700; }
-.chip.ask { background: color-mix(in srgb, var(--k-open) 16%, var(--surface)); color: color-mix(in srgb, var(--k-open) 70%, var(--text)); }
-.pbar { display: flex; height: 5px; border-radius: 99px; overflow: hidden; background: var(--surface-2); margin-top: 7px; }
-.pbar i { display: block; height: 100%; }
-.pbar .ok { background: var(--k-decided); }
-.pbar .no { background: var(--k-open); }
-.pbar2 { margin-top: 4px; }
-.pbar2 .ok { background: var(--k-work); }
-.plabel { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--muted); margin-top: 3px; }
-.card.project { border: 2px solid var(--accent); border-radius: 18px; padding: 14px 16px; background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 7%, var(--surface)), var(--surface)); }
-.card.project .t { font-size: 18px; }
-.card.phase { border-left: 5px solid var(--c); }
-.card.phase .num { flex: none; width: 30px; height: 30px; border-radius: 50%; background: var(--c); color: #fff; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; }
-.card.phase.current::after { content: "current"; position: absolute; top: -9px; left: 12px; font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; background: var(--c); color: #fff; padding: 2px 7px; border-radius: 99px; }
-.card.feature { border-left: 5px solid var(--c); }
-.card.bucket { background: color-mix(in srgb, var(--c) 7%, var(--surface)); border-color: color-mix(in srgb, var(--c) 30%, var(--border)); padding: 8px 12px; align-items: center; }
-.card.bucket .t { color: var(--c); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
-.card.bucket .s { margin-top: 1px; }
-.card.point .t, .card.ticket .t { font-weight: 500; }
-.card.point.dropped .t { text-decoration: line-through; color: var(--muted); }
-.pill { font-size: 11px; padding: 1px 8px; border-radius: 99px; border: 1px solid var(--c); color: var(--c); white-space: nowrap; flex: none; }
-.tmeta { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 11px; color: var(--muted); flex-wrap: wrap; }
-.avatar { width: 18px; height: 18px; border-radius: 50%; background: var(--surface-2); border: 1px solid var(--border); font-size: 10px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; color: var(--text); }
-.tbar { flex: 1; min-width: 50px; height: 4px; background: var(--surface-2); border-radius: 99px; overflow: hidden; }
-.tbar i { display: block; height: 100%; background: var(--k-work); }
+/* ---------- sidebar ---------- */
+.nav { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 8px; color: var(--text); text-decoration: none; font-size: 13.5px; line-height: 1.3; }
+.nav:hover { background: var(--surface-2); }
+.nav.on { background: color-mix(in srgb, var(--accent) 12%, var(--surface)); color: var(--accent); font-weight: 600; }
+.nav .nt { flex: 1; min-width: 0; }
+.nav .ni { width: 20px; text-align: center; flex: none; }
+.navh { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); padding: 16px 10px 6px; }
+.nav.ph { font-weight: 600; }
+.nav.tp { padding-left: 38px; font-size: 13px; color: color-mix(in srgb, var(--text) 85%, var(--muted)); }
+.nav.tp.on { color: var(--accent); }
+.num { flex: none; width: 20px; height: 20px; border-radius: 50%; background: var(--c, var(--accent)); color: #fff; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
+.badge { flex: none; min-width: 18px; height: 18px; padding: 0 6px; border-radius: 99px; background: color-mix(in srgb, var(--k-open) 18%, var(--surface)); color: color-mix(in srgb, var(--k-open) 80%, var(--text)); font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
+.tick { flex: none; color: var(--k-decided); font-size: 12px; }
+.cnt { flex: none; font-size: 11px; color: var(--muted); }
+.sidefoot { margin-top: auto; padding: 18px 10px 0; font-size: 11px; color: var(--muted); }
 
-.hidden { display: none !important; }
-/* header tabs (Map / Tooling) */
-.ver { font-size: 11px; color: var(--muted); }
-.hbtn.upd { border-color: var(--k-decided); color: var(--k-decided); background: color-mix(in srgb, var(--k-decided) 10%, var(--surface)); font-weight: 600; }
-#updbox p { margin: 6px 0; }
-#updbox pre { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; margin: 6px 0 10px; }
-.tabs { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
-.tabs button { border: 0; background: var(--surface-2); padding: 4px 12px; font-size: 12px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
-.tabs button.on { background: var(--accent); color: #fff; }
-.tabs button .n { font-size: 10px; line-height: 1; padding: 3px 6px; border-radius: 99px; background: var(--border); color: var(--text); }
-.tabs button.on .n { background: rgba(255,255,255,.28); color: #fff; }
-/* tooling view: the project's agents, skills and hooks */
-#tooling { padding: 22px 28px 40px; max-width: 1180px; }
-#tooling .tsec { margin-bottom: 28px; }
-#tooling .tsec h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--c); display: flex; align-items: center; gap: 8px; }
-#tooling .tsec h2 .n { font-weight: 500; color: var(--muted); text-transform: none; letter-spacing: 0; }
-#tooling .tsec .hint2 { font-size: 12px; color: var(--muted); margin: 2px 0 10px; }
-.tgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 10px; }
-.tcard { text-align: left; font: inherit; background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--c); border-radius: 12px; padding: 10px 12px; display: flex; gap: 10px; align-items: flex-start; box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 12px rgba(0,0,0,.05); transition: box-shadow .15s, transform .15s; }
-.tcard:hover { box-shadow: 0 2px 4px rgba(0,0,0,.06), 0 10px 24px rgba(0,0,0,.12); transform: translateY(-1px); }
-.tcard.sel { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent), 0 10px 24px rgba(0,0,0,.12); }
-.tcard .icw { flex: none; width: 30px; height: 30px; border-radius: 50%; background: color-mix(in srgb, var(--c) 14%, var(--surface)); display: flex; align-items: center; justify-content: center; font-size: 15px; }
-.tcard .body { flex: 1; min-width: 0; }
-.tcard .t { font-weight: 600; font-size: 13.5px; line-height: 1.3; overflow-wrap: anywhere; }
-.tcard .s { font-size: 12px; color: var(--muted); margin-top: 3px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.tcard .trg { font-size: 11px; margin-top: 6px; color: color-mix(in srgb, var(--c) 75%, var(--text)); overflow-wrap: anywhere; }
-.mempty { position: absolute; left: 28px; top: 28px; max-width: 560px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px; font-size: 13px; color: var(--muted); box-shadow: 0 4px 12px rgba(0,0,0,.05); }
-.mempty h2 { color: var(--text); font-size: 16px; margin-bottom: 8px; }
-.mempty pre { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; white-space: pre-wrap; overflow-wrap: anywhere; }
-.tempty { max-width: 560px; margin: 60px auto; text-align: center; color: var(--muted); font-size: 13px; }
-.tempty h2 { color: var(--text); font-size: 17px; margin: 8px 0 10px; }
-.tempty code { white-space: normal; }
-.tnote { font-size: 12px; color: var(--k-caution); border: 1px solid color-mix(in srgb, var(--k-caution) 40%, var(--border)); border-radius: 8px; padding: 8px 10px; margin-bottom: 16px; }
-.cmd { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin: 0; }
-/* legend popover */
-.legend { position: absolute; right: 16px; top: 52px; z-index: 20; width: 340px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 12px 32px rgba(0,0,0,.18); padding: 12px 14px; font-size: 13px; }
-.legend h4 { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 8px 0 6px; }
-.legend h4:first-child { margin-top: 0; }
-.legend .row { display: flex; gap: 10px; align-items: flex-start; padding: 4px 0; }
-.legend .row .k { flex: none; width: 112px; font-weight: 600; }
-.legend .row .k.c { color: var(--c); }
-.hint { position: absolute; color: var(--muted); font-size: 12px; white-space: nowrap; transition: opacity .3s; }
-.hint.ghost { opacity: 0; }
+/* ---------- pages ---------- */
+.crumbs { font-size: 12.5px; color: var(--muted); margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.crumbs a { color: var(--muted); text-decoration: none; }
+.crumbs a:hover { color: var(--accent); text-decoration: underline; }
+h1 { font-size: 26px; letter-spacing: -.01em; display: flex; gap: 10px; align-items: center; }
+h1 .num { width: 28px; height: 28px; font-size: 14px; }
+.lead { color: var(--muted); margin: 8px 0 0; font-size: 14.5px; }
+.lead p { margin: 4px 0; }
+.lead ul { margin: 4px 0; padding-left: 20px; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12.5px; color: var(--muted); margin-top: 12px; align-items: center; }
+section.blk { margin-top: 34px; }
+.sh { font-size: 15px; display: flex; align-items: center; gap: 8px; }
+.sh .n { font-size: 12px; font-weight: 500; color: var(--muted); }
+.shint { font-size: 12.5px; color: var(--muted); margin: 2px 0 10px; }
+.empty { font-size: 13px; color: var(--muted); padding: 10px 0; }
 
-/* timeline */
-footer { border-top: 1px solid var(--border); background: var(--surface); padding: 8px 16px; display: flex; gap: 12px; align-items: center; overflow-x: auto; flex: none; }
-footer .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); flex: none; }
-.day { flex: none; border: 1px solid var(--border); border-radius: 10px; padding: 5px 10px; background: var(--surface-2); text-align: left; min-width: 110px; }
-.day.on { border-color: var(--accent); }
-.day .d { font-weight: 600; font-size: 12px; }
-.day .c { font-size: 11px; color: var(--muted); display: flex; gap: 6px; flex-wrap: wrap; }
+/* summary line: coloured dot + words */
+.sum { display: inline-flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12.5px; color: var(--muted); }
+.sum span { display: inline-flex; align-items: center; gap: 6px; }
+.sum i { width: 7px; height: 7px; border-radius: 50%; background: var(--c); display: inline-block; }
 
-/* panel — slides in to half the screen; the map scrolls left to keep the clicked card in view */
-aside { width: 0; flex: none; overflow: hidden; background: var(--surface); border-left: 0 solid var(--border); transition: width .42s cubic-bezier(.2,.8,.2,1), border-left-width .42s; }
-aside.open { width: 50%; border-left-width: 1px; }
-.pin { width: 50vw; min-width: 420px; height: 100%; overflow: auto; opacity: 0; transform: translateX(24px); transition: opacity .3s .12s, transform .42s cubic-bezier(.2,.8,.2,1); }
-aside.open .pin { opacity: 1; transform: none; }
-.ptop { position: sticky; top: 0; background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 20px; display: flex; align-items: center; gap: 8px; z-index: 1; }
-.pbody { padding: 14px 20px 30px; }
-aside h2 { font-size: 19px; margin: 0 0 4px; }
-aside .lead { color: var(--muted); font-size: 13px; margin-bottom: 14px; }
-aside h3 { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 20px 0 8px; display: flex; align-items: center; gap: 8px; }
-aside h3::after { content: ""; flex: 1; height: 1px; background: var(--border); }
-aside h4 { margin: 10px 0 4px; font-size: 13px; }
-aside p { margin: 4px 0; }
-aside ul { margin: 4px 0; padding-left: 18px; }
-aside li.cb { list-style: none; margin-left: -18px; }
-aside blockquote { margin: 6px 0; padding: 4px 10px; border-left: 3px solid var(--border); color: var(--muted); }
-aside pre { background: var(--surface-2); padding: 8px; border-radius: 6px; overflow: auto; font-size: 12px; }
-.close { border: 1px solid var(--border); background: var(--surface-2); border-radius: 6px; padding: 4px 10px; margin-left: auto; }
-.facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
-.fact { background: var(--surface-2); border-radius: 8px; padding: 6px 10px; min-width: 0; }
+/* stat tiles */
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 22px; }
+.stat { text-align: left; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; }
+.stat:hover { border-color: var(--c); }
+.stat .v { font-size: 24px; font-weight: 700; color: var(--c); line-height: 1.1; }
+.stat .k { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+/* meters */
+.meters { display: grid; gap: 6px; margin-top: 14px; max-width: 420px; }
+.meter { display: grid; grid-template-columns: 64px 1fr 44px; align-items: center; gap: 10px; font-size: 12px; color: var(--muted); }
+.track { height: 6px; border-radius: 99px; background: var(--surface-2); overflow: hidden; display: block; }
+.track i { display: block; height: 100%; background: var(--c); border-radius: 99px; }
+.meter .mv { text-align: right; color: var(--text); }
+
+/* list rows (links) */
+.list { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; text-decoration: none; color: var(--text); border-top: 1px solid var(--border); }
+.row:first-child { border-top: 0; }
+.row:hover { background: var(--surface-2); }
+.ric { flex: none; width: 28px; height: 28px; border-radius: 8px; background: color-mix(in srgb, var(--c) 13%, var(--surface)); display: flex; align-items: center; justify-content: center; font-size: 14px; }
+.rt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.rt b, .rt .ntitle { font-weight: 500; }
+.rs { font-size: 12px; color: var(--muted); margin-top: 1px; }
+.clamp1 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pill { flex: none; font-size: 11px; padding: 1px 9px; border-radius: 99px; border: 1px solid var(--c); color: var(--c); white-space: nowrap; }
+.prow .rt b { font-weight: 600; }
+.prow .pm { flex: none; width: 170px; display: grid; gap: 4px; }
+.prow .meter { grid-template-columns: 52px 1fr 36px; font-size: 11px; }
+.day { font-size: 12px; font-weight: 600; color: var(--muted); margin: 14px 0 6px; }
+.day:first-of-type { margin-top: 4px; }
+
+/* notes (expand in place) */
+.note { border-top: 1px solid var(--border); }
+.note:first-child { border-top: 0; }
+.nhead { width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: none; border: 0; text-align: left; }
+.nhead:hover { background: var(--surface-2); }
+.nmeta { flex: none; font-size: 11.5px; color: var(--muted); white-space: nowrap; }
+.chev { flex: none; color: var(--muted); transition: transform .15s; font-size: 16px; line-height: 1; }
+.note.open .chev { transform: rotate(90deg); }
+.note.open .nhead { background: color-mix(in srgb, var(--c) 6%, var(--surface)); }
+.note.k-dropped .ntitle { text-decoration: line-through; color: var(--muted); }
+.note.flash .nhead { animation: flash 1.6s ease-out; }
+@keyframes flash { from { background: color-mix(in srgb, var(--k-open) 30%, var(--surface)); } }
+.nbody { padding: 4px 14px 16px 54px; }
+.nsec { margin-top: 10px; }
+.nl { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--c); }
+.nx p { margin: 2px 0; }
+.nx ul { margin: 2px 0; padding-left: 18px; }
+.nexthint { font-size: 12.5px; color: var(--muted); margin-top: 12px; padding: 8px 10px; background: var(--surface-2); border-radius: 8px; }
+.sub { margin-top: 14px; }
+.sub .lbl { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin-bottom: 6px; }
+.sub .list { border-radius: 10px; }
+.sub .row { padding: 7px 10px; }
+.sub .ric { width: 22px; height: 22px; font-size: 12px; border-radius: 6px; }
+
+/* actions */
+.actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+.actions a, .actions button { font-size: 12px; border: 1px solid var(--border); background: var(--surface); border-radius: 6px; padding: 4px 10px; text-decoration: none; color: var(--text); }
+.actions a:hover, .actions button:hover { border-color: var(--accent); color: var(--accent); }
+
+/* facts + rendered markdown */
+.facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-top: 16px; }
+.fact { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 7px 11px; min-width: 0; }
 .fact .k { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
 .fact .v { font-size: 13px; font-weight: 500; overflow-wrap: anywhere; }
-.fact code { white-space: normal; overflow-wrap: anywhere; }
-.why { background: color-mix(in srgb, var(--c) 8%, transparent); border-left: 3px solid var(--c); border-radius: 0 8px 8px 0; padding: 8px 12px; margin-top: 6px; }
-.why p { margin: 2px 0; }
-.rel { display: flex; align-items: flex-start; gap: 10px; text-decoration: none; color: var(--text); padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 6px; background: var(--surface); }
-.rel:hover { background: var(--surface-2); }
-.rel .ic { flex: none; width: 18px; text-align: center; }
-.rel .t { font-weight: 500; }
-.rel .s { display: block; font-size: 11px; color: var(--muted); }
-.rel .pill { margin-left: auto; }
 .tag { font-size: 11px; background: var(--surface-2); border-radius: 4px; padding: 1px 6px; }
-.kind { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: color-mix(in srgb, var(--c) 15%, transparent); color: var(--c); white-space: nowrap; }
-.progress { display: flex; align-items: center; gap: 10px; font-size: 13px; margin: 6px 0; }
-.progress .track { flex: 1; height: 8px; background: var(--surface-2); border-radius: 99px; overflow: hidden; display: block; }
-.progress .fill { display: block; height: 100%; background: var(--c); }
-.actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
-.actions a, .actions button { font-size: 12px; border: 1px solid var(--border); background: var(--surface-2); border-radius: 6px; padding: 4px 10px; text-decoration: none; color: var(--text); }
-.actions a:hover, .actions button:hover { border-color: var(--accent); }
-.commit { display: flex; gap: 10px; align-items: baseline; padding: 6px 0; border-bottom: 1px dashed var(--border); font-size: 13px; }
-.commit .s { color: var(--muted); font-size: 11px; display: block; }
+.doc { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 4px 18px 14px; margin-top: 10px; }
+.doc h2 { font-size: 17px; margin: 16px 0 6px; }
+.doc h3 { font-size: 14px; margin: 14px 0 4px; }
+.doc h4 { font-size: 13px; margin: 10px 0 4px; }
+.doc p { margin: 6px 0; }
+.doc ul { padding-left: 20px; margin: 6px 0; }
+.doc li { margin: 4px 0; }
+.doc li.cb { list-style: none; margin-left: -18px; }
+.doc blockquote { margin: 4px 0 4px 6px; padding: 2px 10px; border-left: 3px solid var(--border); color: var(--muted); }
+pre { background: var(--surface-2); padding: 8px 10px; border-radius: 8px; overflow: auto; font-size: 12px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.callout { border-left: 3px solid var(--c); background: color-mix(in srgb, var(--c) 8%, var(--surface)); border-radius: 0 10px 10px 0; padding: 10px 14px; margin-top: 14px; font-size: 13px; }
 .log { border-left: 2px solid var(--border); margin-left: 6px; padding-left: 14px; }
 .log div { position: relative; padding: 2px 0 8px; font-size: 13px; }
 .log div::before { content: ""; position: absolute; left: -19px; top: 8px; width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
-.issue { font-size: 13px; padding: 6px 0; border-bottom: 1px solid var(--border); }
+.commit { display: flex; gap: 10px; align-items: baseline; padding: 6px 0; border-bottom: 1px dashed var(--border); font-size: 13px; }
+.commit .s { color: var(--muted); font-size: 11px; display: block; }
+.issue { font-size: 13px; padding: 10px 14px; border-top: 1px solid var(--border); }
+.issue:first-child { border-top: 0; }
 .bad { color: var(--k-caution); }
-
-/* file preview inside the panel */
-.ftabs { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-left: auto; }
-.ftabs button { border: 0; background: transparent; padding: 4px 12px; font-size: 12px; }
+.ftabs { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.ftabs button { border: 0; background: var(--surface); padding: 4px 12px; font-size: 12px; }
 .ftabs button.on { background: var(--accent); color: #fff; }
-.back { border: 1px solid var(--border); background: var(--surface-2); border-radius: 6px; padding: 4px 10px; font-size: 12px; }
-.fm { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px; margin: 10px 0 16px; }
-.fm div { background: var(--surface-2); border-radius: 6px; padding: 4px 8px; font-size: 12px; }
+.fm { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; margin: 12px 0; }
+.fm div { background: var(--surface-2); border-radius: 6px; padding: 4px 8px; font-size: 12px; overflow-wrap: anywhere; }
 .fm b { color: var(--muted); font-weight: 500; margin-right: 6px; }
-.rendered h2 { font-size: 17px; margin: 18px 0 6px; }
-.rendered ul { padding-left: 20px; }
-.rendered li { margin: 6px 0; }
-.rendered blockquote { margin: 4px 0 4px 6px; }
-.rendered blockquote + blockquote { margin-top: -2px; }
-mark.hl { background: color-mix(in srgb, var(--k-open) 28%, transparent); color: inherit; border-radius: 4px; padding: 1px 3px; box-shadow: 0 0 0 2px color-mix(in srgb, var(--k-open) 28%, transparent); }
-.raw { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; line-height: 1.55; background: var(--surface-2); border-radius: 8px; padding: 10px 0; overflow: auto; }
+mark.hl { background: color-mix(in srgb, var(--k-open) 28%, transparent); color: inherit; border-radius: 4px; padding: 1px 3px; }
+.raw { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; line-height: 1.55; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 0; overflow: auto; margin-top: 12px; }
 .raw div { display: flex; white-space: pre; padding: 0 12px; }
 .raw .ln { width: 36px; flex: none; text-align: right; color: var(--muted); margin-right: 14px; user-select: none; }
 .raw .hlrow { background: color-mix(in srgb, var(--k-open) 22%, transparent); }
 
+/* tooling grid */
+.tgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
+.tcard { text-decoration: none; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; display: flex; gap: 10px; align-items: flex-start; }
+.tcard:hover { border-color: var(--c); }
+.tcard .t { font-weight: 600; font-size: 13.5px; overflow-wrap: anywhere; display: block; }
+.tcard .s { font-size: 12px; color: var(--muted); margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.tcard .trg { font-size: 11px; margin-top: 6px; color: var(--c); overflow-wrap: anywhere; display: block; }
+
+/* ---------- mind map (second view) ---------- */
+#stage { position: absolute; inset: 0; overflow: auto; }
+#canvas { position: relative; }
+#links { position: absolute; left: 0; top: 0; pointer-events: none; overflow: visible; }
+#links path { fill: none; stroke: var(--c); stroke-width: 2; opacity: .5; transition: opacity .25s; }
+#links path.ghost { opacity: 0; }
+.card { position: absolute; display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 9px 12px; text-align: left; box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 12px rgba(0,0,0,.04); transition: left .38s cubic-bezier(.2,.8,.2,1), top .38s cubic-bezier(.2,.8,.2,1), opacity .25s, box-shadow .15s; cursor: pointer; }
+.card.ghost { opacity: 0; pointer-events: none; }
+.card:hover { box-shadow: 0 2px 4px rgba(0,0,0,.06), 0 10px 24px rgba(0,0,0,.1); z-index: 2; }
+.card.sel { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 40%, transparent); }
+.card .body { flex: 1; min-width: 0; }
+.card .t { font-weight: 600; font-size: 13.5px; line-height: 1.3; }
+.card .s { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+.card .track { margin-top: 7px; height: 4px; }
+.card.point .t, .card.ticket .t { font-weight: 500; font-size: 13px; }
+.card.point.dropped .t { text-decoration: line-through; color: var(--muted); }
+.card.project { border: 2px solid var(--accent); }
+.card.project .t { font-size: 16px; }
+.card.phase, .card.feature { border-left: 4px solid var(--c); }
+.card .more { flex: none; min-width: 24px; height: 24px; padding: 0 7px; border-radius: 99px; border: 1.5px solid color-mix(in srgb, var(--c) 45%, var(--border)); background: var(--surface); font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; color: var(--c); }
+.card.open .more { background: var(--c); color: #fff; border-color: transparent; }
+.card .go { flex: none; width: 24px; height: 24px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface-2); color: var(--muted); font-size: 12px; padding: 0; }
+.card .go:hover { color: #fff; background: var(--accent); border-color: var(--accent); }
+.card .ric { width: 26px; height: 26px; }
+.maptools { position: absolute; right: 16px; bottom: 16px; z-index: 5; display: flex; gap: 8px; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 6px 10px; font-size: 12px; color: var(--muted); box-shadow: 0 4px 12px rgba(0,0,0,.08); }
+
+/* ---------- phone ---------- */
 @media (max-width: 760px) {
-  #tooling { padding: 14px 16px 30px; }
-  .tgrid { grid-template-columns: 1fr; }
-  input[type=search] { width: 140px; }
-  aside { position: fixed; left: 0; right: 0; bottom: 0; width: auto; height: 0; border-left: 0; border-top: 0 solid var(--border); z-index: 10; box-shadow: 0 -8px 24px rgba(0,0,0,.25); transition: height .42s cubic-bezier(.2,.8,.2,1); }
-  aside.open { width: auto; height: 70vh; border-top-width: 1px; }
-  .pin { width: 100vw; min-width: 0; transform: translateY(24px); }
+  header { gap: 8px; padding: 0 12px; }
+  #menuBtn { display: inline-block; }
+  .proj, .live span { display: none; }
+  input[type=search] { width: auto; flex: 1; }
+  .spacer { display: none; }
+  #side { position: fixed; top: 52px; bottom: 0; left: 0; z-index: 25; width: 280px; max-width: 85vw; transform: translateX(-100%); transition: transform .25s ease; box-shadow: 0 0 24px rgba(0,0,0,.25); }
+  body.side-open #side { transform: none; }
+  body.side-open #scrim { display: block; position: fixed; inset: 52px 0 0 0; background: rgba(0,0,0,.35); z-index: 24; }
+  #page { padding: 18px 16px 60px; }
+  h1 { font-size: 21px; }
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .prow .pm { display: none; }
+  .nmeta { display: none; }
+  .nbody { padding-left: 14px; }
+  .maptools .hint { display: none; }
 }
 </style>
 <!--PLAN_DATA-->
 </head>
 <body>
 <header>
-  <span class="brand">Thinkmap</span><span class="tagline">Know your project.</span><span class="proj" id="title"></span>
-  <nav class="tabs" id="tabs" aria-label="View"><button data-view="map" class="on">Map</button><button data-view="tooling">Tooling<span class="n" id="toolN">0</span></button></nav>
-  <span class="live" id="live"><i></i><span>connecting…</span></span>
+  <button id="menuBtn" aria-label="Open the plan menu">☰</button>
+  <a class="brand" href="#/">Thinkmap</a>
+  <span class="proj" id="title"></span>
   <span class="spacer"></span>
-  <span class="help" id="help">Click a card to expand it · click a note for details</span>
-  <input type="search" id="q" placeholder="Search notes…  ( / )">
-  <button class="hbtn" id="collapseBtn" title="Collapse everything">⊖ Collapse all</button>
-  <button class="hbtn" id="legendBtn" title="What do the icons mean?">? Legend</button>
-  <button class="hbtn upd hidden" id="updBtn" title="A newer Thinkmap is on GitHub">⬆ Update available</button>
-  <span class="ver" id="ver" title="Thinkmap version"></span>
-  <button class="warn" id="issuesBtn" hidden></button>
+  <input type="search" id="q" placeholder="Search the plan…   /" aria-label="Search the plan">
+  <a class="hbtn warn" id="issuesBtn" href="#/issues" hidden></a>
+  <button class="hbtn upd" id="updBtn" hidden title="A newer Thinkmap is on GitHub">⬆ Update</button>
+  <span class="live" id="live"><i></i><span>connecting…</span></span>
 </header>
-<div class="legend hidden" id="updbox">
-  <h4>New version</h4>
-  <p>Thinkmap <b id="updLatest"></b> is on GitHub; this is <b id="updCur"></b>.</p>
-  <h4>Update</h4>
-  <p>In a terminal, from your project:</p>
+<div class="pop" id="updbox" hidden>
+  <p>Thinkmap <b id="updLatest"></b> is on GitHub; this is <b id="updCur"></b>. In a terminal, from your project:</p>
   <pre id="updHow"></pre>
-  <p class="muted">Then restart <code>thinkmap serve</code>. New features (like the Tooling tab) appear after the restart.</p>
+  <p class="muted">Then restart <code>thinkmap serve</code>.</p>
 </div>
-<div class="legend hidden" id="legend">
-  <h4>Six buckets per topic</h4>
-  <div class="row"><span class="k c" style="--c:var(--k-discussed)">💬 We discussed</span><span>Things we talked through. No action needed.</span></div>
-  <div class="row"><span class="k c" style="--c:var(--k-decided)">✅ We decided</span><span>Agreements, each with the reason written down.</span></div>
-  <div class="row"><span class="k c" style="--c:var(--k-open)">❓ Still open</span><span>Questions nobody has answered yet.</span></div>
-  <div class="row"><span class="k c" style="--c:var(--k-suggestion)">💡 Suggested</span><span>Ideas (usually from Claude) waiting for a yes/no.</span></div>
-  <div class="row"><span class="k c" style="--c:var(--k-caution)">⚠️ Take care of</span><span>Rules and risks we must not forget while building.</span></div>
-  <div class="row"><span class="k c" style="--c:var(--k-work)">🔨 Work</span><span>Tickets: what is being built, by whom, how far.</span></div>
-  <h4>Counters on a card</h4>
-  <div class="row"><span class="k">7 decided</span><span>Decisions inside that card.</span></div>
-  <div class="row"><span class="k">3 open · 1 idea</span><span>Still need your answer. Shown as "needs decision".</span></div>
-  <div class="row"><span class="k">2 cautions</span><span>Rules to keep in mind.</span></div>
-  <div class="row"><span class="k">2/6 built</span><span>Tickets done out of total.</span></div>
-  <div class="row"><span class="k">Green / amber bar</span><span>Share of points settled vs still open.</span></div>
-  <div class="row"><span class="k">Teal bar</span><span>Tickets done.</span></div>
-  <h4>Tooling tab</h4>
-  <div class="row"><span class="k c" style="--c:var(--k-discussed)">🤖 Agents</span><span>Subagents Claude can hand work to (<code>.claude/agents/</code>).</span></div>
-  <div class="row"><span class="k c" style="--c:var(--k-suggestion)">🧩 Skills</span><span>Slash commands and automatic instructions (<code>.claude/skills/</code>, <code>commands/</code>).</span></div>
-  <div class="row"><span class="k c" style="--c:var(--k-work)">🪝 Hooks</span><span>Scripts run on events (<code>.claude/settings.json</code>). Shown, never run.</span></div>
-  <h4>How to use</h4>
-  <div class="row"><span class="k">Click a card</span><span>Opens the next level. Click again to fold.</span></div>
-  <div class="row"><span class="k">Click a note</span><span>Full story in the side panel.</span></div>
-  <div class="row"><span class="k">i · / · Esc</span><span>Details of any card · search · close.</span></div>
+<div class="app">
+  <nav id="side" aria-label="Plan"></nav>
+  <div id="scrim"></div>
+  <main id="main">
+    <div id="page"></div>
+    <div id="stage" hidden><div id="canvas"><svg id="links"></svg><div id="content"></div></div></div>
+    <div class="maptools" id="maptools" hidden><span class="hint">Click a card to open its branch · click a note to read it</span><button class="hbtn" id="collapseBtn">Fold all</button></div>
+  </main>
 </div>
-<main>
-  <div id="stage"><div id="canvas"><svg id="links"></svg><div id="content"></div></div><div id="tooling" class="hidden"></div></div>
-  <aside id="panel"></aside>
-</main>
-<footer id="timeline"></footer>
 
 <script>
 (() => {
-  const KINDS = ['discussed', 'decided', 'open', 'suggestion', 'caution', 'dropped'];
-  const BUCKETS = ['discussed', 'decided', 'open', 'suggestion', 'caution', 'work'];
-  const BUCKET = {
-    discussed: { icon: '💬', title: 'We discussed', hint: 'things we talked about' },
-    decided: { icon: '✅', title: 'We decided', hint: 'agreements, with reasons' },
-    open: { icon: '❓', title: 'Still open', hint: 'questions nobody answered yet' },
-    suggestion: { icon: '💡', title: 'Suggested', hint: 'ideas waiting for a yes/no' },
-    caution: { icon: '⚠️', title: 'Take care of', hint: 'rules and risks to remember' },
-    work: { icon: '🔨', title: 'Work', hint: 'tickets: what is being built' },
+  // ---------- vocabulary ----------
+  const KIND = {
+    open: { icon: '❓', title: 'Open questions', one: 'Open question', hint: 'Nobody has answered these yet' },
+    suggestion: { icon: '💡', title: 'Suggestions', one: 'Suggestion', hint: 'Ideas waiting for a yes or no' },
+    caution: { icon: '⚠️', title: 'Take care of', one: 'Caution', hint: 'Rules and risks to keep in mind while building' },
+    decided: { icon: '✅', title: 'Decided', one: 'Decided', hint: 'Agreements, each with its reason' },
+    discussed: { icon: '💬', title: 'Discussed', one: 'Discussed', hint: 'Talked through; no action needed' },
+    dropped: { icon: '✖', title: 'Dropped', one: 'Dropped', hint: 'Decided not to do, with the reason' },
   };
-  // Tooling tab: the project's own Claude Code agents, skills and hooks (read by the engine, never served)
+  const ORDER = ['open', 'suggestion', 'caution', 'decided', 'discussed', 'dropped'];
+  const TICKET = { planned: { icon: '◻', label: 'ready' }, 'in-progress': { icon: '🔨', label: 'in progress' }, blocked: { icon: '⛔', label: 'blocked' }, done: { icon: '✅', label: 'done' }, dropped: { icon: '✖', label: 'dropped' }, 'to-discuss': { icon: '◻', label: 'not ready' }, discussing: { icon: '◻', label: 'not ready' }, decided: { icon: '◻', label: 'not ready' } };
   const GROUP = {
-    agent: { icon: '🤖', title: 'Agents', one: 'Agent', hint: 'Subagents Claude can hand work to — each with its own instructions and tool limits', color: '--k-discussed' },
-    skill: { icon: '🧩', title: 'Skills', one: 'Skill', hint: 'Instructions Claude follows — by slash command, on its own when the task matches, or both', color: '--k-suggestion' },
+    agent: { icon: '🤖', title: 'Agents', one: 'Agent', hint: 'Subagents Claude can hand work to, each with its own instructions and tool limits', color: '--k-discussed' },
+    skill: { icon: '🧩', title: 'Skills', one: 'Skill', hint: 'Instructions Claude follows: by slash command, on its own when the task matches, or both', color: '--k-suggestion' },
     hook: { icon: '🪝', title: 'Hooks', one: 'Hook', hint: 'Scripts Claude Code runs on events. Unlike instructions, they cannot be forgotten', color: '--k-work' },
   };
-  const TICKET = { planned: { icon: '◻', label: 'ready' }, 'in-progress': { icon: '🔨', label: 'in progress' }, blocked: { icon: '⛔', label: 'blocked' }, done: { icon: '✅', label: 'done' }, dropped: { icon: '✖', label: 'dropped' }, 'to-discuss': { icon: '◻', label: 'not ready' }, discussing: { icon: '◻', label: 'not ready' }, decided: { icon: '◻', label: 'not ready' } };
-  const PHASE_COLORS = ['#f59e0b', '#8b5cf6', '#0891b2', '#16a34a', '#db2777', '#2563eb', '#64748b', '#ea580c'];
-  const WIDTH = { project: 250, phase: 250, feature: 270, bucket: 210, point: 350, ticket: 350 };
-  const GAP_X = 70; const GAP_Y = 10; const PAD = 28;
+  const LABELS = { what: 'What this is', why: 'Why', expected: 'What we expect', discussed: 'What we discussed', options: 'Options on the table', pending: 'Still pending', built: "What's built", risk: 'What goes wrong if we forget', next: 'Next step', how: 'How it works', see: 'See also' };
+  const NEXT = {
+    open: 'Waiting for an answer. When decided, change <code>open</code> → <code>decided</code> on this line and write <code>Why:</code>.',
+    suggestion: 'Waiting for a yes or no. Accept: <code>suggestion</code> → <code>decided</code>. Reject: → <code>dropped</code> with <code>Why:</code>.',
+    caution: 'Keep this in mind while building. Tickets that touch it should mention it.',
+  };
+  const PHASE_COLORS = ['#d97706', '#8b5cf6', '#0891b2', '#16a34a', '#db2777', '#2563eb', '#64748b', '#ea580c'];
+
+  // ---------- helpers ----------
   const $ = (s) => document.querySelector(s);
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const cssVar = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
   const kcolor = (k) => cssVar(`--k-${k}`) || '#999';
+  const scolor = (s) => cssVar(`--s-${s}`) || '#999';
   const store = {
     get(k, d) { try { const v = localStorage.getItem(`thinkmap:${k}`); return v === null ? d : JSON.parse(v); } catch { return d; } },
     set(k, v) { try { localStorage.setItem(`thinkmap:${k}`, JSON.stringify(v)); } catch { /* storage unavailable */ } },
   };
-  const state = { g: null, byId: new Map(), expanded: new Set(store.get('expanded', [])), sel: null, issues: false, day: null, phaseColor: new Map(), q: '', pos: new Map(), view: store.get('view', 'map') === 'tooling' ? 'tooling' : 'map' };
-  const fmtDate = (d) => { if (!d) return ''; const [y, m, dd] = d.split('-'); return `${Number(dd)} ${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][Number(m) - 1]}${y !== String(new Date().getFullYear()) ? ` ${y}` : ''}`; };
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const fmtDate = (d) => { if (!d) return ''; const [y, m, dd] = d.split('-'); return `${Number(dd)} ${MONTHS[Number(m) - 1]}${y !== String(new Date().getFullYear()) ? ` ${y}` : ''}`; };
+  const plural = (n, one, many) => `${n} ${n === 1 ? one : many || `${one}s`}`;
+  const pct = (a, b) => (b ? Math.round((a / b) * 100) : 0);
+
+  const state = { g: null, byId: new Map(), phaseColor: new Map(), q: '', openNotes: new Set(), expanded: new Set(store.get('expanded', [])), pos: new Map(), files: new Map(), fmode: store.get('fmode', 'rendered'), revealId: null, lastToggled: null };
+
+  // ---------- routes: #/  #/p/P1  #/t/P1-F01[/P1-F01-03]  #/k/P1-T01  #/tooling[/id]  #/issues  #/file/id  #/map ----------
+  const href = (...p) => `#/${p.map((x) => encodeURIComponent(x)).join('/')}`;
+  const route = () => location.hash.replace(/^#\/?/, '').split('/').filter(Boolean).map((x) => { try { return decodeURIComponent(x); } catch { return x; } });
 
   // ---------- data ----------
+  const nodesOf = (t) => (state.g?.nodes || []).filter((n) => n.type === t);
+  const project = () => nodesOf('project')[0];
   const realChildren = (n) => (n.children || []).map((id) => state.byId.get(id)).filter(Boolean);
   const pointsOf = (f) => realChildren(f).filter((c) => c.type === 'point');
   const ticketsOf = (f) => realChildren(f).filter((c) => c.type === 'ticket');
+  const featuresOf = (ph) => nodesOf('feature').filter((f) => f.phase === ph.id);
   const topicOf = (n) => { let p = n; while (p && p.type !== 'feature') p = state.byId.get(p.parent); return p; };
-  const matches = (n) => !state.q || `${n.id} ${n.title} ${(n.notes || []).join(' ')}`.toLowerCase().includes(state.q);
-  function counts(f) {
-    const c = Object.fromEntries(KINDS.map((k) => [k, 0]));
-    for (const p of pointsOf(f)) c[p.kind]++;
-    const t = ticketsOf(f);
-    return { ...c, work: t.length, done: t.filter((x) => x.status === 'done').length };
+  const phaseNum = (ph) => esc(ph.id.replace(/^P/, ''));
+  function counts(features) {
+    const c = { open: 0, suggestion: 0, caution: 0, decided: 0, discussed: 0, dropped: 0, work: 0, done: 0 };
+    for (const f of features) {
+      for (const p of pointsOf(f)) c[p.kind] = (c[p.kind] || 0) + 1;
+      const t = ticketsOf(f); c.work += t.length; c.done += t.filter((x) => x.status === 'done').length;
+    }
+    return c;
   }
-  const addCounts = (a, b) => { for (const k of Object.keys(b)) a[k] = (a[k] || 0) + b[k]; return a; };
-  const chip = (k, icon, n, label, title) => (n ? `<span class="chip" style="--c:${kcolor(k)}" title="${title}">${icon} <b>${n}</b> ${label}</span>` : '');
-  const countsHtml = (c) => [
-    chip('decided', '✅', c.decided, 'decided', 'Decisions, each with a reason'),
-    chip('open', '❓', c.open, 'open', 'Questions still waiting for an answer'),
-    chip('suggestion', '💡', c.suggestion, c.suggestion === 1 ? 'idea' : 'ideas', 'Suggestions waiting for a yes/no'),
-    chip('caution', '⚠️', c.caution, c.caution === 1 ? 'caution' : 'cautions', 'Rules and risks to remember'),
-    c.work ? `<span class="chip" style="--c:${kcolor('work')}" title="Tickets done out of total">🔨 <b>${c.done}/${c.work}</b> built</span>` : '',
-  ].join('');
-  // Two thin bars: settled vs open points, and tickets done.
-  const barsHtml = (c) => {
-    const settled = c.decided + c.caution; const open = c.open + c.suggestion; const tot = settled + open;
-    if (!tot && !c.work) return '';
-    const p1 = tot ? `<div class="pbar" title="${settled} settled · ${open} still open"><i class="ok" style="width:${Math.round((settled / tot) * 100)}%"></i><i class="no" style="width:${Math.round((open / tot) * 100)}%"></i></div>` : '';
-    const p2 = c.work ? `<div class="pbar pbar2" title="${c.done} of ${c.work} tickets done"><i class="ok" style="width:${Math.round((c.done / c.work) * 100)}%"></i></div>` : '';
-    return p1 + p2;
+  const countsOf = (n) => counts(n.type === 'feature' ? [n] : n.type === 'phase' ? featuresOf(n) : nodesOf('feature'));
+  const asks = (c) => c.open + c.suggestion;
+  const isDone = (n) => { const p = n.progress; return p && (p.points.total + p.tickets.total) > 0 && p.points.settled === p.points.total && p.tickets.done === p.tickets.total; };
+  const colorOf = (n) => (n.type === 'phase' ? state.phaseColor.get(n.id) : n.type === 'feature' ? state.phaseColor.get(n.phase) : n.type === 'point' ? kcolor(n.kind) : n.type === 'ticket' ? scolor(n.status) : cssVar('--accent')) || '#999';
+  const iconOf = (m) => (m.type === 'point' ? (KIND[m.kind] || KIND.dropped).icon : m.type === 'ticket' ? (TICKET[m.status] || TICKET.planned).icon : m.type === 'feature' ? '◆' : m.type === 'tool' ? GROUP[m.group].icon : '▣');
+  function linkTo(n) {
+    if (!n) return '#/';
+    if (n.type === 'phase') return href('p', n.id);
+    if (n.type === 'feature') return href('t', n.id);
+    if (n.type === 'point') { const f = topicOf(n); return f ? href('t', f.id, n.id) : '#/'; }
+    if (n.type === 'ticket') return href('k', n.id);
+    if (n.type === 'tool') return href('tooling', n.id);
+    return '#/';
+  }
+
+  // ---------- small building blocks ----------
+  function sumHtml(c) {
+    const items = [
+      asks(c) && ['--k-open', `${asks(c)} need${asks(c) === 1 ? 's' : ''} an answer`],
+      c.caution && ['--k-caution', `${c.caution} to take care of`],
+      c.decided && ['--k-decided', `${c.decided} decided`],
+      c.work && ['--k-work', `${c.done}/${c.work} tickets done`],
+    ].filter(Boolean);
+    return items.length ? `<span class="sum">${items.map(([v, t]) => `<span style="--c:var(${v})"><i></i>${t}</span>`).join('')}</span>` : '<span class="sum">Nothing recorded yet</span>';
+  }
+  const meter = (label, a, b, cv, val) => (b ? `<div class="meter" style="--c:var(${cv})" title="${a} of ${b}"><span>${label}</span><span class="track"><i style="width:${pct(a, b)}%"></i></span><span class="mv">${val ?? `${pct(a, b)}%`}</span></div>` : '');
+  const meters = (n) => { const p = n.progress; if (!p) return ''; const m = meter('Decided', p.points.settled, p.points.total, '--k-decided') + meter('Built', p.tickets.done, p.tickets.total, '--k-work', `${p.tickets.done}/${p.tickets.total}`); return m ? `<div class="meters">${m}</div>` : ''; };
+  const crumbs = (list) => `<nav class="crumbs">${list.map(([t, h]) => `<a href="${h}">${esc(t)}</a>`).join('<span>›</span>')}<span>›</span></nav>`;
+  const crumbsFor = (n) => {
+    const out = [['Home', '#/']];
+    const ph = n.phase && state.byId.get(n.phase);
+    if (ph && n.type !== 'phase') out.push([`${ph.id} ${ph.title}`, linkTo(ph)]);
+    const f = topicOf(n);
+    if (f && n.type !== 'feature' && n.type !== 'phase') out.push([f.title, linkTo(f)]);
+    return crumbs(out);
   };
+  const sec = (id, icon, title, n, hint, inner, cv) => `<section class="blk" id="${id}"><h2 class="sh" style="--c:var(${cv || '--text'})">${icon ? `<span>${icon}</span>` : ''}${esc(title)}${n !== null && n !== undefined ? ` <span class="n">${n}</span>` : ''}</h2>${hint ? `<p class="shint">${hint}</p>` : '<div style="height:10px"></div>'}${inner}</section>`;
+  const noteSnippet = (n) => { const s = noteSections(n.notes); const w = s.find((x) => x.key === 'what') || s[0]; return w ? w.text.split('\n')[0] : ''; };
 
-  // Virtual bucket node: "<featureId>#<kind>"
-  const isBucket = (id) => id.includes('#');
-  function getNode(id) {
-    if (!isBucket(id)) return state.byId.get(id);
-    const [fid, kind] = id.split('#');
-    const f = state.byId.get(fid);
-    if (!f) return null;
-    return { id, type: 'bucket', kind, parent: fid, title: BUCKET[kind].title, feature: f };
-  }
-  // Children shown in the map for a node
-  function kids(n) {
-    if (n.type === 'project') return state.g.nodes.filter((x) => x.type === 'phase');
-    if (n.type === 'phase') return state.g.nodes.filter((x) => x.type === 'feature' && x.phase === n.id);
-    if (n.type === 'feature') {
-      const c = counts(n);
-      return BUCKETS.filter((k) => (k === 'decided' ? c.decided + c.dropped : c[k]) > 0).map((k) => getNode(`${n.id}#${k}`));
-    }
-    if (n.type === 'bucket') {
-      if (n.kind === 'work') return ticketsOf(n.feature);
-      const list = pointsOf(n.feature).filter((p) => p.kind === n.kind || (n.kind === 'decided' && p.kind === 'dropped'));
-      return list;
-    }
-    return [];
-  }
-  const subtreeMatches = (n) => matches(n) || kids(n).some(subtreeMatches);
-
-  function setGraph(g) {
-    state.g = g;
-    state.byId = new Map(g.nodes.map((n) => [n.id, n]));
-    const tools = g.tooling?.items || [];
-    for (const t of tools) state.byId.set(t.id, { ...t, type: 'tool' });
-    $('#toolN').textContent = tools.length;
-    const app = g.app || {};
-    $('#ver').textContent = app.version ? `v${app.version}` : '';
-    $('#updBtn').classList.toggle('hidden', !app.updateAvailable);
-    if (app.updateAvailable) { $('#updLatest').textContent = `v${app.latest}`; $('#updCur').textContent = `v${app.version}`; $('#updHow').textContent = app.updateHint || 'thinkmap update'; }
-    const name = g.project?.title || 'Plan';
-    document.title = `${name} · Thinkmap`;
-    $('#title').textContent = name;
-    g.nodes.filter((n) => n.type === 'phase').forEach((p, i) => state.phaseColor.set(p.id, PHASE_COLORS[i % PHASE_COLORS.length]));
-    if (state.sel && !state.byId.has(state.sel)) state.sel = null;
-    const btn = $('#issuesBtn');
-    const { errors = 0, warnings = 0 } = g.stats || {};
-    btn.hidden = !(errors || warnings);
-    btn.textContent = `⚠ ${errors} error(s), ${warnings} warning(s)`;
-    render();
-    renderTimeline();
-    renderPanel();
-  }
-
-  // ---------- cards ----------
-  const colorOf = (n) => (n.type === 'phase' ? state.phaseColor.get(n.id) : n.type === 'feature' ? state.phaseColor.get(n.phase) : n.type === 'bucket' ? kcolor(n.kind) : n.type === 'point' ? kcolor(n.kind) : n.type === 'ticket' ? (cssVar(`--s-${n.status}`) || '#999') : cssVar('--accent')) || '#999';
-  const currentPhase = () => state.g.nodes.filter((n) => n.type === 'phase').find((p) => p.status !== 'done' && p.status !== 'dropped')?.id;
-  function cardHtml(n, childCount, open) {
+  // A link row for any node
+  function row(n, opts = {}) {
+    if (!n) return '';
     const col = colorOf(n);
-    const more = childCount ? `<span class="more" title="${open ? 'Fold' : `Open ${childCount}`}">${open ? '−' : childCount}</span>` : '';
-    const info = n.type === 'bucket' ? '' : `<button class="info" data-info="${esc(n.id)}" title="Details">i</button>`;
-    let lead = ''; let body = ''; let extra = '';
-    if (n.type === 'project') {
-      const total = state.g.nodes.filter((x) => x.type === 'feature').reduce((a, f) => addCounts(a, counts(f)), {});
-      const phases = state.g.nodes.filter((x) => x.type === 'phase').length;
-      body = `<div class="t">${esc(n.title)}</div><div class="s">${phases} phases · ${state.g.nodes.filter((x) => x.type === 'feature').length} topics</div><div class="chips">${countsHtml(total) || '<span class="muted">nothing yet</span>'}</div>${barsHtml(total)}`;
-    } else if (n.type === 'phase') {
-      const fs = kids(n); const total = fs.reduce((a, f) => addCounts(a, counts(f)), {});
-      lead = `<span class="num">${esc(n.id.replace('P', ''))}</span>`;
-      body = `<div class="t">${esc(n.title)}</div><div class="s">${fs.length ? `${fs.length} topic${fs.length === 1 ? '' : 's'}` : 'not planned yet'}</div>${fs.length ? `<div class="chips">${countsHtml(total)}</div>${barsHtml(total)}` : ''}`;
-      if (n.id === currentPhase()) extra = 'current';
-    } else if (n.type === 'feature') {
-      const c = counts(n);
-      const ask = c.open + c.suggestion;
-      body = `<div class="t">${esc(n.title)}</div><div class="chips">${countsHtml(c) || '<span class="muted">nothing yet</span>'}${ask ? `<span class="chip ask" title="Open questions and ideas waiting for you">needs decision</span>` : ''}</div>${barsHtml(c)}`;
-    } else if (n.type === 'bucket') {
-      lead = `<span class="icw">${BUCKET[n.kind].icon}</span>`;
-      body = `<div class="t">${esc(n.title)}</div><div class="s">${BUCKET[n.kind].hint}</div>`;
-    } else if (n.type === 'point') {
-      const snip = noteSnippet(n);
-      const b = n.kind === 'dropped' ? { icon: '✖', title: 'Dropped' } : BUCKET[n.kind];
-      const ask = n.kind === 'open' ? '<span class="chip ask">needs decision</span>' : n.kind === 'suggestion' ? '<span class="chip ask">needs yes / no</span>' : '';
-      lead = `<span class="icw">${b.icon}</span>`;
-      body = `<div class="kindtag">${b.title}<span class="dt">${fmtDate(n.date)}${n.from ? ` · ${esc(n.from)}` : ''}</span></div><div class="t">${esc(n.title)}</div>${snip ? `<div class="s clamp">${esc(snip)}</div>` : ''}${ask ? `<div class="chips">${ask}</div>` : ''}`;
-    } else if (n.type === 'ticket') {
-      const s = TICKET[n.status] || TICKET.planned;
-      const initials = n.owner ? esc(n.owner.split(/[-_\s]/).map((w) => w[0]).join('').slice(0, 2).toUpperCase()) : '';
-      lead = `<span class="icw">${s.icon}</span>`;
-      body = `<div class="kindtag">Ticket<span class="dt">${esc(n.id)}</span></div><div class="t">${esc(n.title)}</div>
-        <div class="tmeta"><span class="pill" style="--c:${col}">${s.label}</span>${n.owner ? `<span class="avatar" title="${esc(n.owner)}">${initials}</span><span>${esc(n.owner)}</span>` : '<span>nobody yet</span>'}${n.checklist?.total ? `<span class="tbar" title="${n.checklist.done} of ${n.checklist.total} done"><i style="width:${Math.round((n.checklist.done / n.checklist.total) * 100)}%"></i></span><span>${n.checklist.done}/${n.checklist.total}</span>` : ''}</div>`;
-    }
-    const cls = `card ${n.type} ${extra} ${open ? 'open' : ''} ${n.id === state.sel ? 'sel' : ''} ${n.kind === 'dropped' ? 'dropped' : ''}`;
-    return `<div class="${cls}" data-card="${esc(n.id)}" style="--c:${col};width:${WIDTH[n.type]}px">${lead}<div class="body">${body}</div>${info}${more}</div>`;
+    let sub = ''; let right = '';
+    if (n.type === 'point') sub = [opts.topic !== false && topicOf(n)?.title, fmtDate(n.date), n.from].filter(Boolean).map(esc).join(' · ');
+    else if (n.type === 'ticket') {
+      sub = [n.id, n.owner || 'nobody yet', n.checklist?.total ? `☑ ${n.checklist.done}/${n.checklist.total}` : ''].filter(Boolean).map(esc).join(' · ');
+      right = `<span class="pill" style="--c:${scolor(n.status)}">${(TICKET[n.status] || TICKET.planned).label}</span>`;
+    } else if (n.type === 'feature' || n.type === 'phase') sub = sumHtml(countsOf(n));
+    else if (n.type === 'tool') sub = esc(n.description || '');
+    const badge = (n.type === 'feature' || n.type === 'phase') && asks(countsOf(n)) ? `<span class="badge" title="Need an answer">${asks(countsOf(n))}</span>` : '';
+    return `<a class="row" href="${linkTo(n)}"><span class="ric" style="--c:${col}">${iconOf(n)}</span><span class="rt"><b class="clamp1">${esc(n.title || n.name)}</b>${sub ? `<span class="rs ${n.type === 'tool' ? 'clamp1' : ''}">${sub}</span>` : ''}</span>${badge}${right}</a>`;
   }
-
-  // ---------- layout + animation ----------
-  function visibleTree() {
-    // Returns list of {n, depth, parentId, kidsIds} in DFS order, respecting expansion (search auto-expands matches)
-    const out = [];
-    const root = state.g.nodes.find((n) => n.type === 'project');
-    if (!root) return out;
-    const walk = (n, depth, parentId) => {
-      let ks = kids(n);
-      if (state.q) ks = ks.filter(subtreeMatches);
-      const open = state.q ? ks.length > 0 : state.expanded.has(n.id);
-      const row = { n, depth, parentId, childCount: kids(n).length, open: open && ks.length > 0, kidIds: [] };
-      out.push(row);
-      if (row.open) for (const k of ks) { row.kidIds.push(k.id); walk(k, depth + 1, n.id); }
-    };
-    walk(root, 0, null);
-    return out;
-  }
-
-  let animTimer = null;
-  function render() {
-    if (!state.g) return;
-    const tooling = state.view === 'tooling';
-    $('#canvas').classList.toggle('hidden', tooling);
-    $('#tooling').classList.toggle('hidden', !tooling);
-    $('#timeline').classList.toggle('hidden', tooling);
-    $('#collapseBtn').classList.toggle('hidden', tooling);
-    $('#help').textContent = tooling ? 'Tap an agent, skill or hook to read what it does' : 'Click a card to expand it · click a note for details';
-    $('#q').placeholder = tooling ? 'Search tooling…  ( / )' : 'Search notes…  ( / )';
-    for (const b of document.querySelectorAll('#tabs button')) b.classList.toggle('on', b.dataset.view === state.view);
-    if (tooling) renderTooling(); else renderMap();
-  }
-  function setView(v) {
-    if (v === state.view) return;
-    state.view = v; store.set('view', v);
-    state.sel = null; state.issues = false; state.day = null; state.file = null;
-    renderPanel();
-  }
-
-  // ---------- tooling view ----------
-  const tmatch = (t) => !state.q || `${t.name} ${t.slash || ''} ${t.description} ${t.trigger} ${t.file} ${t.command || ''} ${t.prompt || ''}`.toLowerCase().includes(state.q);
-  const tbadge = (t) => (t.group === 'skill' ? (t.slash ? `${t.slash}${/on its own/.test(t.trigger) ? ' · also automatic' : ''}` : 'automatic') : t.group === 'agent' ? `subagent${t.model ? ` · ${t.model}` : ''}${t.tools?.length ? ` · ${t.tools.length} tool${t.tools.length === 1 ? '' : 's'}` : ''}` : `${t.event}${t.matcher ? ` · ${t.matcher}` : ''}${t.hookType === 'prompt' ? ' · prompt' : ''}`);
-  function renderTooling() {
-    const t = state.g.tooling || { items: [], notes: [], root: '.claude/' };
-    const el = $('#tooling');
-    if (!t.items.length) {
-      el.innerHTML = `<div class="tempty"><div style="font-size:36px">🧩</div><h2>No agents, skills or hooks in this project</h2>
-        <p>Thinkmap looks in <code>.claude/agents/</code>, <code>.claude/skills/</code>, <code>.claude/commands/</code> and the <code>hooks</code> block of <code>.claude/settings.json</code>
-        (plus a plugin's own folders when <code>.claude-plugin/plugin.json</code> exists). Only this project's files are read — never your personal <code>~/.claude</code>.</p>
-        ${t.notes?.length ? `<div class="tnote">${t.notes.map(esc).join('<br>')}</div>` : ''}</div>`;
-      return;
-    }
-    const items = t.items.filter(tmatch);
-    const card = (i) => `<button class="tcard ${i.id === state.sel ? 'sel' : ''}" data-tool="${esc(i.id)}" style="--c:${cssVar(GROUP[i.group].color)}"><span class="icw">${GROUP[i.group].icon}</span><span class="body"><span class="t">${esc(i.group === 'skill' && i.slash ? i.slash : i.name)}</span><span class="s">${esc(i.description || 'No description — open the file to see what it does')}</span><span class="trg">${esc(tbadge(i))}</span></span></button>`;
-    const secs = ['agent', 'skill', 'hook'].map((g) => {
-      const list = items.filter((i) => i.group === g);
-      if (!list.length) return '';
-      return `<section class="tsec" style="--c:${cssVar(GROUP[g].color)}"><h2>${GROUP[g].icon} ${GROUP[g].title} <span class="n">${list.length}</span></h2><div class="hint2">${GROUP[g].hint}</div><div class="tgrid">${list.map(card).join('')}</div></section>`;
-    }).join('');
-    el.innerHTML = `${t.notes?.length ? `<div class="tnote">${t.notes.map(esc).join('<br>')}</div>` : ''}${secs || '<p class="muted">Nothing matches your search.</p>'}`;
-  }
-  function toolPanel(n) {
-    const g = GROUP[n.group];
+  const rowList = (ids) => `<div class="list">${ids.map((id) => (state.byId.get(id) ? row(state.byId.get(id)) : `<div class="row bad">${esc(id)} (missing)</div>`)).join('')}</div>`;
+  const subList = (label, ids) => (ids?.length ? `<div class="sub"><div class="lbl">${label}</div>${rowList(ids)}</div>` : '');
+  const commitsHtml = (list) => list.map((c) => `<div class="commit"><code>${esc(c.hash)}</code><span>${esc(c.subject)}<span class="s">${esc(c.author)} · ${esc(c.date)}</span></span></div>`).join('');
+  const fact = (k, v) => (v ? `<div class="fact"><div class="k">${k}</div><div class="v">${v}</div></div>` : '');
+  const editorLink = (n) => (state.g.root ? `vscode://file/${encodeURI(`${state.g.root}/${n.file}`)}:${n.line || 1}` : null);
+  function actions(n, { map = true } = {}) {
     const ed = editorLink(n);
-    const tags = (l) => l.map((x) => `<span class="tag">${esc(x)}</span>`).join(' ');
-    const facts = [
-      fact('How it starts', esc(n.trigger)),
-      n.group === 'skill' ? fact('Slash command', n.slash ? `<code>${esc(n.slash)}</code>` : '<span class="muted">none — automatic only</span>') : '',
-      n.group === 'hook' ? fact('Event', `<code>${esc(n.event)}</code>`) + fact('Matcher', n.matcher ? `<code>${esc(n.matcher)}</code>` : '<span class="muted">every tool</span>') + fact('Kind', esc(n.hookType)) + fact('Timeout', n.timeout ? `${n.timeout}s` : '') : '',
-      fact('Tools allowed', n.tools?.length ? tags(n.tools) : ''),
-      fact('Model', esc(n.model)),
-      fact('Source', n.source === 'plugin' ? 'this project’s plugin folders' : 'project <code>.claude/</code>'),
-      `<div class="fact"><div class="k">File</div><div class="v"><code>${esc(n.file)}${n.line > 1 ? `:${n.line}` : ''}</code></div></div>`,
-      ...Object.entries(n.meta || {}).map(([k, v]) => fact(esc(k), esc(v))),
-    ].join('');
-    const actions = `<div class="actions">${ed ? `<a href="${ed}" title="Opens the file in VS Code">✎ Open in editor</a>` : ''}${n.slash ? `<button data-copy="${esc(n.slash)}">⧉ Copy command</button>` : ''}<button data-copy="${esc(n.file)}">⧉ Copy path</button></div>`;
-    const body = n.group === 'hook'
-      ? `<h3>${n.hookType === 'prompt' ? 'Prompt' : 'Command'}</h3><pre class="cmd">${esc(n.command ?? n.prompt ?? '')}</pre><p class="muted small" style="margin-top:8px">Shown for reading. Thinkmap never runs hooks.</p>`
-      : n.body ? `<h3>Instructions</h3><div class="rendered">${md(n.body)}</div>` : '<p class="muted small">The file has no body.</p>';
-    const warn = n.recognised ? '' : `<div class="why" style="--c:${kcolor('caution')}"><b class="small">Unrecognised layout</b><p>No front matter with a <code>description</code> was found, so the file is shown as-is.</p></div>`;
-    return `<h2>${esc(n.group === 'skill' && n.slash ? n.slash : n.name)}</h2><div class="lead">${esc(n.description || g.hint)}</div><div class="facts">${facts}</div>${warn}${actions}${body}`;
+    return `<div class="actions">
+      ${ed ? `<a href="${ed}" title="Opens the file in VS Code at this line">✎ Open in editor</a>` : ''}
+      ${window.__PLAN__ || !n.file ? '' : `<a href="${href('file', n.id)}" title="Show the Markdown file, with this line highlighted">📄 View file</a>`}
+      <button data-copy="${esc(n.id)}">⧉ Copy ID</button>
+      ${map ? `<button data-reveal="${esc(n.id)}">🗺 Show on map</button>` : ''}
+    </div>`;
   }
 
-  function renderMap() {
-    if (!state.g) return;
-    const rows = visibleTree();
-    if (!rows.length) {
-      // No project node: the folder is empty, not a plan folder, or project.md is broken.
-      const g = state.g;
-      const errs = (g.issues || []).filter((i) => i.level === 'error').slice(0, 5);
-      const cli = g.app?.cli || 'npx github:dsngeu/ThinkMap';
-      $('#content').innerHTML = `<div class="mempty"><h2>No plan found in <code>${esc(g.planDir && g.planDir !== '.' ? g.planDir : g.root || 'docs/plan')}</code></h2>
-        <p>Thinkmap needs a <code>project.md</code> with <code>type: project</code> in that folder${g.root && g.planDir && g.planDir !== '.' ? ` (looked under <code>${esc(g.root)}</code>)` : ''}.</p>
-        <p>New project — create the folder from the template (this page updates by itself afterwards):</p><pre>${esc(cli)} init --name "Your Project"</pre>
-        <p>Plan lives elsewhere — restart with its path:</p><pre>${esc(cli)} serve path/to/plan --open</pre>
-        ${errs.length ? `<p>Format errors found:</p>${errs.map((i) => `<div class="issue"><code>${esc(i.file)}</code> ${esc(i.message)}</div>`).join('')}` : ''}</div>`;
-      $('#links').innerHTML = '';
-      $('#canvas').style.width = ''; $('#canvas').style.height = '';
-      return;
-    }
-    const content = $('#content');
-    const prevPos = state.pos;
-    const existing = new Map([...content.querySelectorAll('.card')].map((el) => [el.dataset.card, el]));
-    const keep = new Set(rows.map((r) => r.n.id));
-
-    // 1. Cards that disappear: slide back to their parent and fade.
-    for (const [id, el] of existing) {
-      if (keep.has(id) || el.classList.contains('ghost')) continue;
-      const parentId = el.dataset.parent;
-      const pp = parentId && (state.pos.get(parentId) || prevPos.get(parentId));
-      el.classList.add('ghost');
-      if (pp) { el.style.left = `${pp.x}px`; el.style.top = `${pp.y}px`; }
-      setTimeout(() => el.remove(), 300);
-    }
-
-    // 2. Create / update cards (positions assigned after measuring)
-    const byId = new Map();
-    for (const r of rows) {
-      let el = existing.get(r.n.id);
-      const html = cardHtml(r.n, r.childCount, r.open);
-      if (!el || el.classList.contains('ghost')) {
-        el?.remove();
-        const tmp = document.createElement('div');
-        tmp.innerHTML = html;
-        el = tmp.firstElementChild;
-        el.classList.add('ghost');
-        const pp = r.parentId && prevPos.get(r.parentId);
-        el.style.left = `${pp ? pp.x : PAD}px`; el.style.top = `${pp ? pp.y : 0}px`;
-        content.appendChild(el);
-      } else {
-        const tmp = document.createElement('div');
-        tmp.innerHTML = html;
-        const fresh = tmp.firstElementChild;
-        el.className = fresh.className;
-        el.innerHTML = fresh.innerHTML;
-        el.style.width = fresh.style.width;
-        el.style.setProperty('--c', fresh.style.getPropertyValue('--c'));
-      }
-      el.dataset.parent = r.parentId || '';
-      byId.set(r.n.id, el);
-    }
-
-    // 3. Measure heights, compute tidy tree positions
-    const h = new Map([...byId].map(([id, el]) => [id, el.offsetHeight]));
-    const colX = []; let x = PAD;
-    const depthType = ['project', 'phase', 'feature', 'bucket', 'point'];
-    for (let d = 0; d < 6; d++) { colX[d] = x; x += (WIDTH[depthType[Math.min(d, 4)]] || 340) + GAP_X; }
-    const pos = new Map();
-    let y = PAD;
-    const rowById = new Map(rows.map((r) => [r.n.id, r]));
-    const place = (id) => {
-      const r = rowById.get(id);
-      const hh = h.get(id) || 40;
-      if (!r.kidIds.length) { pos.set(id, { x: colX[r.depth], y, h: hh }); y += hh + GAP_Y; return; }
-      const startY = y;
-      for (const k of r.kidIds) place(k);
-      const first = pos.get(r.kidIds[0]); const last = pos.get(r.kidIds[r.kidIds.length - 1]);
-      const mid = (first.y + last.y + last.h) / 2;
-      pos.set(id, { x: colX[r.depth], y: mid - hh / 2, h: hh });
-      if (r.kidIds.length > 1) y += GAP_Y; // breathing room between groups
-      void startY;
-    };
-    place(rows[0].n.id);
-
-    // Centre vertically when the tree is shorter than the viewport
-    const stage = $('#stage');
-    const treeH = y + PAD;
-    const offset = Math.max(0, (stage.clientHeight - treeH) / 2);
-    const maxX = Math.max(...[...pos.entries()].map(([id, p]) => p.x + (byId.get(id)?.offsetWidth || 0))) + PAD;
-    const canvasH = Math.max(stage.clientHeight, treeH + offset);
-    const canvasW = Math.max(stage.clientWidth, maxX);
-    $('#canvas').style.width = `${canvasW}px`; $('#canvas').style.height = `${canvasH}px`;
-    const svg = $('#links'); svg.setAttribute('width', canvasW); svg.setAttribute('height', canvasH);
-
-    // 4. Apply positions (new cards animate in from their parent)
-    requestAnimationFrame(() => {
-      for (const [id, p] of pos) {
-        const el = byId.get(id);
-        el.style.left = `${p.x}px`; el.style.top = `${p.y + offset}px`;
-        el.classList.remove('ghost');
-      }
-      state.pos = new Map([...pos].map(([id, p]) => [id, { x: p.x, y: p.y + offset, h: p.h }]));
-      // hint next to a collapsed root
-      let hint = content.querySelector('.hint');
-      if (rows.length === 1) {
-        if (!hint) { hint = document.createElement('div'); hint.className = 'hint ghost'; content.appendChild(hint); }
-        const p = state.pos.get(rows[0].n.id);
-        hint.textContent = '← click to open the map';
-        hint.style.left = `${p.x + WIDTH.project + 14}px`; hint.style.top = `${p.y + p.h / 2 - 8}px`;
-        requestAnimationFrame(() => hint.classList.remove('ghost'));
-      } else if (hint) hint.remove();
-      // Animate connectors while cards move
-      const t0 = performance.now();
-      cancelAnimationFrame(animTimer);
-      const tick = () => { drawLinks(rows, byId); if (performance.now() - t0 < 420) animTimer = requestAnimationFrame(tick); };
-      tick();
-      // Bring newly opened children into view
-      const last = rows.find((r) => r.open && r.n.id === state.lastToggled);
-      if (last && last.kidIds.length) {
-        const first = byId.get(last.kidIds[0]); const lastK = byId.get(last.kidIds[last.kidIds.length - 1]);
-        const top = pos.get(last.kidIds[0]).y + offset; const bottom = pos.get(last.kidIds[last.kidIds.length - 1]).y + offset + (lastK?.offsetHeight || 0);
-        const right = pos.get(last.kidIds[0]).x + (first?.offsetWidth || 0) + PAD;
-        const view = { top: stage.scrollTop, bottom: stage.scrollTop + stage.clientHeight, right: stage.scrollLeft + stage.clientWidth };
-        const opts = { behavior: 'smooth' };
-        if (bottom - top < stage.clientHeight) { if (top < view.top || bottom > view.bottom) opts.top = Math.max(0, (top + bottom) / 2 - stage.clientHeight / 2); }
-        else if (top < view.top || top > view.bottom) opts.top = Math.max(0, top - 40);
-        if (right > view.right) opts.left = Math.max(0, right - stage.clientWidth);
-        if (opts.top !== undefined || opts.left !== undefined) stage.scrollTo(opts);
-        state.lastToggled = null;
-      }
-    });
-  }
-
-  function drawLinks(rows, byId) {
-    const canvas = $('#canvas').getBoundingClientRect();
-    const rect = (el) => { const r = el.getBoundingClientRect(); return { x1: r.left - canvas.left, y: r.top - canvas.top + r.height / 2, x2: r.right - canvas.left }; };
-    const paths = [];
-    for (const r of rows) {
-      if (!r.parentId) continue;
-      const pe = byId.get(r.parentId); const ce = byId.get(r.n.id);
-      if (!pe || !ce) continue;
-      const p = rect(pe); const c = rect(ce);
-      const mx = (p.x2 + c.x1) / 2;
-      const ghost = ce.classList.contains('ghost') ? 'ghost' : '';
-      paths.push(`<path class="c ${ghost}" style="--c:${colorOf(r.n)}" d="M${p.x2},${p.y} C${mx},${p.y} ${mx},${c.y} ${c.x1},${c.y}"/>`);
-    }
-    $('#links').innerHTML = paths.join('');
-  }
-
-  function toggle(id) {
-    if (state.expanded.has(id)) {
-      // collapse this node and everything under it
-      const n = getNode(id);
-      const drop = (x) => { state.expanded.delete(x.id); for (const k of kids(x)) if (state.expanded.has(k.id)) drop(k); };
-      if (n) drop(n); else state.expanded.delete(id);
-    } else state.expanded.add(id);
-    state.lastToggled = id;
-    store.set('expanded', [...state.expanded]);
-    render();
-  }
-
-  // ---------- timeline ----------
-  function events() {
-    const ev = [];
-    for (const n of state.g.nodes) {
-      if (n.type === 'point' && n.date) ev.push({ date: n.date, kind: n.kind, id: n.id });
-      if (n.type === 'ticket' && n.updated && (n.status === 'done' || n.status === 'in-progress')) ev.push({ date: n.updated, kind: n.status === 'done' ? 'done' : 'work', id: n.id });
-    }
-    return ev;
-  }
-  function renderTimeline() {
-    const byDay = new Map();
-    for (const e of events()) { if (!byDay.has(e.date)) byDay.set(e.date, []); byDay.get(e.date).push(e); }
-    const days = [...byDay.keys()].sort().slice(-40);
-    const icon = { discussed: '💬', decided: '✅', open: '❓', suggestion: '💡', caution: '⚠️', dropped: '✖', done: '🏁', work: '🔨' };
-    $('#timeline').innerHTML = '<span class="lbl">Timeline</span>' + (days.map((d) => {
-      const c = {};
-      for (const e of byDay.get(d)) c[e.kind] = (c[e.kind] || 0) + 1;
-      return `<button class="day ${state.day === d ? 'on' : ''}" data-day="${d}"><div class="d">${fmtDate(d)}</div><div class="c">${Object.entries(c).map(([k, v]) => `<span>${icon[k]} ${v}</span>`).join('')}</div></button>`;
-    }).join('') || '<span class="muted small">no dated notes yet</span>');
-  }
-
-  // ---------- details panel ----------
+  // ---------- markdown ----------
   function md(text) {
     const inline = (s) => esc(s).replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
     let out = ''; let inList = false; let inCode = false; let buf = [];
     const closeList = () => { if (inList) { out += '</ul>'; inList = false; } };
-    for (const raw of text.split('\n')) {
+    for (const raw of String(text || '').split('\n')) {
       if (/^\s*(```|~~~)/.test(raw)) { if (inCode) { out += `<pre>${esc(buf.join('\n'))}</pre>`; buf = []; inCode = false; } else { closeList(); inCode = true; } continue; }
       if (inCode) { buf.push(raw); continue; }
       const cb = /^\s*[-*]\s+\[([ xX])\]\s+(.*)$/.exec(raw); const li = /^\s*[-*]\s+(.*)$/.exec(raw);
@@ -717,20 +427,7 @@ mark.hl { background: color-mix(in srgb, var(--k-open) 28%, transparent); color:
     closeList();
     return out;
   }
-  const iconOf = (m) => (m.type === 'point' ? (BUCKET[m.kind]?.icon ?? '✖') : m.type === 'ticket' ? (TICKET[m.status] || TICKET.planned).icon : m.type === 'feature' ? '◆' : '▣');
-  const statusPill = (t) => { const s = TICKET[t.status] || TICKET.planned; return `<span class="pill" style="--c:${cssVar(`--s-${t.status}`) || '#999'}">${s.label}</span>`; };
-  function rel(id) {
-    const m = state.byId.get(id);
-    if (!m) return `<div class="rel bad"><span class="ic">?</span><span>${esc(id)} (missing)</span></div>`;
-    const sub = m.type === 'point' ? `${BUCKET[m.kind]?.title ?? 'Dropped'} · ${fmtDate(m.date)}${m.from ? ` · ${esc(m.from)}` : ''}${noteSnippet(m) ? `<br>${esc(noteSnippet(m))}` : ''}`
-      : m.type === 'ticket' ? `${esc(m.id)}${m.owner ? ` · ${esc(m.owner)}` : ''}${m.checklist?.total ? ` · ☑ ${m.checklist.done}/${m.checklist.total}` : ''}`
-      : `${esc(m.id)}${m.type === 'feature' ? ` · ${m.progress.points.settled}/${m.progress.points.total} settled` : ''}`;
-    return `<a href="#" class="rel" data-id="${esc(id)}"><span class="ic">${iconOf(m)}</span><span><span class="t">${esc(m.title)}</span><span class="s">${sub}</span></span>${m.type === 'ticket' ? statusPill(m) : ''}</a>`;
-  }
-  const relList = (title, ids) => (ids?.length ? `<h3>${title}</h3>${ids.map((id) => rel(id)).join('')}` : '');
-  const fact = (k, v) => (v ? `<div class="fact"><div class="k">${k}</div><div class="v">${v}</div></div>` : '');
   // Labelled note lines ("What: …", "Why: …") become sections; unlabelled lines continue the previous one.
-  const LABELS = { what: 'What this is', why: 'Why', expected: 'What we expect', discussed: 'What we discussed', options: 'Options on the table', pending: 'Still pending', built: "What's built", risk: 'What goes wrong if we forget', next: 'Next step', how: 'How it works', see: 'See also' };
   function noteSections(notes) {
     const out = [];
     for (const line of notes || []) {
@@ -742,268 +439,569 @@ mark.hl { background: color-mix(in srgb, var(--k-open) 28%, transparent); color:
     }
     return out;
   }
-  const noteSnippet = (n) => { const s = noteSections(n.notes); const w = s.find((x) => x.key === 'what') || s[0]; return w ? w.text.split('\n')[0] : ''; };
-  const editorLink = (n) => (state.g.root ? `vscode://file/${encodeURI(`${state.g.root}/${n.file}`)}:${n.line || 1}` : null);
-  const progressBar = (label, a, b, c) => (b ? `<div class="progress" style="--c:${c}"><span>${label}</span><span class="track"><span class="fill" style="width:${Math.round((a / b) * 100)}%"></span></span><span>${a}/${b}</span></div>` : '');
+  // Points and the generated "## Tickets" list are shown as their own sections, not as intro text.
+  const aboutText = (n) => (n.sections || []).filter((s) => s.text && !/^(points|tickets)$/i.test(s.heading || ''));
 
-  function panelHead(n) {
-    if (n.type === 'tool') return `<span class="kind" style="--c:${cssVar(GROUP[n.group].color)}">${GROUP[n.group].icon} ${GROUP[n.group].one}</span>`;
-    if (n.type === 'point') { const b = BUCKET[n.kind] || { icon: '✖', title: 'Dropped' }; return `<span class="kind" style="--c:${kcolor(n.kind)}">${b.icon} ${b.title}</span>`; }
-    if (n.type === 'ticket') { const s = TICKET[n.status] || TICKET.planned; return `<span class="kind" style="--c:${cssVar(`--s-${n.status}`) || '#999'}">${s.icon} Ticket · ${s.label}</span>`; }
-    return `<span class="kind" style="--c:${colorOf(n)}">${iconOf(n)} ${esc(n.type === 'feature' ? 'topic' : n.type)}</span>`;
+  // ---------- notes (expand in place) ----------
+  function noteBody(p) {
+    const secs = noteSections(p.notes);
+    const title = (s) => (s.key === 'why' ? (p.kind === 'dropped' ? 'Why we dropped it' : p.kind === 'decided' ? 'Why we decided this' : 'Why') : s.key ? LABELS[s.key] : (p.kind === 'suggestion' ? 'The idea' : 'Detail'));
+    const colorFor = (s) => ({ risk: '--k-caution', pending: '--k-open', built: '--k-work', next: '--k-suggestion', options: '--k-suggestion' }[s.key] || `--k-${p.kind}`);
+    const body = secs.length
+      ? secs.map((s) => `<div class="nsec" style="--c:var(${colorFor(s)})"><div class="nl">${title(s)}</div><div class="nx">${md(s.text)}</div></div>`).join('')
+      : '<p class="muted small">No details written yet. In the file, add indented lines under this point: <code>&gt; What: …</code>, <code>&gt; Why: …</code>.</p>';
+    return `${body}${NEXT[p.kind] ? `<div class="nexthint">${NEXT[p.kind]}</div>` : ''}
+      ${subList('Delivered by these tickets', p.implementedBy)}
+      ${p.commits?.length ? `<div class="sub"><div class="lbl">Commits mentioning this</div>${commitsHtml(p.commits)}</div>` : ''}
+      ${actions(p)}`;
   }
-
-  function panelBody(n) {
-    if (n.type === 'tool') return toolPanel(n);
-    const topic = topicOf(n);
-    const phase = state.byId.get(n.phase);
-    const ed = editorLink(n);
-    const actions = `<div class="actions">
-      ${window.__PLAN__ ? '' : `<button data-preview="${esc(n.id)}" title="Show the Markdown file here, with this line highlighted">📄 Preview file</button>`}
-      ${ed ? `<a href="${ed}" title="Opens the file in VS Code at this line">✎ Open in editor</a>` : ''}
-      <button data-copy="${esc(n.id)}">⧉ Copy ID</button>
-      <button data-reveal="${esc(n.id)}">◎ Show on map</button>
+  function noteEl(p) {
+    const open = state.openNotes.has(p.id);
+    const k = KIND[p.kind] || KIND.dropped;
+    const snip = noteSnippet(p);
+    return `<div class="note ${open ? 'open' : ''} k-${esc(p.kind)}" id="note-${esc(p.id)}" style="--c:${kcolor(p.kind)}">
+      <button class="nhead" data-note="${esc(p.id)}" aria-expanded="${open}">
+        <span class="ric">${k.icon}</span>
+        <span class="rt"><span class="ntitle">${esc(p.title)}</span>${!open && snip ? `<span class="rs clamp1">${esc(snip)}</span>` : ''}</span>
+        <span class="nmeta">${[fmtDate(p.date), p.from].filter(Boolean).map(esc).join(' · ')}</span>
+        <span class="chev">›</span>
+      </button>
+      ${open ? `<div class="nbody">${noteBody(p)}</div>` : ''}
     </div>`;
-    const where = `<div class="fact"><div class="k">File</div><div class="v"><code>${esc(n.file)}${n.line > 1 ? `:${n.line}` : ''}</code></div></div>`;
+  }
+  function toggleNote(id) {
+    if (state.openNotes.has(id)) state.openNotes.delete(id); else state.openNotes.add(id);
+    const el = document.getElementById(`note-${id}`);
+    const p = state.byId.get(id);
+    if (el && p) el.outerHTML = noteEl(p);
+  }
 
-    if (n.type === 'point') {
-      const secs = noteSections(n.notes);
-      const title = (s) => (s.key === 'why' ? (n.kind === 'dropped' ? 'Why we dropped it' : n.kind === 'decided' ? 'Why we decided this' : 'Why') : s.key ? LABELS[s.key] : (n.kind === 'suggestion' ? 'The idea' : 'Detail'));
-      const colorFor = (s) => ({ risk: kcolor('caution'), pending: kcolor('open'), built: kcolor('work'), next: kcolor('suggestion'), options: kcolor('suggestion') }[s.key] || kcolor(n.kind));
-      const body = secs.length
-        ? secs.map((s) => `<h3>${title(s)}</h3><div class="why" style="--c:${colorFor(s)}">${md(s.text)}</div>`).join('')
-        : `<p class="muted small" style="margin-top:10px">No details written yet. In the file, add indented lines under this point: <code>&gt; What: …</code>, <code>&gt; Why: …</code>, <code>&gt; Expected: …</code>.</p>`;
-      const next = { open: 'Still waiting for an answer. When decided, change <code>open</code> → <code>decided</code> on this line and write <code>Why:</code>.', suggestion: 'Waiting for a yes/no. Accept: <code>suggestion</code> → <code>decided</code>. Reject: → <code>dropped</code> with <code>Why:</code>.', caution: 'A rule to keep in mind while building. Tickets that touch this should mention it in their notes.', discussed: 'A record of the conversation. No action needed.', decided: '', dropped: '' }[n.kind];
-      const siblings = topic ? pointsOf(topic).filter((p) => p.id !== n.id && p.kind === n.kind) : [];
-      return `
-        <h2>${esc(n.title)}</h2>
-        <div class="lead">${BUCKET[n.kind]?.hint ?? ''}${n.from ? ` · raised by ${esc(n.from)}` : ''}</div>
-        <div class="facts">${fact('When', fmtDate(n.date))}${fact('Topic', esc(topic?.title))}${fact('Phase', phase ? `${esc(phase.id)} ${esc(phase.title)}` : '')}${where}</div>
-        ${body}
-        ${next ? `<p class="muted small" style="margin-top:10px">${next}</p>` : ''}
-        ${actions}
-        ${relList('Delivered by these tickets', n.implementedBy)}
-        ${n.commits?.length ? `<h3>Commits mentioning this</h3>${n.commits.map((c) => `<div class="commit"><code>${esc(c.hash)}</code><span>${esc(c.subject)}<span class="s">${esc(c.author)} · ${esc(c.date)}</span></span></div>`).join('')}` : ''}
-        ${siblings.length ? `<h3>Other “${BUCKET[n.kind]?.title ?? 'dropped'}” notes in this topic</h3>${siblings.map((s) => rel(s.id)).join('')}` : ''}`;
+  // ---------- pages ----------
+  function events() {
+    const ev = [];
+    for (const n of state.g.nodes) {
+      if (n.type === 'point' && n.date) ev.push({ date: n.date, n });
+      if (n.type === 'ticket' && n.updated && (n.status === 'done' || n.status === 'in-progress')) ev.push({ date: n.updated, n });
     }
+    return ev;
+  }
 
-    if (n.type === 'ticket') {
-      const sec = (name) => (n.sections || []).find((s) => new RegExp(`^${name}$`, 'i').test(s.heading || ''));
-      const goal = sec('goal'); const ac = sec('acceptance criteria'); const oos = sec('out of scope'); const notes = sec('notes');
-      const other = (n.sections || []).filter((s) => s.text && s.heading && !/^(goal|acceptance criteria|out of scope|notes|handoff log)$/i.test(s.heading));
-      const waiting = n.dependsOn.filter((d) => state.byId.get(d)?.status !== 'done');
-      return `
-        <h2>${esc(n.title)}</h2>
-        <div class="lead">${goal?.text ? md(goal.text) : '<span>No goal written yet.</span>'}</div>
-        <div class="facts">${fact('Owner', esc(n.owner) || '<span class="muted">nobody yet</span>')}${fact('Updated', fmtDate(n.updated))}${fact('Topic', esc(topic?.title))}${fact('Phase', phase ? `${esc(phase.id)} ${esc(phase.title)}` : '')}${fact('Labels', n.labels?.map((l) => `<span class="tag">${esc(l)}</span>`).join(' '))}${where}</div>
-        ${n.checklist?.total ? progressBar('Checklist', n.checklist.done, n.checklist.total, cssVar('--k-work')) : ''}
-        ${n.status === 'blocked' || waiting.length ? `<div class="why" style="--c:${cssVar('--k-caution')}"><b class="small">Waiting on</b>${waiting.length ? waiting.map((d) => rel(d)).join('') : '<p>see notes</p>'}</div>` : ''}
-        ${actions}
-        ${ac?.text ? `<h3>Acceptance criteria</h3>${md(ac.text)}` : ''}
-        ${relList('Delivers these decisions', n.implements)}
-        ${relList('Depends on', n.dependsOn)}
-        ${relList('Blocks', n.blocks)}
-        ${oos?.text ? `<h3>Out of scope</h3>${md(oos.text)}` : ''}
-        ${notes?.text ? `<h3>Notes</h3>${md(notes.text)}` : ''}
-        ${other.map((s) => `<h3>${esc(s.heading)}</h3>${md(s.text)}`).join('')}
-        ${n.code?.length ? `<h3>Code</h3>${n.code.map((c) => `<div class="commit"><code>${esc(c.path)}</code><span class="${c.exists ? '' : 'muted'}">${c.exists ? '✓ exists' : 'not created yet'}</span></div>`).join('')}` : ''}
-        ${n.commits?.length ? `<h3>Commits</h3>${n.commits.map((c) => `<div class="commit"><code>${esc(c.hash)}</code><span>${esc(c.subject)}<span class="s">${esc(c.author)} · ${esc(c.date)}</span></span></div>`).join('')}` : ''}
-        <h3>Handoff log</h3>${n.handoff?.length ? `<div class="log">${n.handoff.map((h) => `<div>${esc(h)}</div>`).join('')}</div>` : '<p class="muted small">No entries yet. Each session working on this ticket adds a line.</p>'}`;
-    }
-
-    const ch = realChildren(n);
-    const pts = ch.filter((k) => k.type === 'point'); const tks = ch.filter((k) => k.type === 'ticket'); const subs = ch.filter((k) => k.type === 'feature' || k.type === 'phase');
-    const desc = (n.sections || []).filter((s) => s.text && !/^points$/i.test(s.heading || ''));
-    const byKind = KINDS.map((k) => [k, pts.filter((p) => p.kind === k)]).filter(([, l]) => l.length);
+  function homePage() {
+    const p = project();
+    if (!p) return emptyPage();
+    const c = counts(nodesOf('feature'));
+    const points = nodesOf('point');
+    const ask = points.filter((x) => x.kind === 'open' || x.kind === 'suggestion');
+    const care = points.filter((x) => x.kind === 'caution');
+    const tickets = nodesOf('ticket');
+    const active = tickets.filter((t) => t.status === 'in-progress' || t.status === 'blocked');
+    const ready = tickets.filter((t) => t.status === 'planned');
+    const intro = aboutText(p)[0];
+    const phases = nodesOf('phase');
+    const phaseRow = (ph) => {
+      const fs = featuresOf(ph); const pr = ph.progress;
+      return `<a class="row prow" href="${linkTo(ph)}"><span class="num" style="--c:${state.phaseColor.get(ph.id)}">${phaseNum(ph)}</span><span class="rt"><b class="clamp1">${esc(ph.title)}</b><span class="rs">${fs.length ? `${plural(fs.length, 'topic')} · ${sumHtml(countsOf(ph))}` : 'Not planned yet'}</span></span>${asks(countsOf(ph)) ? `<span class="badge">${asks(countsOf(ph))}</span>` : ''}<span class="pm">${meter('Decided', pr.points.settled, pr.points.total, '--k-decided')}${meter('Built', pr.tickets.done, pr.tickets.total, '--k-work', `${pr.tickets.done}/${pr.tickets.total}`)}</span></a>`;
+    };
+    const byDay = new Map();
+    for (const e of events()) { if (!byDay.has(e.date)) byDay.set(e.date, []); byDay.get(e.date).push(e.n); }
+    const days = [...byDay.keys()].sort().reverse().slice(0, 5);
+    const recent = days.map((d) => { const l = byDay.get(d); return `<div class="day">${fmtDate(d)}</div><div class="list">${l.slice(0, 8).map((n) => row(n)).join('')}${l.length > 8 ? `<div class="row muted small">and ${l.length - 8} more</div>` : ''}</div>`; }).join('');
+    const stat = (id, v, k, cv) => `<button class="stat" data-scroll="${id}" style="--c:var(${cv})"><div class="v">${v}</div><div class="k">${k}</div></button>`;
     return `
-      <h2>${esc(n.title)}</h2>
-      <div class="lead">${n.type === 'feature' ? 'Topic' : n.type}${phase && n.type !== 'phase' ? ` in ${esc(phase.id)} ${esc(phase.title)}` : ''}</div>
-      <div class="facts">${fact('Updated', fmtDate(n.updated))}${fact('Labels', n.labels?.map((l) => `<span class="tag">${esc(l)}</span>`).join(' '))}${where}</div>
-      ${progressBar('Decided', n.progress.points.settled, n.progress.points.total, cssVar('--k-decided'))}
-      ${progressBar('Built', n.progress.tickets.done, n.progress.tickets.total, cssVar('--k-work'))}
-      ${actions}
-      ${desc.length ? `<h3>About</h3>${desc.map((s) => `${s.heading ? `<h4>${esc(s.heading)}</h4>` : ''}${md(s.text)}`).join('')}` : ''}
-      ${relList('Depends on', n.dependsOn)}
-      ${relList('Blocks', n.blocks)}
-      ${subs.length ? relList(n.type === 'project' ? 'Phases' : 'Topics', subs.map((s) => s.id)) : ''}
-      ${byKind.map(([k, l]) => `<h3>${BUCKET[k]?.icon ?? '✖'} ${BUCKET[k]?.title ?? 'Dropped'} (${l.length})</h3>${l.map((p) => rel(p.id)).join('')}`).join('')}
-      ${tks.length ? relList('Work (tickets)', tks.map((t) => t.id)) : ''}
-      ${n.code?.length ? `<h3>Code</h3>${n.code.map((c) => `<div class="commit"><code>${esc(c.path)}</code><span class="${c.exists ? '' : 'muted'}">${c.exists ? '✓ exists' : 'not created yet'}</span></div>`).join('')}` : ''}
-      ${n.commits?.length ? `<h3>Commits</h3>${n.commits.map((c) => `<div class="commit"><code>${esc(c.hash)}</code><span>${esc(c.subject)}<span class="s">${esc(c.author)} · ${esc(c.date)}</span></span></div>`).join('')}` : ''}`;
+      <h1>${esc(p.title)}</h1>
+      ${intro ? `<div class="lead">${md(intro.text)}</div>` : ''}
+      <div class="stats">
+        ${stat('sec-ask', ask.length, 'need your answer', '--k-open')}
+        ${stat('sec-care', care.length, 'to take care of', '--k-caution')}
+        ${stat('sec-phases', c.decided, 'decided', '--k-decided')}
+        ${stat('sec-work', `${c.done}/${c.work}`, 'tickets done', '--k-work')}
+      </div>
+      ${sec('sec-phases', '', 'Phases', phases.length, 'Each phase groups related topics. Open one to see its decisions and tickets.', phases.length ? `<div class="list">${phases.map(phaseRow).join('')}</div>` : '<p class="empty">No phases yet.</p>')}
+      ${sec('sec-ask', '❓', 'Needs your answer', ask.length, 'Open questions and suggestions waiting for a decision.', ask.length ? `<div class="list">${ask.map((n) => row(n)).join('')}</div>` : '<p class="empty">Nothing waiting. Every question has an answer.</p>', '--k-open')}
+      ${sec('sec-work', '🔨', 'Work', tickets.length ? `${c.done}/${c.work} done` : 0, active.length ? 'Being built or blocked right now.' : ready.length ? 'Nothing in progress. These are ready to start.' : '', active.length ? `<div class="list">${active.map((n) => row(n)).join('')}</div>` : ready.length ? `<div class="list">${ready.map((n) => row(n)).join('')}</div>` : `<p class="empty">${tickets.length ? 'All tickets are done.' : 'No tickets yet.'}</p>`, '--k-work')}
+      ${sec('sec-care', '⚠️', 'Take care of', care.length, KIND.caution.hint, care.length ? `<div class="list">${care.map((n) => row(n)).join('')}</div>` : '<p class="empty">No cautions recorded.</p>', '--k-caution')}
+      ${days.length ? sec('sec-recent', '🕑', 'Recent activity', null, 'What was decided, asked or built, newest first.', recent) : ''}`;
   }
 
-  let clearTimer = null;
-  function renderPanel() {
-    const p = $('#panel');
-    const shell = (head, body) => {
-      clearTimeout(clearTimer);
-      p.classList.add('open');
-      p.innerHTML = `<div class="pin"><div class="ptop">${head}<button class="close" data-close title="Close (Esc)">✕</button></div><div class="pbody">${body}</div></div>`;
-    };
-    if (state.issues) {
-      const list = state.g.issues.map((i) => `<div class="issue"><b class="${i.level === 'error' ? 'bad' : ''}">${i.level}</b> · <code>${esc(i.file)}</code>${i.id ? ` · ${esc(i.id)}` : ''}<div>${esc(i.message)}</div></div>`).join('');
-      shell('<b>Format issues</b>', list || '<p class="muted">No issues 🎉</p>');
-    } else if (state.file) {
-      const { n, text, mode } = state.file;
-      const head = `<button class="back" data-back>← Back</button><code class="muted">${esc(n.file)}</code><span class="ftabs"><button class="${mode === 'rendered' ? 'on' : ''}" data-fmode="rendered">Rendered</button><button class="${mode === 'raw' ? 'on' : ''}" data-fmode="raw">Raw</button></span>`;
-      if (text === null) { shell(head, '<p class="bad">Could not load the file.</p>'); return; }
-      const lines = text.split(/\r?\n/);
-      let body = lines; let fmEnd = -1;
-      if (lines[0] === '---') { fmEnd = lines.indexOf('---', 1); if (fmEnd > 0) body = lines.slice(fmEnd + 1); }
-      const target = (n.line || 1) - 1; // 0-based index into lines
-      let html;
-      if (mode === 'raw') {
-        html = `<div class="raw">${lines.map((l, i) => `<div class="${i === target ? 'hlrow' : ''}" ${i === target ? 'data-hl' : ''}><span class="ln">${i + 1}</span><span>${esc(l) || ' '}</span></div>`).join('')}</div>`;
-      } else {
-        const fm = fmEnd > 0 ? lines.slice(1, fmEnd).map((l) => /^([\w-]+):\s*(.*)$/.exec(l)).filter(Boolean).map((m) => `<div><b>${esc(m[1])}</b>${esc(m[2])}</div>`).join('') : '';
-        const bodyTarget = target - (fmEnd > 0 ? fmEnd + 1 : 0);
-        const marked = body.map((l, i) => (i === bodyTarget ? l.replace(/^(\s*(?:[-*]\s+|>\s?)?)(.*)$/, '$1⟦hl⟧$2⟦/hl⟧') : l)).join('\n');
-        html = `${fm ? `<div class="fm">${fm}</div>` : ''}<div class="rendered">${md(marked).replace('⟦hl⟧', '<mark class="hl" data-hl>').replace('⟦/hl⟧', '</mark>')}</div>`;
-      }
-      shell(head, html);
-      requestAnimationFrame(() => p.querySelector('[data-hl]')?.scrollIntoView({ block: 'center' }));
-    } else if (state.day) {
-      const ev = events().filter((e) => e.date === state.day);
-      const groups = KINDS.concat(['work', 'done']).map((k) => [k, ev.filter((e) => e.kind === k)]).filter(([, l]) => l.length);
-      const label = { work: '🔨 Started work', done: '🏁 Finished' };
-      shell(`<b>${fmtDate(state.day)}</b>`, `<h2>What happened</h2><div class="lead">${ev.length} notes</div>${groups.map(([k, l]) => `<h3>${label[k] || `${BUCKET[k]?.icon ?? '✖'} ${BUCKET[k]?.title ?? 'Dropped'}`} (${l.length})</h3>${l.map((e) => rel(e.id)).join('')}`).join('') || '<p class="muted">nothing</p>'}`);
-    } else {
-      const n = state.sel && state.byId.get(state.sel);
-      if (!n) {
-        // keep the content while the panel slides shut, then clear it
-        p.classList.remove('open');
-        clearTimeout(clearTimer);
-        clearTimer = setTimeout(() => { if (!p.classList.contains('open')) p.innerHTML = ''; }, 450);
-      } else shell(`${panelHead(n)}<code class="muted">${esc(n.type === 'tool' ? n.file : n.id)}</code>`, panelBody(n));
+  function emptyPage() {
+    const g = state.g;
+    const errs = (g.issues || []).filter((i) => i.level === 'error').slice(0, 5);
+    const cli = g.app?.cli || 'npx github:dsngeu/ThinkMap';
+    return `<h1>No plan found</h1>
+      <div class="lead">Thinkmap needs a <code>project.md</code> with <code>type: project</code> in <code>${esc(g.planDir && g.planDir !== '.' ? g.planDir : g.root || 'docs/plan')}</code>.</div>
+      ${sec('e1', '', 'New project', null, 'Create the folder from the template. This page updates by itself afterwards.', `<pre>${esc(cli)} init --name "Your Project"</pre>`)}
+      ${sec('e2', '', 'Plan lives elsewhere', null, 'Restart with its path:', `<pre>${esc(cli)} serve path/to/plan --open</pre>`)}
+      ${errs.length ? sec('e3', '', 'Format errors', errs.length, '', `<div class="list">${errs.map((i) => `<div class="issue"><code>${esc(i.file)}</code> ${esc(i.message)}</div>`).join('')}</div>`) : ''}`;
+  }
+
+  function phasePage(ph) {
+    const fs = featuresOf(ph);
+    const tks = fs.flatMap(ticketsOf);
+    const about = aboutText(ph);
+    return `${crumbs([['Home', '#/']])}
+      <h1><span class="num" style="--c:${state.phaseColor.get(ph.id)}">${phaseNum(ph)}</span>${esc(ph.title)}</h1>
+      ${about.length ? `<div class="lead">${about.map((s) => md(s.text)).join('')}</div>` : ''}
+      <div class="meta">${sumHtml(countsOf(ph))}</div>
+      ${meters(ph)}
+      ${actions(ph)}
+      ${sec('topics', '', 'Topics', fs.length, 'Each topic holds what was discussed, decided and still open about one subject.', fs.length ? `<div class="list">${fs.map((f) => row(f)).join('')}</div>` : '<p class="empty">No topics in this phase yet.</p>')}
+      ${tks.length ? sec('tickets', '🔨', 'Tickets', tks.length, 'What is being built in this phase.', `<div class="list">${tks.map((t) => row(t)).join('')}</div>`, '--k-work') : ''}
+      ${ph.dependsOn?.length ? sec('dep', '', 'Depends on', ph.dependsOn.length, '', rowList(ph.dependsOn)) : ''}`;
+  }
+
+  function topicPage(f) {
+    const pts = pointsOf(f);
+    const tks = ticketsOf(f);
+    const about = aboutText(f);
+    const blocks = ORDER.map((k) => {
+      const l = pts.filter((p) => p.kind === k);
+      if (!l.length) return '';
+      return sec(`k-${k}`, KIND[k].icon, KIND[k].title, l.length, KIND[k].hint, `<div class="list">${l.map(noteEl).join('')}</div>`, `--k-${k}`);
+    }).join('');
+    return `${crumbsFor(f)}
+      <h1>${esc(f.title)}</h1>
+      ${about.length ? `<div class="lead">${about.map((s) => `${s.heading ? `<b>${esc(s.heading)}</b>` : ''}${md(s.text)}`).join('')}</div>` : ''}
+      <div class="meta">${sumHtml(countsOf(f))}${f.labels?.length ? ` · ${f.labels.map((l) => `<span class="tag">${esc(l)}</span>`).join(' ')}` : ''} · updated ${fmtDate(f.updated)}</div>
+      ${actions(f)}
+      ${blocks || '<p class="empty" style="margin-top:24px">No notes in this topic yet.</p>'}
+      ${tks.length ? sec('k-work', '🔨', 'Work', `${tks.filter((t) => t.status === 'done').length}/${tks.length} done`, 'Tickets that build what was decided here.', `<div class="list">${tks.map((t) => row(t)).join('')}</div>`, '--k-work') : ''}
+      ${f.dependsOn?.length ? sec('dep', '', 'Depends on', f.dependsOn.length, '', rowList(f.dependsOn)) : ''}
+      ${f.blocks?.length ? sec('blk', '', 'Blocks', f.blocks.length, '', rowList(f.blocks)) : ''}`;
+  }
+
+  function ticketPage(n) {
+    const s = TICKET[n.status] || TICKET.planned;
+    const part = (name) => (n.sections || []).find((x) => new RegExp(`^${name}$`, 'i').test(x.heading || ''));
+    const goal = part('goal'); const ac = part('acceptance criteria'); const oos = part('out of scope'); const notes = part('notes');
+    const other = (n.sections || []).filter((x) => x.text && x.heading && !/^(goal|acceptance criteria|out of scope|notes|handoff log)$/i.test(x.heading));
+    const waiting = n.dependsOn.filter((d) => state.byId.get(d)?.status !== 'done');
+    const doc = (title, text) => (text ? sec(title.toLowerCase().replace(/\W+/g, '-'), '', title, null, '', `<div class="doc">${md(text)}</div>`) : '');
+    return `${crumbsFor(n)}
+      <h1>${esc(n.title)}</h1>
+      <div class="meta"><span class="pill" style="--c:${scolor(n.status)}">${s.icon} ${s.label}</span><code>${esc(n.id)}</code><span>${n.owner ? `owner ${esc(n.owner)}` : 'nobody yet'}</span><span>updated ${fmtDate(n.updated)}</span>${n.labels?.map((l) => `<span class="tag">${esc(l)}</span>`).join(' ') || ''}</div>
+      <div class="lead">${goal?.text ? md(goal.text) : 'No goal written yet.'}</div>
+      ${n.checklist?.total ? `<div class="meters">${meter('Checklist', n.checklist.done, n.checklist.total, '--k-work', `${n.checklist.done}/${n.checklist.total}`)}</div>` : ''}
+      ${n.status === 'blocked' || waiting.length ? `<div class="callout" style="--c:var(--k-caution)"><b>Waiting on</b>${waiting.length ? `<div style="margin-top:8px">${rowList(waiting)}</div>` : '<p>See the notes.</p>'}</div>` : ''}
+      ${actions(n)}
+      ${doc('Acceptance criteria', ac?.text)}
+      ${n.implements?.length ? sec('impl', '✅', 'Delivers these decisions', n.implements.length, '', rowList(n.implements), '--k-decided') : ''}
+      ${n.dependsOn?.length ? sec('dep', '', 'Depends on', n.dependsOn.length, '', rowList(n.dependsOn)) : ''}
+      ${n.blocks?.length ? sec('blk', '', 'Blocks', n.blocks.length, '', rowList(n.blocks)) : ''}
+      ${doc('Out of scope', oos?.text)}
+      ${doc('Notes', notes?.text)}
+      ${other.map((x) => doc(x.heading, x.text)).join('')}
+      ${n.code?.length ? sec('code', '', 'Code', n.code.length, '', `<div class="doc">${n.code.map((c) => `<div class="commit"><code>${esc(c.path)}</code><span class="${c.exists ? '' : 'muted'}">${c.exists ? '✓ exists' : 'not created yet'}</span></div>`).join('')}</div>`) : ''}
+      ${n.commits?.length ? sec('commits', '', 'Commits', n.commits.length, '', `<div class="doc">${commitsHtml(n.commits)}</div>`) : ''}
+      ${sec('log', '', 'Handoff log', n.handoff?.length || 0, 'Each session working on this ticket adds a line.', n.handoff?.length ? `<div class="doc"><div class="log" style="margin-top:10px">${n.handoff.map((h) => `<div>${esc(h)}</div>`).join('')}</div></div>` : '<p class="empty">No entries yet.</p>')}`;
+  }
+
+  const tbadge = (t) => (t.group === 'skill' ? (t.slash ? `${t.slash}${/on its own/.test(t.trigger) ? ' · also automatic' : ''}` : 'automatic') : t.group === 'agent' ? `subagent${t.model ? ` · ${t.model}` : ''}${t.tools?.length ? ` · ${plural(t.tools.length, 'tool')}` : ''}` : `${t.event}${t.matcher ? ` · ${t.matcher}` : ''}${t.hookType === 'prompt' ? ' · prompt' : ''}`);
+  const toolCard = (i) => `<a class="tcard" href="${href('tooling', i.id)}" style="--c:${cssVar(GROUP[i.group].color)}"><span class="ric">${GROUP[i.group].icon}</span><span class="rt"><span class="t">${esc(i.group === 'skill' && i.slash ? i.slash : i.name)}</span><span class="s">${esc(i.description || 'No description. Open the file to see what it does.')}</span><span class="trg">${esc(tbadge(i))}</span></span></a>`;
+  function toolingPage() {
+    const t = state.g.tooling || { items: [], notes: [] };
+    const notes = t.notes?.length ? `<div class="callout" style="--c:var(--k-caution)">${t.notes.map(esc).join('<br>')}</div>` : '';
+    if (!t.items.length) {
+      return `${crumbs([['Home', '#/']])}<h1>Tooling</h1>
+        <div class="lead">No agents, skills or hooks in this project. Thinkmap looks in <code>.claude/agents/</code>, <code>.claude/skills/</code>, <code>.claude/commands/</code> and the <code>hooks</code> block of <code>.claude/settings.json</code> (plus a plugin's own folders when <code>.claude-plugin/plugin.json</code> exists). It never reads your personal <code>~/.claude</code>.</div>${notes}`;
     }
-    requestAnimationFrame(() => render());
+    return `${crumbs([['Home', '#/']])}<h1>Tooling</h1>
+      <div class="lead">The Claude Code agents, skills and hooks this project ships with.</div>${notes}
+      ${['agent', 'skill', 'hook'].map((g) => { const l = t.items.filter((i) => i.group === g); return l.length ? sec(`g-${g}`, GROUP[g].icon, GROUP[g].title, l.length, GROUP[g].hint, `<div class="tgrid">${l.map(toolCard).join('')}</div>`, GROUP[g].color) : ''; }).join('')}`;
+  }
+  function toolPage(n) {
+    const g = GROUP[n.group];
+    const ed = editorLink(n);
+    const tags = (l) => l.map((x) => `<span class="tag">${esc(x)}</span>`).join(' ');
+    const facts = [
+      fact('How it starts', esc(n.trigger)),
+      n.group === 'skill' ? fact('Slash command', n.slash ? `<code>${esc(n.slash)}</code>` : '<span class="muted">none, automatic only</span>') : '',
+      n.group === 'hook' ? fact('Event', `<code>${esc(n.event)}</code>`) + fact('Matcher', n.matcher ? `<code>${esc(n.matcher)}</code>` : '<span class="muted">every tool</span>') + fact('Kind', esc(n.hookType)) + fact('Timeout', n.timeout ? `${n.timeout}s` : '') : '',
+      fact('Tools allowed', n.tools?.length ? tags(n.tools) : ''),
+      fact('Model', esc(n.model)),
+      fact('Source', n.source === 'plugin' ? 'this project’s plugin folders' : 'project <code>.claude/</code>'),
+      fact('File', `<code>${esc(n.file)}${n.line > 1 ? `:${n.line}` : ''}</code>`),
+      ...Object.entries(n.meta || {}).map(([k, v]) => fact(esc(k), esc(v))),
+    ].join('');
+    const acts = `<div class="actions">${ed ? `<a href="${ed}">✎ Open in editor</a>` : ''}${n.slash ? `<button data-copy="${esc(n.slash)}">⧉ Copy command</button>` : ''}<button data-copy="${esc(n.file)}">⧉ Copy path</button></div>`;
+    const body = n.group === 'hook'
+      ? sec('cmd', '', n.hookType === 'prompt' ? 'Prompt' : 'Command', null, 'Shown for reading. Thinkmap never runs hooks.', `<pre>${esc(n.command ?? n.prompt ?? '')}</pre>`)
+      : n.body ? sec('ins', '', 'Instructions', null, '', `<div class="doc">${md(n.body)}</div>`) : '<p class="empty">The file has no body.</p>';
+    const warn = n.recognised ? '' : '<div class="callout" style="--c:var(--k-caution)"><b>Unrecognised layout.</b> No front matter with a <code>description</code> was found, so the file is shown as-is.</div>';
+    return `${crumbs([['Home', '#/'], ['Tooling', '#/tooling']])}
+      <h1>${esc(n.group === 'skill' && n.slash ? n.slash : n.name)}</h1>
+      <div class="meta"><span class="pill" style="--c:${cssVar(g.color)}">${g.icon} ${g.one}</span></div>
+      <div class="lead">${esc(n.description || g.hint)}</div>
+      <div class="facts">${facts}</div>${warn}${acts}${body}`;
   }
 
-  // Slide the map left (and up/down if needed) in step with the panel opening,
-  // so the selected card ends up visible in the half that remains.
-  let shiftAnim = null;
-  function shiftMapTo(id) {
-    const el = document.querySelector(`[data-card="${CSS.escape(id)}"]`);
-    if (!el) return;
-    const stage = $('#stage');
-    const main = document.querySelector('main');
-    const finalW = main.clientWidth * 0.5; // stage width once the panel has opened
-    const cardLeft = parseFloat(el.style.left); const cardRight = cardLeft + el.offsetWidth;
-    const cardTop = parseFloat(el.style.top); const cardBottom = cardTop + el.offsetHeight;
-    const fromL = stage.scrollLeft; const fromT = stage.scrollTop;
-    let toL = fromL;
-    if (cardRight + 40 > fromL + finalW) toL = Math.min(cardRight + 40 - finalW, Math.max(0, cardLeft - 24));
-    let toT = fromT;
-    if (cardTop < fromT + 20 || cardBottom > fromT + stage.clientHeight - 20) toT = Math.max(0, (cardTop + cardBottom) / 2 - stage.clientHeight / 2);
-    if (toL === fromL && toT === fromT) return;
-    cancelAnimationFrame(shiftAnim);
-    const t0 = performance.now(); const DUR = 460;
-    const ease = (t) => 1 - Math.pow(1 - t, 3);
-    const step = (now) => {
-      const k = ease(Math.min(1, (now - t0) / DUR));
-      stage.scrollLeft = fromL + (toL - fromL) * k;
-      stage.scrollTop = fromT + (toT - fromT) * k;
-      if (k < 1) shiftAnim = requestAnimationFrame(step);
-    };
-    shiftAnim = requestAnimationFrame(step);
+  function issuesPage() {
+    const list = state.g.issues || [];
+    return `${crumbs([['Home', '#/']])}<h1>Format issues</h1>
+      <div class="lead">Problems the validator found in the plan files. Run <code>thinkmap validate</code> in a terminal for the same list.</div>
+      <section class="blk">${list.length ? `<div class="list">${list.map((i) => `<div class="issue"><b class="${i.level === 'error' ? 'bad' : ''}">${esc(i.level)}</b> · <code>${esc(i.file)}</code>${i.id ? ` · ${esc(i.id)}` : ''}<div>${esc(i.message)}</div></div>`).join('')}</div>` : '<p class="empty">No issues 🎉</p>'}</section>`;
   }
 
-  function select(id) {
-    state.sel = id; state.issues = false; state.day = null; state.file = null;
-    renderPanel();
-    if (id) shiftMapTo(id);
-  }
-  async function previewFile(id, mode) {
-    const n = state.byId.get(id);
-    if (!n?.file) return;
+  async function loadFile(path) {
+    state.files.set(path, 'loading');
     let text = null;
-    try { const r = await fetch(`api/file?path=${encodeURIComponent(n.file)}`); if (r.ok) text = await r.text(); } catch { /* offline */ }
-    state.file = { n, text, mode: mode || state.file?.mode || store.get('fmode', 'rendered') };
-    renderPanel();
+    try { const r = await fetch(`api/file?path=${encodeURIComponent(path)}`); if (r.ok) text = await r.text(); } catch { /* offline */ }
+    state.files.set(path, text);
+    const r = route();
+    if (r[0] === 'file') { renderPage(); requestAnimationFrame(() => $('#page [data-hl]')?.scrollIntoView({ block: 'center' })); }
   }
-  // Expand the path to a node so it is visible on the map
-  function reveal(id) {
-    const n = state.byId.get(id);
-    if (!n) return;
-    const chain = [];
-    let cur = n;
-    while (cur) { chain.unshift(cur); cur = state.byId.get(cur.parent); }
-    for (const c of chain) {
-      if (c.type === 'point' || c.type === 'ticket') continue;
-      state.expanded.add(c.id);
+  function filePage(n) {
+    const text = state.files.get(n.file);
+    if (text === undefined) loadFile(n.file);
+    const mode = state.fmode;
+    const head = `${crumbs([['Home', '#/'], [n.title, linkTo(n)]])}
+      <h1 style="font-size:18px"><code style="font-size:15px">${esc(n.file)}</code></h1>
+      <div class="meta"><span class="ftabs"><button class="${mode === 'rendered' ? 'on' : ''}" data-fmode="rendered">Rendered</button><button class="${mode === 'raw' ? 'on' : ''}" data-fmode="raw">Raw</button></span><a href="${linkTo(n)}">← Back to ${esc(n.title)}</a></div>`;
+    if (text === undefined || text === 'loading') return `${head}<p class="empty">Loading…</p>`;
+    if (text === null) return `${head}<p class="bad">Could not load the file.</p>`;
+    const lines = text.split(/\r?\n/);
+    let body = lines; let fmEnd = -1;
+    if (lines[0] === '---') { fmEnd = lines.indexOf('---', 1); if (fmEnd > 0) body = lines.slice(fmEnd + 1); }
+    const target = (n.line || 1) - 1;
+    if (mode === 'raw') return `${head}<div class="raw">${lines.map((l, i) => `<div class="${i === target ? 'hlrow' : ''}" ${i === target ? 'data-hl' : ''}><span class="ln">${i + 1}</span><span>${esc(l) || ' '}</span></div>`).join('')}</div>`;
+    const fm = fmEnd > 0 ? lines.slice(1, fmEnd).map((l) => /^([\w-]+):\s*(.*)$/.exec(l)).filter(Boolean).map((m) => `<div><b>${esc(m[1])}</b>${esc(m[2])}</div>`).join('') : '';
+    const bodyTarget = target - (fmEnd > 0 ? fmEnd + 1 : 0);
+    const marked = body.map((l, i) => (i === bodyTarget ? l.replace(/^(\s*(?:[-*]\s+|>\s?)?)(.*)$/, '$1⟦hl⟧$2⟦/hl⟧') : l)).join('\n');
+    return `${head}${fm ? `<div class="fm">${fm}</div>` : ''}<div class="doc">${md(marked).replace('⟦hl⟧', '<mark class="hl" data-hl>').replace('⟦/hl⟧', '</mark>')}</div>`;
+  }
+
+  function searchPage() {
+    const q = state.q;
+    const hit = (...parts) => parts.join(' ').toLowerCase().includes(q);
+    const groups = [
+      ['Topics and phases', state.g.nodes.filter((n) => (n.type === 'phase' || n.type === 'feature') && hit(n.id, n.title))],
+      ['Notes', nodesOf('point').filter((n) => hit(n.id, n.title, (n.notes || []).join(' ')))],
+      ['Tickets', nodesOf('ticket').filter((n) => hit(n.id, n.title, n.owner || '', (n.sections || []).map((s) => s.text).join(' ')))],
+      ['Tooling', (state.g.tooling?.items || []).map((t) => state.byId.get(t.id)).filter((t) => t && hit(t.name, t.slash || '', t.description || '', t.trigger || '', t.file))],
+    ].filter(([, l]) => l.length);
+    const total = groups.reduce((a, [, l]) => a + l.length, 0);
+    return `<h1>Search</h1><div class="lead">${total ? `${plural(total, 'result')} for “${esc(q)}”` : `Nothing matches “${esc(q)}”.`} Press Esc to clear.</div>
+      ${groups.map(([t, l]) => sec(`s-${t}`, '', t, l.length, '', `<div class="list">${l.slice(0, 50).map((n) => row(n)).join('')}</div>`)).join('')}`;
+  }
+
+  // ---------- sidebar ----------
+  function renderSide() {
+    const r = route();
+    const g = state.g;
+    const p = project();
+    const cur = r[0] === 'p' || r[0] === 't' || r[0] === 'k' ? r[1] : null;
+    const curNode = cur && state.byId.get(cur);
+    const curTopic = curNode && topicOf(curNode)?.id;
+    const on = (b) => (b ? ' on" aria-current="page' : '');
+    const total = p ? asks(counts(nodesOf('feature'))) : 0;
+    const tools = g.tooling?.items?.length || 0;
+    let html = `<a class="nav${on(!r.length)}" href="#/"><span class="ni">⌂</span><span class="nt">Home</span>${total ? `<span class="badge" title="Need your answer">${total}</span>` : ''}</a>`;
+    if (p) html += `<a class="nav${on(r[0] === 'map')}" href="#/map"><span class="ni">🗺</span><span class="nt">Mind map</span></a>`;
+    const phases = nodesOf('phase');
+    if (phases.length) html += '<div class="navh">Phases</div>';
+    for (const ph of phases) {
+      const c = countsOf(ph);
+      html += `<a class="nav ph${on(r[0] === 'p' && r[1] === ph.id)}" href="${linkTo(ph)}"><span class="num" style="--c:${state.phaseColor.get(ph.id)}">${phaseNum(ph)}</span><span class="nt">${esc(ph.title)}</span>${asks(c) ? `<span class="badge">${asks(c)}</span>` : isDone(ph) ? '<span class="tick" title="Everything decided and built">✓</span>' : ''}</a>`;
+      for (const f of featuresOf(ph)) {
+        const fc = countsOf(f);
+        html += `<a class="nav tp${on(curTopic === f.id && r[0] !== 'p')}" href="${linkTo(f)}"><span class="nt">${esc(f.title)}</span>${asks(fc) ? `<span class="badge">${asks(fc)}</span>` : ''}</a>`;
+      }
     }
-    if (n.type === 'point' || n.type === 'ticket') {
-      const f = topicOf(n);
-      if (f) state.expanded.add(`${f.id}#${n.type === 'ticket' ? 'work' : n.kind === 'dropped' ? 'decided' : n.kind}`);
+    html += '<div class="navh">Project</div>';
+    html += `<a class="nav${on(r[0] === 'tooling')}" href="#/tooling"><span class="ni">🧩</span><span class="nt">Tooling</span><span class="cnt">${tools}</span></a>`;
+    if (g.issues?.length) html += `<a class="nav${on(r[0] === 'issues')}" href="#/issues"><span class="ni">⚠</span><span class="nt">Format issues</span><span class="cnt">${g.issues.length}</span></a>`;
+    html += `<div class="sidefoot">Thinkmap${g.app?.version ? ` v${esc(g.app.version)}` : ''} · reads <code>${esc(g.planDir || 'docs/plan')}</code></div>`;
+    $('#side').innerHTML = html;
+  }
+
+  // ---------- main ----------
+  function pageFor(r) {
+    if (state.q) return searchPage();
+    if (!r.length) return homePage();
+    const n = r[1] && state.byId.get(r[1]);
+    if (r[0] === 'p' && n?.type === 'phase') return phasePage(n);
+    if (r[0] === 't' && n?.type === 'feature') return topicPage(n);
+    if (r[0] === 'k' && n?.type === 'ticket') return ticketPage(n);
+    if (r[0] === 'tooling') return n?.type === 'tool' ? toolPage(n) : toolingPage();
+    if (r[0] === 'issues') return issuesPage();
+    if (r[0] === 'file' && n) return filePage(n);
+    return `${crumbs([['Home', '#/']])}<h1>Not found</h1><div class="lead">Nothing called <code>${esc(r.join('/'))}</code> in this plan. It may have been renamed.</div>`;
+  }
+  const isMap = () => route()[0] === 'map' && !!project();
+  function renderPage() { $('#page').innerHTML = pageFor(route()); }
+  function renderMain() {
+    const map = isMap();
+    $('#page').hidden = map; $('#stage').hidden = !map; $('#maptools').hidden = !map;
+    if (map) renderMap(); else renderPage();
+  }
+  function renderAll() { if (!state.g) return; renderSide(); renderMain(); }
+
+  function setGraph(g) {
+    state.g = g;
+    state.byId = new Map(g.nodes.map((n) => [n.id, n]));
+    for (const t of g.tooling?.items || []) state.byId.set(t.id, { ...t, type: 'tool', title: t.group === 'skill' && t.slash ? t.slash : t.name });
+    state.files.clear();
+    const app = g.app || {};
+    $('#updBtn').hidden = !app.updateAvailable;
+    if (app.updateAvailable) { $('#updLatest').textContent = `v${app.latest}`; $('#updCur').textContent = `v${app.version}`; $('#updHow').textContent = app.updateHint || 'thinkmap update'; }
+    const name = g.project?.title || 'Plan';
+    document.title = `${name} · Thinkmap`;
+    $('#title').textContent = name;
+    nodesOf('phase').forEach((p, i) => state.phaseColor.set(p.id, PHASE_COLORS[i % PHASE_COLORS.length]));
+    const { errors = 0, warnings = 0 } = g.stats || {};
+    const btn = $('#issuesBtn');
+    btn.hidden = !(errors || warnings);
+    btn.textContent = `⚠ ${errors ? plural(errors, 'error') : ''}${errors && warnings ? ', ' : ''}${warnings ? plural(warnings, 'warning') : ''}`;
+    renderAll();
+  }
+
+  function onRoute(first) {
+    const r = route();
+    if (!first) { state.q = ''; $('#q').value = ''; }
+    document.body.classList.remove('side-open');
+    if (r[0] === 't' && r[2]) state.openNotes.add(r[2]);
+    renderAll();
+    if (r[0] === 'map') return;
+    if (r[0] === 't' && r[2]) {
+      requestAnimationFrame(() => { const el = document.getElementById(`note-${r[2]}`); if (el) { el.scrollIntoView({ block: 'center' }); el.classList.add('flash'); } });
+    } else if (r[0] !== 'file') $('#main').scrollTop = 0;
+  }
+
+  // ---------- mind map (second view) ----------
+  const WIDTH = { project: 250, phase: 250, feature: 270, point: 330, ticket: 330 };
+  const GAP_X = 64; const GAP_Y = 10; const PAD = 28;
+  const matches = (n) => !state.q || `${n.id} ${n.title} ${(n.notes || []).join(' ')}`.toLowerCase().includes(state.q);
+  function kids(n) {
+    if (n.type === 'project') return nodesOf('phase');
+    if (n.type === 'phase') return featuresOf(n);
+    if (n.type === 'feature') { const pts = pointsOf(n); return [...ORDER.flatMap((k) => pts.filter((p) => p.kind === k)), ...ticketsOf(n)]; }
+    return [];
+  }
+  const subtreeMatches = (n) => matches(n) || kids(n).some(subtreeMatches);
+  function cardHtml(n, childCount, open) {
+    const col = colorOf(n);
+    const more = childCount ? `<span class="more" title="${open ? 'Fold' : `Open ${childCount}`}">${open ? '−' : childCount}</span>` : '';
+    const go = ['project', 'phase', 'feature'].includes(n.type) ? `<button class="go" data-go="${esc(linkTo(n))}" title="Open this as a page">↗</button>` : '';
+    const bar = (p) => (p && p.points.total ? `<span class="track" style="--c:var(--k-decided)" title="${p.points.settled} of ${p.points.total} decided"><i style="width:${pct(p.points.settled, p.points.total)}%"></i></span>` : '');
+    let lead = ''; let body = '';
+    if (n.type === 'project') {
+      body = `<div class="t">${esc(n.title)}</div><div class="s">${plural(nodesOf('phase').length, 'phase')} · ${plural(nodesOf('feature').length, 'topic')}</div>${bar(n.progress)}`;
+    } else if (n.type === 'phase') {
+      const c = countsOf(n);
+      lead = `<span class="num" style="--c:${col}">${phaseNum(n)}</span>`;
+      body = `<div class="t">${esc(n.title)}</div><div class="s">${featuresOf(n).length ? `${plural(featuresOf(n).length, 'topic')}${asks(c) ? ` · ${asks(c)} open` : ''}` : 'not planned yet'}</div>${bar(n.progress)}`;
+    } else if (n.type === 'feature') {
+      const c = countsOf(n);
+      body = `<div class="t">${esc(n.title)}</div><div class="s">${[c.decided && `${c.decided} decided`, asks(c) && `${asks(c)} open`, c.caution && `${c.caution} cautions`, c.work && `${c.done}/${c.work} built`].filter(Boolean).join(' · ') || 'nothing yet'}</div>${bar(n.progress)}`;
+    } else if (n.type === 'point') {
+      lead = `<span class="ric" style="--c:${col}">${(KIND[n.kind] || KIND.dropped).icon}</span>`;
+      body = `<div class="t">${esc(n.title)}</div>`;
+    } else if (n.type === 'ticket') {
+      const s = TICKET[n.status] || TICKET.planned;
+      lead = `<span class="ric" style="--c:${col}">${s.icon}</span>`;
+      body = `<div class="t">${esc(n.title)}</div><div class="s">${esc(n.id)} · ${s.label}</div>`;
     }
-    state.lastToggled = n.parent;
+    const cls = `card ${n.type} ${open ? 'open' : ''} ${n.id === state.revealId ? 'sel' : ''} ${n.kind === 'dropped' ? 'dropped' : ''}`;
+    return `<div class="${cls}" data-card="${esc(n.id)}" style="--c:${col};width:${WIDTH[n.type]}px">${lead}<div class="body">${body}</div>${go}${more}</div>`;
+  }
+  function visibleTree() {
+    const out = [];
+    const root = project();
+    if (!root) return out;
+    const walk = (n, depth, parentId) => {
+      let ks = kids(n);
+      if (state.q) ks = ks.filter(subtreeMatches);
+      const open = state.q ? ks.length > 0 : state.expanded.has(n.id);
+      const r = { n, depth, parentId, childCount: kids(n).length, open: open && ks.length > 0, kidIds: [] };
+      out.push(r);
+      if (r.open) for (const k of ks) { r.kidIds.push(k.id); walk(k, depth + 1, n.id); }
+    };
+    walk(root, 0, null);
+    return out;
+  }
+  let animTimer = null;
+  function renderMap() {
+    const rows = visibleTree();
+    if (!rows.length) return;
+    const content = $('#content');
+    const prevPos = state.pos;
+    const existing = new Map([...content.querySelectorAll('.card')].map((el) => [el.dataset.card, el]));
+    const keep = new Set(rows.map((r) => r.n.id));
+    for (const [id, el] of existing) {
+      if (keep.has(id) || el.classList.contains('ghost')) continue;
+      const pp = el.dataset.parent && prevPos.get(el.dataset.parent);
+      el.classList.add('ghost');
+      if (pp) { el.style.left = `${pp.x}px`; el.style.top = `${pp.y}px`; }
+      setTimeout(() => el.remove(), 300);
+    }
+    const byId = new Map();
+    for (const r of rows) {
+      let el = existing.get(r.n.id);
+      const tmp = document.createElement('div');
+      tmp.innerHTML = cardHtml(r.n, r.childCount, r.open);
+      const fresh = tmp.firstElementChild;
+      if (!el || el.classList.contains('ghost')) {
+        el?.remove();
+        el = fresh;
+        el.classList.add('ghost');
+        const pp = r.parentId && prevPos.get(r.parentId);
+        el.style.left = `${pp ? pp.x : PAD}px`; el.style.top = `${pp ? pp.y : 0}px`;
+        content.appendChild(el);
+      } else {
+        el.className = fresh.className;
+        el.innerHTML = fresh.innerHTML;
+        el.style.width = fresh.style.width;
+        el.style.setProperty('--c', fresh.style.getPropertyValue('--c'));
+      }
+      el.dataset.parent = r.parentId || '';
+      byId.set(r.n.id, el);
+    }
+    const h = new Map([...byId].map(([id, el]) => [id, el.offsetHeight]));
+    const colX = []; let x = PAD;
+    const depthType = ['project', 'phase', 'feature', 'point'];
+    for (let d = 0; d < 5; d++) { colX[d] = x; x += (WIDTH[depthType[Math.min(d, 3)]] || 330) + GAP_X; }
+    const pos = new Map();
+    let y = PAD;
+    const rowById = new Map(rows.map((r) => [r.n.id, r]));
+    const place = (id) => {
+      const r = rowById.get(id);
+      const hh = h.get(id) || 40;
+      if (!r.kidIds.length) { pos.set(id, { x: colX[r.depth], y, h: hh }); y += hh + GAP_Y; return; }
+      for (const k of r.kidIds) place(k);
+      const first = pos.get(r.kidIds[0]); const last = pos.get(r.kidIds[r.kidIds.length - 1]);
+      pos.set(id, { x: colX[r.depth], y: (first.y + last.y + last.h) / 2 - hh / 2, h: hh });
+      if (r.kidIds.length > 1) y += GAP_Y;
+    };
+    place(rows[0].n.id);
+    const stage = $('#stage');
+    const treeH = y + PAD;
+    const offset = Math.max(0, (stage.clientHeight - treeH) / 2);
+    const maxX = Math.max(...[...pos.entries()].map(([id, p]) => p.x + (byId.get(id)?.offsetWidth || 0))) + PAD;
+    const canvasH = Math.max(stage.clientHeight, treeH + offset);
+    const canvasW = Math.max(stage.clientWidth, maxX);
+    $('#canvas').style.width = `${canvasW}px`; $('#canvas').style.height = `${canvasH}px`;
+    const svg = $('#links'); svg.setAttribute('width', canvasW); svg.setAttribute('height', canvasH);
+    requestAnimationFrame(() => {
+      for (const [id, p] of pos) { const el = byId.get(id); el.style.left = `${p.x}px`; el.style.top = `${p.y + offset}px`; el.classList.remove('ghost'); }
+      state.pos = new Map([...pos].map(([id, p]) => [id, { x: p.x, y: p.y + offset, h: p.h }]));
+      const t0 = performance.now();
+      cancelAnimationFrame(animTimer);
+      const tick = () => { drawLinks(rows, byId); if (performance.now() - t0 < 420) animTimer = requestAnimationFrame(tick); };
+      tick();
+      if (state.revealId) {
+        const rid = state.revealId;
+        setTimeout(() => { document.querySelector(`[data-card="${CSS.escape(rid)}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' }); }, 420);
+        setTimeout(() => { if (state.revealId === rid) { state.revealId = null; byId.get(rid)?.classList.remove('sel'); } }, 2600);
+        state.lastToggled = null;
+        return;
+      }
+      const last = rows.find((r) => r.open && r.n.id === state.lastToggled);
+      if (last && last.kidIds.length) {
+        const lastK = byId.get(last.kidIds[last.kidIds.length - 1]); const first = byId.get(last.kidIds[0]);
+        const top = pos.get(last.kidIds[0]).y + offset; const bottom = pos.get(last.kidIds[last.kidIds.length - 1]).y + offset + (lastK?.offsetHeight || 0);
+        const right = pos.get(last.kidIds[0]).x + (first?.offsetWidth || 0) + PAD;
+        const view = { top: stage.scrollTop, bottom: stage.scrollTop + stage.clientHeight, right: stage.scrollLeft + stage.clientWidth };
+        const opts = { behavior: 'smooth' };
+        if (bottom - top < stage.clientHeight) { if (top < view.top || bottom > view.bottom) opts.top = Math.max(0, (top + bottom) / 2 - stage.clientHeight / 2); }
+        else if (top < view.top || top > view.bottom) opts.top = Math.max(0, top - 40);
+        if (right > view.right) opts.left = Math.max(0, right - stage.clientWidth);
+        if (opts.top !== undefined || opts.left !== undefined) stage.scrollTo(opts);
+      }
+      state.lastToggled = null;
+    });
+  }
+  function drawLinks(rows, byId) {
+    const canvas = $('#canvas').getBoundingClientRect();
+    const rect = (el) => { const r = el.getBoundingClientRect(); return { x1: r.left - canvas.left, y: r.top - canvas.top + r.height / 2, x2: r.right - canvas.left }; };
+    const paths = [];
+    for (const r of rows) {
+      if (!r.parentId) continue;
+      const pe = byId.get(r.parentId); const ce = byId.get(r.n.id);
+      if (!pe || !ce) continue;
+      const p = rect(pe); const c = rect(ce); const mx = (p.x2 + c.x1) / 2;
+      paths.push(`<path class="${ce.classList.contains('ghost') ? 'ghost' : ''}" style="--c:${colorOf(r.n)}" d="M${p.x2},${p.y} C${mx},${p.y} ${mx},${c.y} ${c.x1},${c.y}"/>`);
+    }
+    $('#links').innerHTML = paths.join('');
+  }
+  function toggle(id) {
+    if (state.expanded.has(id)) {
+      const n = state.byId.get(id);
+      const drop = (x) => { state.expanded.delete(x.id); for (const k of kids(x)) if (state.expanded.has(k.id)) drop(k); };
+      if (n) drop(n); else state.expanded.delete(id);
+    } else state.expanded.add(id);
+    state.lastToggled = id;
     store.set('expanded', [...state.expanded]);
-    render();
-    setTimeout(() => document.querySelector(`[data-card="${CSS.escape(id)}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' }), 450);
+    renderMap();
   }
-  function setLive(mode, text) { const el = $('#live'); el.className = `live ${mode}`; el.lastElementChild.textContent = text; }
+  // Open the map with the path to a node unfolded, and point at it.
+  function reveal(id) {
+    let cur = state.byId.get(id);
+    if (!cur) return;
+    cur = state.byId.get(cur.parent);
+    while (cur) { state.expanded.add(cur.id); cur = state.byId.get(cur.parent); }
+    store.set('expanded', [...state.expanded]);
+    state.revealId = id;
+    if (route()[0] === 'map') renderMap(); else location.hash = '#/map';
+  }
+
+  function setLive(mode, text) { const el = $('#live'); el.className = `live ${mode}`; el.lastElementChild.textContent = text; el.title = text; }
 
   // ---------- events ----------
   document.addEventListener('click', (e) => {
-    const tv = e.target.closest('[data-view]');
-    if (tv) { setView(tv.dataset.view); return; }
-    const tc = e.target.closest('[data-tool]');
-    if (tc) { select(tc.dataset.tool); return; }
-    const info = e.target.closest('[data-info]');
-    if (info) { e.stopPropagation(); select(info.dataset.info); return; }
-    const card = e.target.closest('[data-card]');
+    if (!e.target.closest('#updbox') && !e.target.closest('#updBtn')) $('#updbox').hidden = true;
+    const t = e.target;
+    const nt = t.closest('[data-note]');
+    if (nt) { toggleNote(nt.dataset.note); return; }
+    const go = t.closest('[data-go]');
+    if (go) { e.stopPropagation(); location.hash = go.dataset.go; return; }
+    const card = t.closest('[data-card]');
     if (card) {
-      const n = getNode(card.dataset.card);
-      if (n && (n.type === 'point' || n.type === 'ticket')) select(n.id);
+      const n = state.byId.get(card.dataset.card);
+      if (n && (n.type === 'point' || n.type === 'ticket')) location.hash = linkTo(n);
       else toggle(card.dataset.card);
       return;
     }
-    const d = e.target.closest('[data-day]');
-    if (d) { state.day = state.day === d.dataset.day ? null : d.dataset.day; state.sel = null; state.issues = false; renderTimeline(); renderPanel(); return; }
-    if (e.target.closest('[data-close]')) { state.issues = false; state.day = null; select(null); return; }
-    const cp = e.target.closest('[data-copy]');
+    const cp = t.closest('[data-copy]');
     if (cp) { const orig = cp.textContent; navigator.clipboard?.writeText(cp.dataset.copy).then(() => { cp.textContent = '✓ Copied'; setTimeout(() => { cp.textContent = orig; }, 1200); }); return; }
-    const rv = e.target.closest('[data-reveal]');
+    const rv = t.closest('[data-reveal]');
     if (rv) { reveal(rv.dataset.reveal); return; }
-    const pv = e.target.closest('[data-preview]');
-    if (pv) { previewFile(pv.dataset.preview); return; }
-    if (e.target.closest('[data-back]')) { state.file = null; renderPanel(); return; }
-    const fm = e.target.closest('[data-fmode]');
-    if (fm && state.file) { store.set('fmode', fm.dataset.fmode); previewFile(state.file.n.id, fm.dataset.fmode); return; }
-    const item = e.target.closest('[data-id]');
-    if (item) { e.preventDefault(); select(item.dataset.id); }
+    const fm = t.closest('[data-fmode]');
+    if (fm) { state.fmode = fm.dataset.fmode; store.set('fmode', state.fmode); renderPage(); requestAnimationFrame(() => $('#page [data-hl]')?.scrollIntoView({ block: 'center' })); return; }
+    const sc = t.closest('[data-scroll]');
+    if (sc) { document.getElementById(sc.dataset.scroll)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+    if (t.closest('#menuBtn')) { document.body.classList.toggle('side-open'); return; }
+    if (t.closest('#scrim')) { document.body.classList.remove('side-open'); return; }
+    if (t.closest('#updBtn')) { $('#updbox').hidden = !$('#updbox').hidden; }
   });
-  $('#collapseBtn').addEventListener('click', () => { state.expanded.clear(); store.set('expanded', []); render(); });
-  $('#legendBtn').addEventListener('click', (e) => { e.stopPropagation(); $('#legend').classList.toggle('hidden'); $('#updbox').classList.add('hidden'); });
-  document.addEventListener('click', (e) => { if (!e.target.closest('#legend')) $('#legend').classList.add('hidden'); if (!e.target.closest('#updbox')) $('#updbox').classList.add('hidden'); });
-  $('#updBtn').addEventListener('click', (e) => { e.stopPropagation(); $('#updbox').classList.toggle('hidden'); $('#legend').classList.add('hidden'); });
-  $('#issuesBtn').addEventListener('click', () => { state.issues = !state.issues; state.day = null; renderPanel(); });
-  $('#q').addEventListener('input', (e) => { state.q = e.target.value.trim().toLowerCase(); render(); });
+  $('#collapseBtn').addEventListener('click', () => { state.expanded.clear(); store.set('expanded', []); renderMap(); });
+  $('#q').addEventListener('input', (e) => { state.q = e.target.value.trim().toLowerCase(); if (isMap()) renderMap(); else { renderPage(); $('#main').scrollTop = 0; } });
   document.addEventListener('keydown', (e) => {
     const typing = e.target.matches('input, select, textarea');
     if (e.key === 'Escape') {
-      $('#legend').classList.add('hidden');
-      if (typing) { e.target.blur(); if (e.target.id === 'q') { e.target.value = ''; state.q = ''; render(); } return; }
-      if (state.sel || state.issues || state.day) { state.issues = false; state.day = null; select(null); }
+      $('#updbox').hidden = true;
+      document.body.classList.remove('side-open');
+      if (state.q || typing) { $('#q').value = ''; state.q = ''; $('#q').blur(); renderMain(); }
       return;
     }
     if (typing) return;
     if (e.key === '/') { e.preventDefault(); $('#q').focus(); }
   });
-  new ResizeObserver(() => { if (state.g) render(); }).observe($('#stage'));
+  window.addEventListener('hashchange', () => onRoute(false));
+  new ResizeObserver(() => { if (state.g && isMap()) renderMap(); }).observe($('#stage'));
 
   // ---------- boot ----------
-  if (window.__PLAN__) { setLive('', 'static export'); setGraph(window.__PLAN__); }
+  let booted = false;
+  const boot = (g) => { setGraph(g); if (!booted) { booted = true; onRoute(true); } };
+  if (window.__PLAN__) { setLive('', 'static export'); boot(window.__PLAN__); }
   else {
     let pulse = null;
     const es = new EventSource('events');
     es.addEventListener('graph', (e) => {
       const first = !state.g;
-      setGraph(JSON.parse(e.data));
+      boot(JSON.parse(e.data));
       setLive('on', first ? 'live' : 'updated just now');
       clearTimeout(pulse); pulse = setTimeout(() => setLive('on', 'live'), 2500);
     });
-    es.onerror = () => setLive('off', 'disconnected — is thinkmap serve running?');
+    es.onerror = () => setLive('off', 'disconnected. Is thinkmap serve running?');
   }
 })();
 </script>

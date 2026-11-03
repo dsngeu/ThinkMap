@@ -36,3 +36,7 @@ cannot be forgotten.
   > Why: A slow or failing hook makes people disable all hooks.
   > Risk: Lost trust in the whole plugin.
   > Built: Both scripts wrap everything in try/catch → exit 0; 10 s timeout in hooks.json; tested as processes.
+
+## Tickets
+
+- P1-T02 · Hooks — validate on save, session briefing · done

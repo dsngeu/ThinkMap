@@ -5,7 +5,7 @@ title: Viewer open questions
 status: auto
 parent: P2
 labels: [viewer]
-updated: 2026-10-29
+updated: 2026-11-02
 ---
 
 ## Points
@@ -37,3 +37,14 @@ updated: 2026-10-29
   > What: A monorepo may want `apps/api/docs/plan` and `apps/web/docs/plan` on one page.
   > Options: (a) Not supported; one map per folder. (b) `thinkmap serve a/ b/` merges them.
   > Next: Nobody has asked yet.
+
+- [decided 2026-11-02] P2-F01-06: The viewer opens on a sidebar + pages layout; the mind map is the second view
+  > What: A left sidebar lists Home, Mind map, every phase with its topics, and Tooling. Home
+  > shows what needs an answer, work in progress, cautions and recent activity. Topic and
+  > ticket pages read like documents; a note expands in place. The mind map stays one click
+  > away, without the bucket level, and clicking a note there opens its page.
+  > Why: The map-first screen felt confusing and overwhelming: four clicks to reach a note,
+  > five count chips and two bars on every card, three colour schemes needing a legend, an
+  > always-on timeline and a half-screen panel. Replaces the layout in P0-F01-04.
+  > Discussed: Board columns and one long scrolling page were the other options.
+  > Built: `web/index.html` rewritten; URLs are `#/t/<topic>/<note>`, `#/k/<ticket>`, `#/map`.

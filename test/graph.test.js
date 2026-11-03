@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { buildGraph, aggregateStatus, commitIds } from '../src/graph.js';
 import { formatStatus } from '../src/status.js';
+import { planTicketSync, applyTicketSync, writeTicketsSection } from '../src/tickets.js';
 
 function fixture(files) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'thinkmap-'));
@@ -165,8 +166,8 @@ test('layout rules: every break in FORMAT.md §1 is an error that names the fix'
     '02-next/tickets/P1-T06-elsewhere.md': fm({ id: 'P1-T06', type: 'ticket', title: 'x', status: 'planned', parent: 'P1-F01', updated: '2026-10-29' }),
   });
   assert.match(msgs, /P1-T03-outside\.md: a ticket file sits only in its phase's tickets\/ folder/);
-  assert.match(msgs, /T04\.md: ticket file name must be P<n>-T<nn>-slug\.md .* e\.g\. P1-T04-t04\.md/);
-  assert.match(msgs, /P1-T09-wrong\.md: file name starts with "P1-T09" but the id is P1-T05 — rename it P1-T05-<slug>\.md/);
+  assert.match(msgs, /T04\.md: ticket file name must be P<n>-T<nn>-F<nn>-slug\.md .* e\.g\. P1-T04-F01-t04\.md/);
+  assert.match(msgs, /P1-T09-wrong\.md: file name starts with "P1-T09" but the id is P1-T05 — rename it P1-T05-F01-<slug>\.md/);
   assert.match(msgs, /P1-T06-elsewhere\.md: ticket P1-T06 belongs in 01-<slug>\/tickets\/, not 02-next\/tickets\//);
 
   // nothing else at the top level: a second project node, a stray note
@@ -199,4 +200,68 @@ test('status suggests generating tickets when a phase is fully decided and has n
   // a phase with no points yet is not "decided"; a phase with a ticket is past this step
   assert.match(formatStatus(build({ ...decided, '02-flow/F01-steps.md': fm({ id: 'P2-F01', type: 'feature', title: 'Steps', status: 'auto', parent: 'P2', updated: '2026-10-29' }) })), /Suggested: discuss P1-F01-01/);
   assert.match(formatStatus(build({ ...decided, '02-flow/tickets/P2-T01-steps.md': fm({ id: 'P2-T01', type: 'ticket', title: 'Steps', status: 'planned', parent: 'P2-F01', implements: ['P2-F01-01'], updated: '2026-10-29' }) })), /Suggested: discuss P1-F01-01/);
+});
+
+// Issue #2: a ticket's file name and its topic's "## Tickets" list show which topic it belongs to.
+const topicWith = (list) => fm({ id: 'P1-F01', type: 'feature', title: 'Signup', status: 'auto', parent: 'P1', updated: '2026-10-29' },
+  `## Points\n- [decided] P1-F01-01: link 24h\n  > What: x\n  > Why: y\n${list === null ? '' : `\n## Tickets\n\n${list}\n`}`);
+const named = {
+  'project.md': valid['project.md'],
+  '01-basic/phase.md': valid['01-basic/phase.md'],
+  '01-basic/F01-signup.md': topicWith('- P1-T01 · API · done\n- P1-T02 · UI · planned'),
+  '01-basic/F02-login.md': fm({ id: 'P1-F02', type: 'feature', title: 'Login', status: 'auto', parent: 'P1', updated: '2026-10-29' }),
+  '01-basic/tickets/P1-T01-F01-api.md': valid['01-basic/tickets/P1-T01-api.md'],
+  '01-basic/tickets/P1-T02-F01-ui.md': valid['01-basic/tickets/P1-T02-ui.md'],
+};
+const issuesOf = (files) => build(files).issues.map((i) => `${i.level} ${i.file}: ${i.message}`).join('\n');
+
+test('ticket file names carry their topic; old names warn, wrong topics are errors', () => {
+  assert.equal(issuesOf(named), '');
+  const old = { ...named };
+  delete old['01-basic/tickets/P1-T01-F01-api.md'];
+  old['01-basic/tickets/P1-T01-api.md'] = valid['01-basic/tickets/P1-T01-api.md'];
+  assert.match(issuesOf(old), /warning .*P1-T01-api\.md: file name should name its topic: P1-T01-F01-api\.md — thinkmap tickets --write/);
+  assert.equal(build(old).stats.errors, 0);
+  const wrong = { ...named, '01-basic/tickets/P1-T02-F01-ui.md': fm({ id: 'P1-T02', type: 'ticket', title: 'UI', status: 'planned', parent: 'P1-F02', updated: '2026-10-29' }) };
+  assert.match(issuesOf(wrong), /error .*P1-T02-F01-ui\.md: file name names topic F01 but the parent is P1-F02 — rename it P1-T02-F02-ui\.md/);
+});
+
+test('a topic\'s "## Tickets" list must match its tickets', () => {
+  const msgs = (list) => issuesOf({ ...named, '01-basic/F01-signup.md': topicWith(list) });
+  assert.match(msgs(null), /warning .*F01-signup\.md: topic has 2 tickets but no "## Tickets" list/);
+  assert.match(msgs('- P1-T01 · API · done'), /out of date \(missing P1-T02\)/);
+  assert.match(msgs('- P1-T01 · API · in-progress\n- P1-T02 · UI · planned'), /P1-T01 says in-progress, the ticket is done/);
+  assert.match(msgs('- P1-T01 · API · done\n- P1-T02 · UI · planned\n- P1-T07 · Gone · done'), /P1-T07 does not exist/);
+  // the list is not read as discussion points
+  assert.equal(build(named).nodes.filter((n) => n.type === 'point').length, 1);
+});
+
+test('thinkmap tickets --write renames old ticket files and writes the lists', () => {
+  const dir = fixture({ ...valid, '01-basic/F01-signup.md': `${valid['01-basic/F01-signup.md']}\n## Notes\nkeep me\n` });
+  const plan = planTicketSync(buildGraph(dir, { repoRoot: null, commits: [] }));
+  assert.deepEqual(plan.renames.map((r) => path.basename(r.to)), ['P1-T01-F01-api.md', 'P1-T02-F01-ui.md']);
+  assert.deepEqual(plan.lists.map((l) => l.id), ['P1-F01']);
+  applyTicketSync(plan);
+  assert.deepEqual(fs.readdirSync(path.join(dir, '01-basic/tickets')).sort(), ['P1-T01-F01-api.md', 'P1-T02-F01-ui.md']);
+  const topic = fs.readFileSync(path.join(dir, '01-basic/F01-signup.md'), 'utf8');
+  assert.match(topic, /## Tickets\n\n- P1-T01 · API · done\n- P1-T02 · UI · planned\n/);
+  assert.match(topic, /## Notes\nkeep me/);
+  const after = buildGraph(dir, { repoRoot: null, commits: [] });
+  assert.deepEqual(planTicketSync(after), { renames: [], lists: [] });
+  assert.ok(!after.issues.some((i) => /Tickets|name its topic/.test(i.message)), JSON.stringify(after.issues));
+});
+
+test('writeTicketsSection replaces the section in place or appends it', () => {
+  assert.equal(writeTicketsSection('# x\n\n## Points\n- a\n', ['- P1-T01 · A · done']), '# x\n\n## Points\n- a\n\n## Tickets\n\n- P1-T01 · A · done\n');
+  assert.equal(writeTicketsSection('## Tickets\n\n- old\n\n## Notes\nn\n', ['- new']), '## Tickets\n\n- new\n\n## Notes\nn\n');
+});
+
+test('status <topic id> shows one topic: tickets with status and owner, points by kind', () => {
+  const out = formatStatus(build(named), { filter: 'P1-F01' });
+  assert.match(out, /📍 P1-F01 Signup/);
+  assert.match(out, /🔨 TICKETS \(2\)\n {2}✅ P1-T01 +API +done +no owner/);
+  assert.match(out, /✅ DECIDED \(1\)\n {2}P1-F01-01 +link 24h {2}→ P1-T01/);
+  assert.doesNotMatch(out, /PHASES/);
+  assert.match(formatStatus(build(named), { filter: 'P1-F09' }), /there is no topic P1-F09/);
+  assert.match(formatStatus(build(named), { filter: 'nonsense' }), /nonsense is not a filter/);
 });

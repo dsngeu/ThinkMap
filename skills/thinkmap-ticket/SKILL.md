@@ -40,7 +40,12 @@ In the ticket file's front matter: set `status: in-progress`, set `owner: <owner
 - <today> · <owner> · started
 ```
 
-Never rewrite earlier Handoff log lines. Edit nothing outside this file.
+Never rewrite earlier Handoff log lines. Edit nothing else by hand; then refresh the topic's
+generated `## Tickets` list so it shows the new status:
+
+```
+node "${CLAUDE_PLUGIN_ROOT}/bin/thinkmap.js" tickets --write
+```
 
 ## 4. Load the context
 
@@ -56,5 +61,6 @@ Then run `node "${CLAUDE_PLUGIN_ROOT}/bin/thinkmap.js" validate` to confirm the 
 
 One short message: ticket claimed (ID, title, owner), the acceptance criteria as a
 checklist, any dependency or caution to watch, and that the finished work should end with
-ticked criteria, `code:` filled, `status: done`, a new Handoff log line, and a suggested commit
+ticked criteria, `code:` filled, `status: done`, a new Handoff log line, `thinkmap tickets --write`
+run once more, and a suggested commit
 message ending with `[<ID>]`. Do not commit; humans commit.

@@ -61,7 +61,9 @@ export function initPlan(target, { name = 'My Project', force = false, today = n
 export const SLUG = '[a-z0-9]+(?:-[a-z0-9]+)*';
 export const PHASE_DIR_RE = new RegExp(`^(\\d{2,})-${SLUG}$`);
 export const FEATURE_FILE_RE = new RegExp(`^(F\\d+)-${SLUG}\\.md$`);
-export const TICKET_FILE_RE = new RegExp(`^(P\\d+-T\\d+)-${SLUG}\\.md$`);
+// P2-T05-F04-sprint-api.md — ticket id, then the short id of its topic (F04), then a slug.
+// The F<nn> part is optional so plans written before 0.6.0 stay readable; the validator warns.
+export const TICKET_FILE_RE = new RegExp(`^(P\\d+-T\\d+)(?:-(F\\d+))?-(${SLUG})\\.md$`);
 export const phaseFolderNumber = (phaseId) => String(parseInt(String(phaseId).replace(/^P/, ''), 10)).padStart(2, '0');
 
 // The phase folder (NN-slug) that holds phase P<n>, or null. Looks at the folder number only,

@@ -102,3 +102,9 @@ Package everything as one Claude Code plugin and distribute it through a plugin 
   > Discussed: Still to do by hand — a social preview image (Settings → Social preview, 1280×640;
   > a screenshot of the map), a short post with the demo link (Claude Code community, Show HN,
   > LinkedIn/X), and a PR to an awesome-claude-code list. None of these can be done from the CLI.
+
+## Tickets
+
+- P1-T03 · Package as a Claude Code plugin + marketplace · done
+- P1-T04 · thinkmap update + update-available banner · done
+- P1-T05 · thinkmap format — detect and refresh the project's FORMAT.md copy · done

@@ -52,7 +52,9 @@ End with: "Say **go ahead** to write these N ticket files, or tell me what to ch
 
 ## 3. Gate 2 — write the files (only after an explicit go)
 
-For each row create `<NN-slug>/tickets/<ID>-<slug>.md` inside the phase folder (the folder
+For each row create `<NN-slug>/tickets/<ID>-<F<nn>>-<slug>.md` inside the phase folder, where
+`F<nn>` is the short ID of the ticket's topic (`P2-T05-F04-sprint-model-api.md` for a ticket of
+`P2-F04`) (the folder
 already has `tickets/`; if it is missing, run `node "${CLAUDE_PLUGIN_ROOT}/bin/thinkmap.js"
 phase P<n> <slug>` rather than making it by hand). Front matter: `id`, `type: ticket`,
 `title`, `status: planned`, `parent: <topic id>`, `implements: [...]`, `depends_on: [...]`
@@ -62,13 +64,18 @@ FORMAT.md §6: *Goal* from the points' `What:`/`Why:` lines, *Acceptance criteri
 deliberately left out, *Notes* naming the cautions and the point IDs, an empty *Handoff log*.
 
 Then, in each covered point, set its `Built:` line to `Built: Not yet — ticket <ID>` (add the
-line if the point has none). Change nothing else in the topic files.
+line if the point has none). Change nothing else in the topic files by hand; write each topic's
+`## Tickets` list with the tool (it also renames older ticket files that lack the topic):
+
+```
+node "${CLAUDE_PLUGIN_ROOT}/bin/thinkmap.js" tickets --write
+```
 
 ## 4. Check and report
 
 ```
 node "${CLAUDE_PLUGIN_ROOT}/bin/thinkmap.js" validate
-node "${CLAUDE_PLUGIN_ROOT}/bin/thinkmap.js" status P<n>
+node "${CLAUDE_PLUGIN_ROOT}/bin/thinkmap.js" status P<n>          # or the topic: status P<n>-F<nn>
 ```
 
 Fix anything the validator reports. Report: the files written, the status output's *NEXT

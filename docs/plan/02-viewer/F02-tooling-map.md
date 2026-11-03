@@ -56,3 +56,7 @@ can see what runs automatically in this repo and tap an item to read what it doe
 - [caution 2026-10-29 claude] P2-F02-06: "Agent" here means a defined subagent, not a live session
   > What: Keep the wording distinct from P2-F01-03 (which session is active on a ticket).
   > Why: Two things called "agent" on one map would confuse people.
+
+## Tickets
+
+- P2-T01 · Tooling tab — scan and show agents, skills, hooks · done

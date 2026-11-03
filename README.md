@@ -66,7 +66,7 @@ What the plugin gives every session in that project, without any CLAUDE.md editi
 |---|---|
 | `thinkmap-format` (automatic) | While you discuss or decide, Claude writes decisions, open questions, ideas and cautions into the plan files. The rules come from one file, `template/FORMAT.md`. |
 | `/thinkmap` | Opens the map (starts the viewer if needed) |
-| `/thinkmap-status [P1 \| open]` | Terminal summary — Claude may also run it on its own |
+| `/thinkmap-status [P1 \| P1-F02 \| open]` | Terminal summary — Claude may also run it on its own |
 | `/thinkmap-tickets <P1 \| P1-F02>` | Breaks the decided points of a phase (or one topic) into tickets: one table to approve first, files written only after "go ahead". `thinkmap status` suggests it when a phase is fully decided and has no tickets |
 | `/thinkmap-ticket <ID>` | Claims a ticket for this session (in-progress, owner, Handoff log) and loads its context; refuses to double-claim. "Work on P1-T03" triggers it too |
 | `/thinkmap-init` | Sets up `docs/plan/` in a new project |
@@ -116,11 +116,12 @@ terminal; the `npx` commands are for the terminal.
 
 ## What you see
 
-- **Mind map**: the project card on the left; click to open phases → topics → buckets → notes, with animation. Click again to fold.
-- **Cards** carry labelled counters (`7 decided · 3 open · 1 idea · 2 cautions · 2/6 built`), progress bars, a "needs decision" chip, and the current phase.
-- **Details panel** (half the screen; the map glides aside): the full story of a note — *What this is · Why · What we expect · What we discussed · Still pending · What's built* — plus related tickets and decisions with status, acceptance criteria, code files, commits and the handoff log.
-- **Preview file** (rendered or raw, line highlighted) · **Open in editor** (VS Code, exact line) · **Show on map**.
-- **Search** (`/`) auto-expands matching branches · **? Legend** · **timeline** strip · light & dark themes · static export for people without the tool.
+- **Sidebar**: Home, Mind map, every phase with its topics (an amber number = questions waiting for you), and Tooling. On a phone it folds behind ☰.
+- **Home**: what needs your answer, work in progress, things to take care of, and recent activity, with one progress row per phase.
+- **Topic pages** read like a document: open questions, suggestions, cautions, decisions, discussed, dropped, then tickets. Click a note to expand its full story in place — *What this is · Why · What we expect · What we discussed · Still pending · What's built* — plus the tickets that deliver it and commits mentioning it.
+- **Ticket pages**: status, owner, checklist, acceptance criteria, the decisions it delivers, dependencies, code files, commits and the handoff log.
+- **Mind map** (second view): project → phases → topics → notes and tickets, with animation. Click a note to open its page; ↗ on a card opens that phase or topic.
+- **View file** (rendered or raw, line highlighted) · **Open in editor** (VS Code, exact line) · **Show on map** · **Search** (`/`) across notes, tickets and tooling · every page has its own link (`#/t/P1-F01/P1-F01-03`) · light & dark themes · static export for people without the tool.
 - **Tooling tab**: the project's own Claude Code **agents, skills and hooks**, read from `.claude/`
   (`agents/`, `skills/`, `commands/`, the `hooks` block of `settings.json`, plus a plugin's own folders
   when `.claude-plugin/plugin.json` exists). Tap one to see what it does, how it starts, which tools it
@@ -134,9 +135,9 @@ docs/plan/
 ├── project.md                     type: project
 └── 01-basic/                      one folder per phase: NN-slug
     ├── phase.md                   type: phase     id P1
-    ├── F02-signup.md              type: feature   id P1-F02   ← a "topic"; its ## Points are the notes
+    ├── F02-signup.md              type: feature   id P1-F02   ← a "topic"; ## Points are the notes, ## Tickets its tickets
     └── tickets/                   always there (a .gitkeep holds it until the first ticket)
-        └── P1-T03-api.md          type: ticket    id P1-T03
+        └── P1-T03-F02-api.md      type: ticket    id P1-T03   ← F02 = the topic it builds
 ```
 
 The layout is enforced, not suggested: `thinkmap validate` reports a misnamed folder, a topic in
@@ -164,7 +165,8 @@ Expected · Discussed · Options · Pending · Built · Risk · Next`. Full spec
 | `thinkmap init [dir] --name "X" [--force]` | Set up `docs/plan/` from the template |
 | `thinkmap phase <P2> <slug> [dir] [--title "X"]` | Scaffold one phase: `02-slug/phase.md` with valid front matter and `tickets/.gitkeep`. Re-running adds only what is missing |
 | `thinkmap serve [dir] [--port 4400] [--open]` | Web viewer with live reload |
-| `thinkmap status [dir] [P1 \| open]` | Terminal summary: phases, in progress, blocked, open questions, next free tickets, and the suggested next step (including "generate tickets" once a phase is fully decided) |
+| `thinkmap status [dir] [P1 \| P1-F02 \| open]` | Terminal summary: phases, in progress, blocked, open questions, next free tickets, and the suggested next step (including "generate tickets" once a phase is fully decided). With a topic ID: that topic's points by kind and its tickets with status and owner |
+| `thinkmap tickets [dir] [--write]` | Checks that every ticket file names its topic (`P2-T05-F04-slug.md`) and every topic lists its tickets under `## Tickets`; `--write` renames the files and rewrites the lists. Ticket IDs never change |
 | `thinkmap validate [dir] [--quiet]` | Check the format and the folder layout; exit 1 on errors (use in hooks and CI) |
 | `thinkmap export [dir] [--out plan.html]` | One static HTML file to share |
 | `thinkmap json [dir]` | The graph as JSON |

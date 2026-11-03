@@ -20,8 +20,9 @@ docs/plan/
 │   ├── F02-employees.md
 │   └── tickets/                    ← always present, even before the first ticket exists
 │       ├── .gitkeep                ← keeps the folder in git while it is empty
-│       ├── P1-T01-signup-api.md    ← type: ticket (id P1-T01) — tickets live only here
-│       └── P1-T02-set-password-ui.md
+│       ├── P1-T01-F01-signup-api.md    ← type: ticket (id P1-T01) for topic F01 — tickets live only here
+│       ├── P1-T02-F01-set-password-ui.md
+│       └── P1-T03-F02-employee-list.md
 └── 02-workflow/ ...
 ```
 
@@ -32,9 +33,13 @@ This tree is a set of rules, not an example. The validator reports each break as
    `NN` is the phase number with two digits (`P1` → `01-…`, `P12` → `12-…`); the slug is
    lowercase words joined by `-`.
 2. Topic files (`type: feature`) sit directly in their phase folder, named `F<nn>-slug.md`.
-3. Ticket files (`type: ticket`) sit only inside that phase's `tickets/`, named `P<n>-T<nn>-slug.md`.
-4. A file name starts with its ID (`F01-…`, `P1-T01-…`) and its folder is the phase in its
-   ID and `parent:`.
+3. Ticket files (`type: ticket`) sit only inside that phase's `tickets/`, named
+   `P<n>-T<nn>-F<nn>-slug.md`: the ticket ID, then the short ID of its topic (`parent:`), then
+   a slug. `ls tickets/ | grep F02` lists one topic's tickets. A ticket whose parent is the
+   phase itself has no `F<nn>` part. Names without the topic (from before Thinkmap 0.6) are a
+   **warning**, not an error; `thinkmap tickets --write` renames them. IDs never change.
+4. A file name starts with its ID (`F01-…`, `P1-T01-…`), a ticket's `F<nn>` matches its
+   `parent:`, and its folder is the phase in its ID and `parent:`.
 5. Nothing else: the only other files are `project.md` and `FORMAT.md` at the top level.
    A `.md` file anywhere else, or without front matter, is an error. Files that are not
    `.md` (images, `.gitkeep`) are not read.
@@ -158,6 +163,23 @@ Rules: every point has `What:`; decided/dropped/caution points have `Why:`;
 open/suggestion points have `Options:` or `Next:`. The validator warns when
 a decided point has no body.
 
+### The topic's ticket list
+
+Once a topic has tickets, its file ends with a `## Tickets` section, one line per ticket
+whose `parent:` is this topic:
+
+```markdown
+## Tickets
+
+- P1-T01 · Signup API endpoint · done
+- P1-T02 · Set-password screen · in-progress
+```
+
+Format: `- <ticket id> · <title> · <status>`. The list is generated: `thinkmap tickets --write`
+writes it and keeps it in step when tickets are added or change status. The validator warns
+when it misses a ticket, names one of another topic, or shows an old status. Don't edit it by
+hand; run the command. `thinkmap status P1-F01` prints the topic with its tickets.
+
 **Moving between buckets:** when an open question gets answered, change `open` → `decided`
 on the same line and add the `>` reasoning. When a suggestion is accepted, `suggestion` → `decided`;
 if rejected, → `dropped` with why. Keep the ID.
@@ -191,12 +213,15 @@ Technical hints, links to architecture sections.
    new question as `[open <date>]`, every idea you (Claude) propose as
    `[suggestion <date> claude]`, and every risk or rule to remember as `[caution <date>]`.
    Don't keep decisions only in chat.
-2. **Before working a ticket:** set `status: in-progress`, set `owner`, update `updated`.
+2. **Before working a ticket:** set `status: in-progress`, set `owner`, update `updated`,
+   then run `thinkmap tickets --write` so the topic's `## Tickets` list shows it.
 3. **While working:** append to the ticket's *Handoff log* — never rewrite other entries.
-4. **When finished:** tick acceptance criteria, fill `code:`, set `status: done`.
+4. **When finished:** tick acceptance criteria, fill `code:`, set `status: done`, and run
+   `thinkmap tickets --write` again.
 5. **Commits** that implement a ticket include its ID: `feat(auth): signup endpoint [P1-T01]`.
    The viewer links commits to tickets from this.
 6. **Edit only what you own.** A session working on `P1-T03` edits only that ticket's
    file (plus its Handoff log). Changing a feature's decisions needs the discussion session.
+   The topic's generated `## Tickets` list is the exception: `thinkmap tickets --write` updates it.
 7. **Never delete** a plan file or point — mark it `dropped` with a reason.
 8. **Keep front matter valid** — a hook validates it on every save.

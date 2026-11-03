@@ -11,10 +11,15 @@ const fit = (s, n) => {
 };
 const pct = (a, b) => (b ? `${Math.round((a / b) * 100)}%`.padStart(4) : '  — ');
 
-/** @param filter null | "P1" (one phase) | "open" (open points only) */
+/** @param filter null | "P1" (one phase) | "P1-F02" (one topic) | "open" (open points only) */
 export function formatStatus(graph, { filter = null, color = false } = {}) {
   const c = paint(color);
   const byId = new Map(graph.nodes.map((n) => [n.id, n]));
+  if (filter && /^P\d+-F\d+$/.test(filter)) return formatTopic(graph, filter, c, byId);
+  const unknown = filter && !/^P\d+$/.test(filter) && filter !== 'open'
+    ? `${filter} is not a filter — use a phase (P1), a topic (P1-F02) or "open". Showing the whole plan.`
+    : filter && /^P\d+$/.test(filter) && !byId.has(filter) ? `there is no phase ${filter}. Showing the whole plan.` : null;
+  if (unknown) filter = null;
   const phaseFilter = filter && /^P\d+$/.test(filter) ? filter : null;
   const openOnly = filter === 'open';
   const scope = phaseFilter ? graph.nodes.filter((n) => n.phase === phaseFilter) : graph.nodes;
@@ -32,6 +37,7 @@ export function formatStatus(graph, { filter = null, color = false } = {}) {
   const lines = [];
   const title = graph.project?.title ?? 'Plan';
   lines.push(`${c.bold(`📍 ${title} — plan status${phaseFilter ? ` (${phaseFilter})` : ''}`)}   ${c.grey(new Date(graph.generatedAt).toLocaleString())}`);
+  if (unknown) lines.push(c.yellow(`! ${unknown}`));
   lines.push('');
 
   if (!openOnly) {
@@ -100,6 +106,56 @@ export function formatStatus(graph, { filter = null, color = false } = {}) {
   if (next) lines.push(`👉 Suggested: ${next}`);
 
   return lines.join('\n');
+}
+
+// One topic: its points by kind and its tickets with status and owner (`thinkmap status P2-F04`).
+const KIND_ROWS = [
+  ['open', '❓', 'STILL OPEN'], ['suggestion', '💡', 'SUGGESTED'], ['caution', '⚠️ ', 'TAKE CARE OF'],
+  ['decided', '✅', 'DECIDED'], ['discussed', '💬', 'DISCUSSED'], ['dropped', '✖ ', 'DROPPED'],
+];
+const TICKET_MARK = { done: '✅', 'in-progress': '🟡', blocked: '🔴', planned: '⬜', dropped: '✖ ' };
+function formatTopic(graph, id, c, byId) {
+  const f = byId.get(id);
+  if (!f || f.type !== 'feature') {
+    const topics = graph.nodes.filter((n) => n.type === 'feature').map((n) => `  ${fit(n.id, 10)}${n.title}`);
+    return [c.red(`✗ there is no topic ${id}.`), ...(topics.length ? ['', c.bold('Topics:'), ...topics] : [])].join('\n');
+  }
+  const kids = f.children.map((k) => byId.get(k)).filter(Boolean);
+  const points = kids.filter((n) => n.type === 'point');
+  const tickets = kids.filter((n) => n.type === 'ticket');
+  const phase = byId.get(f.phase);
+  const { points: pp, tickets: tp } = f.progress;
+  const bar = (a, b, w = 8) => (b ? c.green('█'.repeat(Math.round((a / b) * w))) + c.grey('░'.repeat(w - Math.round((a / b) * w))) : c.grey('░'.repeat(w)));
+  const lines = [
+    `${c.bold(`📍 ${f.id} ${f.title}`)}   ${c.grey(`${phase ? `${phase.id} ${phase.title} · ` : ''}${f.file}`)}`,
+    '',
+    `  decided ${bar(pp.settled, pp.total)} ${pct(pp.settled, pp.total)}   built ${bar(tp.done, tp.total)} ${pct(tp.done, tp.total)}  ${c.grey(tp.total ? `${tp.done}/${tp.total} tickets` : 'no tickets yet')}`,
+    '',
+  ];
+  if (tickets.length) {
+    lines.push(c.bold(`🔨 TICKETS (${tickets.length})`));
+    for (const t of tickets) lines.push(`  ${TICKET_MARK[t.status] ?? '⬜'} ${fit(t.id, 9)}${fit(t.title, 40)} ${fit(t.status, 12)}${c.grey(t.owner ?? 'no owner')}`);
+    lines.push('');
+  }
+  for (const [kind, icon, label] of KIND_ROWS) {
+    const list = points.filter((p) => p.kind === kind);
+    if (!list.length) continue;
+    lines.push(c.bold(`${icon} ${label} (${list.length})`));
+    for (const p of list) {
+      const by = p.implementedBy?.length ? c.grey(`  → ${p.implementedBy.join(', ')}`) : kind === 'decided' ? c.grey('  → no ticket yet') : '';
+      lines.push(`  ${fit(p.id, 12)}${p.title}${by}`);
+    }
+    lines.push('');
+  }
+  if (!points.length && !tickets.length) lines.push(c.grey('  Nothing recorded in this topic yet.'), '');
+  const own = graph.issues.filter((i) => i.file === f.file || tickets.some((t) => t.file === i.file));
+  if (own.length) lines.push(c.red(`⚠  ${own.length} format issue(s) in this topic's files — run: thinkmap validate`), '');
+  const open = points.find((p) => p.kind === 'open' || p.kind === 'suggestion');
+  const uncovered = points.find((p) => p.kind === 'decided' && !p.implementedBy?.length);
+  const ready = tickets.find((t) => t.status === 'planned' && t.dependsOn.every((d) => byId.get(d)?.status === 'done'));
+  const next = open ? `discuss ${open.id} (${open.title})` : uncovered ? `ticket the decided points (/thinkmap-tickets ${f.id})` : ready ? `start ${ready.id} with /thinkmap-ticket ${ready.id}` : null;
+  if (next) lines.push(`👉 Suggested: ${next}`);
+  return lines.join('\n').replace(/\n+$/, '');
 }
 
 export function formatIssues(graph, { color = false } = {}) {

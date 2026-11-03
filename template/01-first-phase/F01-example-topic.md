@@ -41,3 +41,7 @@ have real topics, or rename it and keep the examples as a reference.
 - [dropped {{DATE}}] P1-F01-06: Example idea we decided not to do
   > What: Something considered and rejected. Keep the line so nobody re-proposes it.
   > Why: The reason it was rejected.
+
+## Tickets
+
+- P1-T01 · Example ticket — build the first version · planned

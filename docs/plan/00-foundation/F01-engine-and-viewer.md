@@ -86,3 +86,8 @@ updated: 2026-10-29
   > Why: Pointing `thinkmap serve` at an empty or wrong folder used to crash the layout
   > before the first render, so the page stayed on "connecting…" and looked broken.
   > Built: `renderMap()` empty state in `web/index.html`.
+
+## Tickets
+
+- P0-T01 · Engine — parser, validate, status, init CLI · done
+- P0-T02 · Viewer — expandable mind map, details panel, live reload · done

@@ -7,6 +7,7 @@ import { listMarkdownFiles, parsePlanFile, STATUSES, TYPES, KINDS, KIND_STATUS }
 import { scanTooling } from './tooling.js';
 import { formatCopyStatus, TEMPLATE_VERSION, PHASE_DIR_RE, FEATURE_FILE_RE, TICKET_FILE_RE, phaseFolderNumber } from './init.js';
 import { cliCommand } from './update.js';
+import { topicShortId, expectedTicketFileName, listedTickets, ticketListProblems } from './tickets.js';
 
 const ID_RULES = {
   project: /^[A-Z][A-Z0-9_-]*$/,
@@ -122,7 +123,7 @@ export function buildGraph(planDir, opts = {}) {
     if (!fs.existsSync(tk) || !fs.statSync(tk).isDirectory()) issue('error', r, null, `phase folder has no tickets/ folder — add ${e.name}/tickets/.gitkeep so git keeps it before the first ticket (${cliCommand()} phase P${parseInt(m[1], 10)} <slug> does this)`);
   }
   // Where a file of a given type may sit and what it must be called. Returns an error message or null.
-  const placement = (file, type, id) => {
+  const placement = (file, type, id, parent) => {
     const parts = path.relative(absDir, file).split(path.sep);
     const name = parts[parts.length - 1];
     const folder = parts[0];
@@ -143,10 +144,13 @@ export function buildGraph(planDir, opts = {}) {
         return nn === own(id.split('-')[0]) ? null : `topic ${id} belongs in phase folder ${own(id.split('-')[0])}-<slug>, not ${folder}/`;
       }
       case 'ticket': {
-        if (!(inPhase && parts.length === 3 && parts[1] === 'tickets')) return `a ticket file sits only in its phase's tickets/ folder (<NN-slug>/tickets/P<n>-T<nn>-slug.md), not ${parts.join('/')}`;
+        const f = topicShortId(parent);
+        const want = `${id}${f ? `-${f}` : ''}`;
+        if (!(inPhase && parts.length === 3 && parts[1] === 'tickets')) return `a ticket file sits only in its phase's tickets/ folder (<NN-slug>/tickets/P<n>-T<nn>-F<nn>-slug.md), not ${parts.join('/')}`;
         const m = TICKET_FILE_RE.exec(name);
-        if (!m) return `ticket file name must be P<n>-T<nn>-slug.md (lowercase words joined by "-"), e.g. ${id}-${name.replace(/\.md$/, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'work'}.md`;
-        if (m[1] !== id) return `file name starts with "${m[1]}" but the id is ${id} — rename it ${id}-<slug>.md`;
+        if (!m) return `ticket file name must be P<n>-T<nn>-F<nn>-slug.md (ticket id, its topic, lowercase words joined by "-"), e.g. ${want}-${name.replace(/\.md$/, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'work'}.md`;
+        if (m[1] !== id) return `file name starts with "${m[1]}" but the id is ${id} — rename it ${want}-<slug>.md`;
+        if (m[2] && m[2] !== f) return f ? `file name names topic ${m[2]} but the parent is ${parent} — rename it ${want}-${m[3]}.md` : `file name names topic ${m[2]} but the ticket's parent ${parent} is not a topic — rename it ${want}-${m[3]}.md`;
         return nn === own(id.split('-')[0]) ? null : `ticket ${id} belongs in ${own(id.split('-')[0])}-<slug>/tickets/, not ${folder}/tickets/`;
       }
       default:
@@ -182,8 +186,11 @@ export function buildGraph(planDir, opts = {}) {
     }
     if (type && !ID_RULES[type].test(id)) issue('error', r, id, `id "${id}" does not match the ${type} pattern`);
     else if (type) {
-      const where = placement(file, type, id);
+      const where = placement(file, type, id, d.parent ? String(d.parent) : null);
       if (where) issue('error', r, id, where);
+      // Older ticket names lack the topic: readable, but the folder no longer shows what belongs where.
+      const want = !where && type === 'ticket' ? expectedTicketFileName(path.basename(file), id, d.parent) : null;
+      if (want && want !== path.basename(file)) issue('warning', r, id, `file name should name its topic: ${want} — ${cliCommand()} tickets --write renames every ticket file`);
     }
 
     let status = d.status ?? null;
@@ -308,6 +315,20 @@ export function buildGraph(planDir, opts = {}) {
     return n.status;
   };
   for (const id of nodes.keys()) resolve(id);
+
+  // 5b. Each topic lists its tickets under "## Tickets", matching the tickets' parent and status.
+  for (const f of nodes.values()) {
+    if (f.type !== 'feature') continue;
+    const tickets = children.get(f.id).map((id) => nodes.get(id)).filter((n) => n.type === 'ticket');
+    const listed = listedTickets(f.sections);
+    const fix = `${cliCommand()} tickets --write`;
+    if (!listed) {
+      if (tickets.length) issue('warning', f.file, f.id, `topic has ${tickets.length} ticket${tickets.length === 1 ? '' : 's'} but no "## Tickets" list — add it with: ${fix}`);
+      continue;
+    }
+    const problems = ticketListProblems(listed, tickets, nodes);
+    if (problems.length) issue('warning', f.file, f.id, `"## Tickets" list is out of date (${problems.join('; ')}) — refresh it: ${fix}`);
+  }
 
   // 6. Progress roll-ups: points decided, tickets done
   const prog = new Map();

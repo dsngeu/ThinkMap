@@ -88,7 +88,7 @@ test('validate hook: finds the plan folder of an edited file, default and custom
   initPlan(path.join(dir, 'docs', 'plan'), { name: 'X' });
   initPlan(path.join(dir, 'planning'), { name: 'Y' });
   assert.equal(planDirOf('docs/plan/01-first-phase/phase.md', dir), path.join(dir, 'docs', 'plan'));
-  assert.equal(planDirOf(path.join(dir, 'planning', '01-first-phase', 'tickets', 'P1-T01-example-ticket.md'), dir), path.join(dir, 'planning'));
+  assert.equal(planDirOf(path.join(dir, 'planning', '01-first-phase', 'tickets', 'P1-T01-F01-example-ticket.md'), dir), path.join(dir, 'planning'));
   assert.equal(planDirOf('README.md', dir), null);
   assert.equal(planDirOf('docs/plan/notes.txt', dir), null);
   assert.equal(planDirOf(undefined, dir), null);

@@ -58,7 +58,7 @@ docs/plan/
 └── 01-first-phase/
     ├── phase.md
     ├── F01-example-topic.md          ← one example of every note kind
-    └── tickets/P1-T01-example-ticket.md
+    └── tickets/P1-T01-F01-example-ticket.md   ← ticket P1-T01 of topic F01
 ```
 Rename the phase folder, replace the example topic with real ones.
 

@@ -7,6 +7,7 @@ import { buildGraph } from '../src/graph.js';
 import { formatStatus, formatIssues } from '../src/status.js';
 import { startServer, exportHtml } from '../src/server.js';
 import { initPlan, scaffoldPhase, CLAUDE_SNIPPET, formatCopyStatus, syncFormatCopy, TEMPLATE_FORMAT, TEMPLATE_VERSION } from '../src/init.js';
+import { planTicketSync, applyTicketSync } from '../src/tickets.js';
 import { currentVersion, detectInstall, howToUpdate, checkLatest, runUpdate, cliCommand, staleCopies } from '../src/update.js';
 
 const HELP = `Thinkmap — live planning map for docs/plan/*.md
@@ -15,7 +16,8 @@ Usage:
   thinkmap init     [dir] [--name "Project"] [--force]   set up docs/plan/ from the template
   thinkmap phase    <P2> <slug> [dir] [--title "Name"]   scaffold a phase: 02-slug/phase.md + tickets/.gitkeep
   thinkmap serve    [dir] [--port 4400] [--open]   web viewer with live reload
-  thinkmap status   [dir] [P1 | open]              text summary
+  thinkmap status   [dir] [P1 | P1-F02 | open]     text summary: whole plan, one phase, one topic, or open questions
+  thinkmap tickets  [dir] [--write]                do ticket file names and topics' "## Tickets" lists match? --write fixes them
   thinkmap validate [dir] [--quiet]                check format (exit 1 on errors)
   thinkmap export   [dir] [--out thinkmap.html]    single static HTML file
   thinkmap json     [dir]                          graph as JSON
@@ -96,6 +98,25 @@ switch (cmd) {
   case 'status':
     console.log(formatStatus(buildGraph(dir), { filter: positional[0] ?? null, color }));
     break;
+  case 'tickets': {
+    // Ticket file names carry their topic (P2-T05-F04-slug.md) and each topic lists its tickets.
+    // Report what is out of step (exit 1) or, with --write, rename the files and rewrite the lists.
+    const plan = planTicketSync(buildGraph(dir));
+    const show = (f) => path.relative(process.cwd(), f) || f;
+    if (!plan.renames.length && !plan.lists.length) { console.log('✓ every ticket file names its topic and every topic lists its tickets'); break; }
+    if (!flags.write) {
+      for (const r of plan.renames) console.log(`  rename ${show(r.from)} → ${path.basename(r.to)}${r.blocked ? '   (skipped: that name is taken)' : ''}`);
+      for (const l of plan.lists) console.log(`  update "## Tickets" in ${show(l.file)}: ${l.problems.join('; ')}`);
+      console.log(`\n${plan.renames.length} file(s) to rename, ${plan.lists.length} topic list(s) to update. Ticket IDs do not change.\nApply: ${cliCommand()} tickets --write${dir === 'docs/plan' ? '' : ` ${dir}`}`);
+      process.exit(1);
+    }
+    const done = applyTicketSync(plan);
+    for (const r of done.renamed) console.log(`  ✓ ${show(r.from)} → ${path.basename(r.to)}`);
+    for (const r of done.skipped) console.log(`  ! kept ${show(r.from)}: ${path.basename(r.to)} already exists`);
+    for (const l of done.lists) console.log(`  ✓ "## Tickets" in ${show(l.file)}`);
+    console.log(`\n✓ ${done.renamed.length} file(s) renamed, ${done.lists.length} list(s) written. Ticket IDs are unchanged, so commits and links still work.`);
+    break;
+  }
   case 'validate': {
     const g = buildGraph(dir);
     if (!(flags.quiet && g.stats.errors === 0)) console.log(formatIssues(g, { color }));

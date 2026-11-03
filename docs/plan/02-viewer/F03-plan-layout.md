@@ -5,7 +5,7 @@ title: Plan folder layout
 status: auto
 parent: P2
 labels: [engine, format]
-updated: 2026-10-30
+updated: 2026-11-03
 ---
 
 The shape of `docs/plan/` on disk: who creates the folders, what the validator enforces, and
@@ -68,3 +68,40 @@ looked different on disk, and a fully decided phase that nothing pushed towards 
   > Risk: A project that kept notes in `docs/plan/` or has a phase without `tickets/` sees
   > `validate` go red after updating. Each message says the fix; `thinkmap phase P<n> <slug>`
   > repairs a phase folder in place.
+
+- [decided 2026-11-03] P2-F03-06: Ticket file names carry their topic: `P2-T05-F04-slug.md`
+  > What: After the ticket ID comes the short ID of its topic (`parent:`), then the slug.
+  > `ls tickets/ | grep F04` lists one topic's tickets. IDs stay numbered per phase and never change.
+  > Why: From the folder you could not tell which tickets belong to which topic; the link
+  > existed only inside the files (GitHub issue #2). Commits and trackers point at the ID, so
+  > the ID stays and the name changes instead.
+  > Expected: A wrong `F<nn>` is an error; a name without one (older plans) is a warning, so
+  > existing plans stay valid until `thinkmap tickets --write` renames them.
+  > Built: Done — ticket P2-T03.
+
+- [decided 2026-11-03] P2-F03-07: Each topic file ends with a generated `## Tickets` list
+  > What: `- P2-T05 · Sprint model and lifecycle API · done`, one line per ticket of the topic.
+  > `thinkmap tickets --write` writes it; the validator warns when a ticket is missing, one of
+  > another topic is listed, or a status is old.
+  > Why: The topic file is where people read what was agreed; what is being built for it
+  > should be one look away, not a search across ticket files.
+  > Discussed: Hand-kept lists drift, so the list is generated and the skills run the command
+  > when they create or claim a ticket.
+  > Built: Done — ticket P2-T03.
+
+- [decided 2026-11-03] P2-F03-08: `thinkmap status P2-F04` shows one topic
+  > What: Its progress, its tickets with status and owner, and its points by kind, each
+  > decided point with the ticket that builds it (or "no ticket yet").
+  > Why: The argument used to be ignored and the whole plan printed. Unknown filters now say so.
+  > Built: Done — ticket P2-T03.
+
+- [caution 2026-11-03] P2-F03-09: The topic's ticket list goes stale whenever a ticket changes status
+  > What: A ticket's status lives in the ticket file; the topic's list repeats it.
+  > Why: Repeating it is what makes the topic readable on its own.
+  > Risk: A session that edits a ticket without running `thinkmap tickets --write` leaves a
+  > validator warning (not an error) until someone does. The ticket skills run it for you.
+
+## Tickets
+
+- P2-T02 · Enforce the plan folder layout and guide the decided-to-tickets step · done
+- P2-T03 · Tickets show which topic they belong to — file names, topic lists, status per topic · done
