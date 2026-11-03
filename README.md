@@ -65,7 +65,7 @@ What the plugin gives every session in that project, without any CLAUDE.md editi
 | Piece | What it does |
 |---|---|
 | `thinkmap-format` (automatic) | While you discuss or decide, Claude writes decisions, open questions, ideas and cautions into the plan files. The rules come from one file, `template/FORMAT.md`. |
-| `/thinkmap` | Opens the map (starts the viewer if needed) |
+| `/thinkmap` | Opens the map: starts the viewer, reuses one already showing this plan, or replaces it when it runs an older version (after a plugin update) |
 | `/thinkmap-status [P1 \| P1-F02 \| open]` | Terminal summary — Claude may also run it on its own |
 | `/thinkmap-tickets <P1 \| P1-F02>` | Breaks the decided points of a phase (or one topic) into tickets: one table to approve first, files written only after "go ahead". `thinkmap status` suggests it when a phase is fully decided and has no tickets |
 | `/thinkmap-ticket <ID>` | Claims a ticket for this session (in-progress, owner, Handoff log) and loads its context; refuses to double-claim. "Work on P1-T03" triggers it too |
@@ -164,7 +164,7 @@ Expected · Discussed · Options · Pending · Built · Risk · Next`. Full spec
 |---|---|
 | `thinkmap init [dir] --name "X" [--force]` | Set up `docs/plan/` from the template |
 | `thinkmap phase <P2> <slug> [dir] [--title "X"]` | Scaffold one phase: `02-slug/phase.md` with valid front matter and `tickets/.gitkeep`. Re-running adds only what is missing |
-| `thinkmap serve [dir] [--port 4400] [--open]` | Web viewer with live reload |
+| `thinkmap serve [dir] [--port 4400] [--open] [--restart]` | Web viewer with live reload. If a Thinkmap already serves this plan it is reused (same version) or stopped and replaced (other version, or `--restart`). Servers of other projects are never touched; the next free port is used |
 | `thinkmap status [dir] [P1 \| P1-F02 \| open]` | Terminal summary: phases, in progress, blocked, open questions, next free tickets, and the suggested next step (including "generate tickets" once a phase is fully decided). With a topic ID: that topic's points by kind and its tickets with status and owner |
 | `thinkmap tickets [dir] [--write]` | Checks that every ticket file names its topic (`P2-T05-F04-slug.md`) and every topic lists its tickets under `## Tickets`; `--write` renames the files and rewrites the lists. Ticket IDs never change |
 | `thinkmap validate [dir] [--quiet]` | Check the format and the folder layout; exit 1 on errors (use in hooks and CI) |
@@ -216,7 +216,7 @@ thinkmap update            # or: npx github:dsngeu/ThinkMap update
 thinkmap update --check    # just compare with GitHub
 ```
 
-`thinkmap serve` checks GitHub once at start and shows **⬆ Update available** in the header
+`thinkmap serve` checks GitHub at start and every 6 hours, and shows **⬆ Update available** in the header
 when a newer version exists (one GET of `package.json`; nothing about your project is sent).
 Skip it with `--no-update-check` or `THINKMAP_NO_UPDATE_CHECK=1`.
 

@@ -22,7 +22,8 @@ export function startServer({ planDir, port = 4400, host = '127.0.0.1', log = co
   let json = '';
   let key = '';
   // Viewer-facing app info: version now, "newer version exists" once the check (if any) returns.
-  const app = { version, latest: null, updateAvailable: false, updateHint, cli };
+  // pid lets a later `thinkmap serve` for the same plan replace this server when the version changed.
+  const app = { version, latest: null, updateAvailable: false, updateHint, cli, pid: process.pid };
   const serialize = () => { json = JSON.stringify({ ...graph, app }); };
 
   const rebuild = () => {
@@ -38,15 +39,17 @@ export function startServer({ planDir, port = 4400, host = '127.0.0.1', log = co
   const broadcast = () => {
     for (const res of clients) res.write(`event: graph\ndata: ${json}\n\n`);
   };
-  if (checkUpdate) {
-    Promise.resolve().then(checkUpdate).then((u) => {
-      if (!u) return;
-      app.latest = u.latest; app.updateAvailable = Boolean(u.newer);
-      serialize();
-      broadcast();
-      if (u.newer && onUpdate) onUpdate(u);
-    }).catch(() => { /* offline: no banner */ });
-  }
+  // Check at start and again every few hours: a server can stay up for days while a new version ships.
+  let announced = null;
+  const runCheck = () => Promise.resolve().then(checkUpdate).then((u) => {
+    if (!u) return;
+    const changed = app.latest !== u.latest || app.updateAvailable !== Boolean(u.newer);
+    app.latest = u.latest; app.updateAvailable = Boolean(u.newer);
+    if (changed) { serialize(); broadcast(); }
+    if (u.newer && onUpdate && announced !== u.latest) { announced = u.latest; onUpdate(u); }
+  }).catch(() => { /* offline: no banner */ });
+  const updateTimer = checkUpdate ? setInterval(runCheck, 6 * 60 * 60 * 1000) : null;
+  if (checkUpdate) runCheck();
 
   let timer = null;
   const scheduleRebuild = () => {
@@ -142,29 +145,33 @@ export function startServer({ planDir, port = 4400, host = '127.0.0.1', log = co
   });
 
   return new Promise((resolve, reject) => {
-    let attempt = 0;
-    const tryListen = (p) => {
-      server.once('error', (err) => {
-        if (err.code === 'EADDRINUSE' && attempt++ < 10) tryListen(p + 1);
-        else reject(err);
-      });
-      server.listen(p, host, () => {
-        const url = `http://localhost:${p}`;
-        resolve({
-          url,
-          port: p,
-          close: () => {
-            watcher?.close();
-            clearInterval(waitForDir);
-            for (const w of extraWatchers) w.close();
-            clearInterval(gitPoll);
-            clearInterval(heartbeat);
-            for (const res of clients) res.end();
-            server.close();
-          },
-        });
-      });
+    // Try `port`, then the next ones while they are taken (another project's map, say).
+    let tried = port;
+    const onError = (err) => {
+      if (err.code === 'EADDRINUSE' && tried < port + 10) server.listen(++tried, host);
+      else reject(err);
     };
-    tryListen(port);
+    server.on('error', onError);
+    // One 'listening' handler for all attempts: a callback per listen() call would also fire for
+    // the attempts that failed and report a port this server never got.
+    server.once('listening', () => {
+      server.off('error', onError);
+      const p = server.address().port;
+      resolve({
+        url: `http://localhost:${p}`,
+        port: p,
+        close: () => {
+          watcher?.close();
+          clearInterval(waitForDir);
+          for (const w of extraWatchers) w.close();
+          clearInterval(gitPoll);
+          clearInterval(heartbeat);
+          clearInterval(updateTimer);
+          for (const res of clients) res.end();
+          server.close();
+        },
+      });
+    });
+    server.listen(port, host);
   });
 }

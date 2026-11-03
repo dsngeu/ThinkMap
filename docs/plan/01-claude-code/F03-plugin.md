@@ -6,7 +6,7 @@ status: auto
 parent: P1
 depends_on: [P1-F01, P1-F02]
 labels: [claude-code, distribution]
-updated: 2026-10-30
+updated: 2026-11-03
 ---
 
 Package everything as one Claude Code plugin and distribute it through a plugin marketplace.
@@ -103,8 +103,27 @@ Package everything as one Claude Code plugin and distribute it through a plugin 
   > a screenshot of the map), a short post with the demo link (Claude Code community, Show HN,
   > LinkedIn/X), and a PR to an awesome-claude-code list. None of these can be done from the CLI.
 
+- [decided 2026-11-03] P1-F03-09: `serve` reuses or replaces a Thinkmap already serving the same plan
+  > What: Before starting, `serve` asks the ports it would use (4400 and the next nine) who
+  > they are. Same plan + same version: open it, don't start a second copy. Same plan + other
+  > version (or `--restart`): stop that process and take its port. Another project's map or
+  > anything else: leave it, use the next free port. `/thinkmap` just runs `serve`.
+  > Why: After a plugin update `/thinkmap` kept showing the old server, because it only
+  > checked that *something* answered on 4400. Every project defaults to 4400, so "kill
+  > whatever is on the port" would stop other projects' maps.
+  > Discussed: A shutdown URL was rejected: any web page can send requests to localhost.
+  > The old server is stopped by process ID, only after it says it serves this plan and its
+  > command line names Thinkmap.
+  > Built: Done — ticket P1-T06. Also fixed: a server that moved to the next port printed the
+  > port it had failed to get.
+
+- [caution 2026-11-03] P1-F03-10: Servers from before 0.6.1 can only be found by port
+  > What: They don't report their process ID, so `serve` finds it with `lsof` (macOS/Linux).
+  > Risk: On Windows an old server is not replaced; `serve` says so and starts on the next port.
+
 ## Tickets
 
 - P1-T03 · Package as a Claude Code plugin + marketplace · done
 - P1-T04 · thinkmap update + update-available banner · done
 - P1-T05 · thinkmap format — detect and refresh the project's FORMAT.md copy · done
+- P1-T06 · serve reuses or replaces a Thinkmap already serving the same plan · done

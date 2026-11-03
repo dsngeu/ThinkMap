@@ -7,6 +7,7 @@ import { buildGraph } from '../src/graph.js';
 import { formatStatus, formatIssues } from '../src/status.js';
 import { startServer, exportHtml } from '../src/server.js';
 import { initPlan, scaffoldPhase, CLAUDE_SNIPPET, formatCopyStatus, syncFormatCopy, TEMPLATE_FORMAT, TEMPLATE_VERSION } from '../src/init.js';
+import { findServers, decide, stopServer } from '../src/handoff.js';
 import { planTicketSync, applyTicketSync } from '../src/tickets.js';
 import { currentVersion, detectInstall, howToUpdate, checkLatest, runUpdate, cliCommand, staleCopies } from '../src/update.js';
 
@@ -15,7 +16,8 @@ const HELP = `Thinkmap — live planning map for docs/plan/*.md
 Usage:
   thinkmap init     [dir] [--name "Project"] [--force]   set up docs/plan/ from the template
   thinkmap phase    <P2> <slug> [dir] [--title "Name"]   scaffold a phase: 02-slug/phase.md + tickets/.gitkeep
-  thinkmap serve    [dir] [--port 4400] [--open]   web viewer with live reload
+  thinkmap serve    [dir] [--port 4400] [--open] [--restart]   web viewer with live reload; reuses or replaces
+                                                   a Thinkmap already serving this plan (--restart always replaces)
   thinkmap status   [dir] [P1 | P1-F02 | open]     text summary: whole plan, one phase, one topic, or open questions
   thinkmap tickets  [dir] [--write]                do ticket file names and topics' "## Tickets" lists match? --write fixes them
   thinkmap validate [dir] [--quiet]                check format (exit 1 on errors)
@@ -85,11 +87,34 @@ switch (cmd) {
   }
   case 'serve': {
     const version = currentVersion();
+    const port = Number(flags.port ?? 4400);
+    const open = (url, done = () => {}) => (flags.open ? execFile(process.platform === 'darwin' ? 'open' : 'xdg-open', [url], () => done()) : done());
+    // Another Thinkmap may already serve this plan (an older version, after an update). Other
+    // projects' servers on the same port are never touched.
+    const found = await findServers(port);
+    const plan = decide(found, { planDir: dir, version, restart: Boolean(flags.restart) });
+    let startPort = port;
+    if (plan.action === 'reuse') {
+      const url = `http://localhost:${plan.server.port}`;
+      console.log(`✓ Thinkmap ${version} is already serving ${path.resolve(dir)}\n   ${url}   (not starting a second copy; --restart replaces it)`);
+      open(url, () => process.exit(0));
+      break;
+    }
+    if (plan.action === 'replace') {
+      const old = plan.server;
+      const r = await stopServer(old);
+      if (r.ok) {
+        console.log(`↻ stopped Thinkmap ${old.version ?? '(unknown version)'} on port ${old.port} (process ${r.pid}) — it served this plan; starting ${version} in its place`);
+        startPort = old.port;
+      } else {
+        console.log(`! Thinkmap ${old.version ?? '(unknown version)'} serves this plan on port ${old.port} but was not stopped: ${r.reason}.\n  Starting ${version} on another port. Stop the old one yourself${r.pid ? `: kill ${r.pid}` : ' (Ctrl+C in its terminal)'}`);
+      }
+    }
     const checkUpdate = flags['no-update-check'] ? null : () => checkLatest({ current: version });
     const updateHint = howToUpdate(detectInstall());
-    const srv = await startServer({ planDir: dir, port: Number(flags.port ?? 4400), version, checkUpdate, updateHint, cli: cliCommand(), onUpdate: (u) => console.log(`⬆ Thinkmap ${u.latest} is available (you have ${u.current}). Update: ${updateHint}`) });
+    const srv = await startServer({ planDir: dir, port: startPort, version, checkUpdate, updateHint, cli: cliCommand(), onUpdate: (u) => console.log(`⬆ Thinkmap ${u.latest} is available (you have ${u.current}). Update: ${updateHint}`) });
     console.log(`📍 Thinkmap ${version} serving ${path.resolve(dir)}\n   ${srv.url}   (Ctrl+C to stop)`);
-    if (flags.open) execFile(process.platform === 'darwin' ? 'open' : 'xdg-open', [srv.url], () => {});
+    open(srv.url);
     const stop = () => { srv.close(); process.exit(0); };
     process.on('SIGINT', stop);
     process.on('SIGTERM', stop);
