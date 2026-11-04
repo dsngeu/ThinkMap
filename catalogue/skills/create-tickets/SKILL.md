@@ -1,11 +1,11 @@
 ---
-name: thinkmap-create-tickets
+name: create-tickets
 description: Break the decided points of a whole phase (P1) or one topic (P1-F02) into tickets. Shows the proposed breakdown as one table first and writes the ticket files only after an explicit "go ahead". Use it when `thinkmap status` suggests generating tickets, or when the person asks to create tickets, plan the work, or break a phase down.
 argument-hint: "<P1 | P1-F02> [owner]"
 allowed-tools: Bash(node "$THINKMAP_CLI" *), Read, Write, Edit, Glob, Grep
 ---
 
-# /thinkmap-create-tickets — from "decided" to "tickets exist"
+# /create-tickets — from "decided" to "tickets exist"
 
 > Added to this project from the Thinkmap catalogue (dashboard → Tooling → Add). `$THINKMAP_CLI` is set by the
 > Thinkmap plugin when a session starts. If `echo "$THINKMAP_CLI"` prints nothing, the plugin is not active in
@@ -32,7 +32,7 @@ Points to cover: every `decided` point in scope that no existing ticket lists in
 `implements` (the graph gives `implementedBy` per point). `caution` points are not covered by
 a ticket; they go into the *Notes* of the tickets they concern. `open` and `suggestion` points
 are not ticketed — list them at the top of the table as "still open, left out"; if the whole
-scope is still open, stop and say the phase needs decisions first (`/thinkmap-status P<n>`).
+scope is still open, stop and say the phase needs decisions first (`/plan-status P<n>`).
 
 ## 2. Gate 1 — propose the breakdown, then wait
 
@@ -101,5 +101,5 @@ node "$THINKMAP_CLI" status P<n>          # or the topic: status P<n>-F<nn>
 ```
 
 Fix anything the validator reports. Report: the files written, the status output's *NEXT
-FREE TICKETS* list, and that each ticket is claimed with `/thinkmap-implement-ticket <ID>`. Do not
+FREE TICKETS* list, and that each ticket is claimed with `/implement-ticket <ID>`. Do not
 commit; humans commit.

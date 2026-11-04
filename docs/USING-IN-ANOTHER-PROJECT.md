@@ -25,8 +25,8 @@ That is all. No `npx`, no copied folders, no CLAUDE.md editing: the plugin carri
   warns about something in a project with `docs/plan/`, Claude writes it into the plan
   files in the right format. The rules come from one file, the plugin's `template/FORMAT.md`.
 - **`/thinkmap`** and **`/thinkmap-init`** — open the map, set up `docs/plan/`.
-- **Add-ons you choose per project** — `/thinkmap-create-tickets`, `/thinkmap-implement-ticket`,
-  `/thinkmap-status` and the review agents. Open `/thinkmap` → **Tooling** → **Add**: the skill is
+- **Add-ons you choose per project** — `/create-tickets`, `/implement-ticket`,
+  `/plan-status` and the review agents. Open `/thinkmap` → **Tooling** → **Add**: the skill is
   copied into the project's `.claude/skills/`; **Remove** deletes it. Once added, saying
   "work on ticket P1-T03" triggers the ticket skill by itself.
 - **Hooks** — after every edit under `docs/plan/` the validator runs and errors go back to

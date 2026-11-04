@@ -16,9 +16,9 @@ const PLUGIN_ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname)
 // The ticket and status skills are catalogue add-ons (P2-F02-14): list the ones this project
 // added, and say where to add the rest.
 const ADDON_COMMANDS = {
-  'thinkmap-status': '/thinkmap-status [P1|P1-F02|open]',
-  'thinkmap-create-tickets': '/thinkmap-create-tickets <P1|P1-F02> (break decided points into tickets)',
-  'thinkmap-implement-ticket': '/thinkmap-implement-ticket <ID> (brief, then build a ticket)',
+  'plan-status': '/plan-status [P1|P1-F02|open]',
+  'create-tickets': '/create-tickets <P1|P1-F02> (break decided points into tickets)',
+  'implement-ticket': '/implement-ticket <ID> (brief, then build a ticket)',
 };
 function commandsOf(projectDir) {
   const has = Object.keys(ADDON_COMMANDS).filter((n) => fs.existsSync(path.join(projectDir, '.claude', 'skills', n, 'SKILL.md')));

@@ -2,23 +2,23 @@
   "version": 1,
   "items": [
     {
-      "name": "thinkmap-create-tickets",
+      "name": "create-tickets",
       "kind": "skill",
-      "path": "skills/thinkmap-create-tickets",
+      "path": "skills/create-tickets",
       "summary": "Breaks the decided points of a phase or topic into tickets. Shows the list first, writes files after your \"go ahead\".",
       "requires": []
     },
     {
-      "name": "thinkmap-implement-ticket",
+      "name": "implement-ticket",
       "kind": "skill",
-      "path": "skills/thinkmap-implement-ticket",
+      "path": "skills/implement-ticket",
       "summary": "Takes one ticket: a read-only brief first, then — after \"go ahead\" — claims, builds and closes it.",
       "requires": []
     },
     {
-      "name": "thinkmap-status",
+      "name": "plan-status",
       "kind": "skill",
-      "path": "skills/thinkmap-status",
+      "path": "skills/plan-status",
       "summary": "Prints where the plan stands in the terminal: phases, tickets in progress, open questions, next step.",
       "requires": []
     },

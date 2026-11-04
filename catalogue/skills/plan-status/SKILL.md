@@ -1,11 +1,11 @@
 ---
-name: thinkmap-status
+name: plan-status
 description: Print the plan status in the terminal — phases with progress, tickets in progress and blocked, open questions, next free tickets. Optional filter: a phase ID like P1, a topic ID like P1-F02 (its points by kind and its tickets with status and owner), or "open" for open questions only.
 argument-hint: "[P1 | P1-F02 | open] [plan-dir]"
 allowed-tools: Bash(node "$THINKMAP_CLI" *)
 ---
 
-# /thinkmap-status — where does the project stand?
+# /plan-status — where does the project stand?
 
 > Added to this project from the Thinkmap catalogue (dashboard → Tooling → Add). `$THINKMAP_CLI` is set by the
 > Thinkmap plugin when a session starts. If `echo "$THINKMAP_CLI"` prints nothing, the plugin is not active in

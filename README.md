@@ -62,12 +62,13 @@ Inside Claude Code, in any project:
 These three come with the plugin. The ticket and status skills are **add-ons**: you choose per
 project. Open `/thinkmap`, click **Tooling**, tap **Add** — Thinkmap copies the skill into
 the project's `.claude/skills/` (so your team gets it through git), and **Remove** deletes it again.
+Start a new Claude session after adding, then type the command:
 
 | Add-on | What happens |
 |---|---|
-| `/thinkmap-create-tickets P1` | Turns the decisions of phase 1 into tickets. You approve the list first |
-| `/thinkmap-implement-ticket P1-T03` | Shows a brief of ticket P1-T03: decisions, risks, plan. Say "go ahead" and this session builds it and marks it done |
-| `/thinkmap-status` | A quick summary in the terminal |
+| `/create-tickets P1` | Turns the decisions of phase 1 into tickets. You approve the list first |
+| `/implement-ticket P1-T03` | Shows a brief of ticket P1-T03: decisions, risks, plan. Say "go ahead" and this session builds it and marks it done |
+| `/plan-status` | A quick summary in the terminal |
 
 ## Ready-made review agents
 
@@ -144,6 +145,9 @@ claude plugin update thinkmap@thinkmap
 ```
 
 Then start a new Claude session and run `/thinkmap` — it replaces the old dashboard by itself.
+Coming from 0.8 or older? `/thinkmap-create-tickets`, `/thinkmap-implement-ticket` and
+`/thinkmap-status` are now add-ons called `/create-tickets`, `/implement-ticket` and `/plan-status`:
+add the ones you want once per project from the Tooling page.
 If the update says there is nothing new, run `claude plugin marketplace update thinkmap` first.
 
 ## More

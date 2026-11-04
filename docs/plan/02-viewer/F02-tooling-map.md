@@ -170,7 +170,10 @@ can see what runs automatically in this repo and tap an item to read what it doe
   > only the add-ons the project has, and points to the Tooling page for the rest.
   > Risk: after updating, a project that used /thinkmap-create-tickets has to Add it once; the
   > briefing says so. Copied skills update through the dashboard's Update button, not the plugin.
-  > Built: `catalogue/skills/thinkmap-*`, `catalogue/catalogue.json`, `hooks/briefing.mjs`
+  > Names: as add-ons they drop the `thinkmap-` prefix — `/create-tickets`, `/implement-ticket`,
+  > `/plan-status` (Deepak: shorter to type; a bare `/status` would clash too easily). A project
+  > skill with the same name shows "Name taken" and is never overwritten.
+  > Built: `catalogue/skills/{create-tickets,implement-ticket,plan-status}`, `catalogue/catalogue.json`, `hooks/briefing.mjs`
   > (`exportCli`, `commandsOf`); tests in `test/plugin.test.js` and `test/catalogue.test.js`.
 
 - [caution 2026-11-03 claude] P2-F02-08: A localhost server that writes files is reachable from any web page

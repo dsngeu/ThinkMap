@@ -184,6 +184,6 @@ test('graph: lists the skills built into Thinkmap for other projects, not for Th
   assert.equal(g.builtin.find((b) => b.name === 'thinkmap').slash, '/thinkmap');
   // the ticket and status skills are add-ons now (P2-F02-14)
   const cat = g.catalogue.items.map((i) => i.name);
-  for (const n of ['thinkmap-create-tickets', 'thinkmap-implement-ticket', 'thinkmap-status']) assert.ok(cat.includes(n), n);
+  for (const n of ['create-tickets', 'implement-ticket', 'plan-status']) assert.ok(cat.includes(n), n);
   assert.deepEqual(buildGraph(path.join(ROOT, 'docs', 'plan')).builtin, [], 'Thinkmap lists its own skills as plugin tooling already');
 });

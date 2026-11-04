@@ -99,10 +99,10 @@ export function formatStatus(graph, { filter = null, color = false } = {}) {
   if (errors || warnings) lines.push(c.red(`⚠  ${errors} format error(s), ${warnings} warning(s) — run: thinkmap validate`), '');
 
   const next = needsTickets[0]
-    ? `generate tickets for ${needsTickets[0].id} — every point is decided and it has no tickets yet (/thinkmap-create-tickets ${needsTickets[0].id})`
+    ? `generate tickets for ${needsTickets[0].id} — every point is decided and it has no tickets yet (/create-tickets ${needsTickets[0].id})`
     : open[0]
       ? `discuss ${open[0].id} (${open[0].title})`
-      : ready[0] ? `start ${ready[0].id} with /thinkmap-implement-ticket ${ready[0].id}` : null;
+      : ready[0] ? `start ${ready[0].id} with /implement-ticket ${ready[0].id}` : null;
   if (next) lines.push(`👉 Suggested: ${next}`);
 
   return lines.join('\n');
@@ -153,7 +153,7 @@ function formatTopic(graph, id, c, byId) {
   const open = points.find((p) => p.kind === 'open' || p.kind === 'suggestion');
   const uncovered = points.find((p) => p.kind === 'decided' && !p.implementedBy?.length);
   const ready = tickets.find((t) => t.status === 'planned' && t.dependsOn.every((d) => byId.get(d)?.status === 'done'));
-  const next = open ? `discuss ${open.id} (${open.title})` : uncovered ? `ticket the decided points (/thinkmap-create-tickets ${f.id})` : ready ? `start ${ready.id} with /thinkmap-implement-ticket ${ready.id}` : null;
+  const next = open ? `discuss ${open.id} (${open.title})` : uncovered ? `ticket the decided points (/create-tickets ${f.id})` : ready ? `start ${ready.id} with /implement-ticket ${ready.id}` : null;
   if (next) lines.push(`👉 Suggested: ${next}`);
   return lines.join('\n').replace(/\n+$/, '');
 }

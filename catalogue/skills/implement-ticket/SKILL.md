@@ -1,11 +1,11 @@
 ---
-name: thinkmap-implement-ticket
+name: implement-ticket
 description: Work on one Thinkmap ticket in two gates — first a read-only brief (objective, decisions, cautions, acceptance criteria, dependencies, proposed approach, open questions), then, after an explicit "go ahead", claim it (in-progress, owner, Handoff log), build it, and close it (criteria ticked, code filled, done). Use when the person says "work on / take / start / pick up ticket P1-T03".
 argument-hint: "<ticket-id, e.g. P1-T03> [owner]"
 allowed-tools: Bash(node "$THINKMAP_CLI" *), Read, Edit, Grep, Glob
 ---
 
-# /thinkmap-implement-ticket — brief first, then claim, build and close one ticket
+# /implement-ticket — brief first, then claim, build and close one ticket
 
 > Added to this project from the Thinkmap catalogue (dashboard → Tooling → Add). `$THINKMAP_CLI` is set by the
 > Thinkmap plugin when a session starts. If `echo "$THINKMAP_CLI"` prints nothing, the plugin is not active in
@@ -123,7 +123,7 @@ Do not commit; humans commit.
 ## Things this skill never does
 
 - Start Gate 2 without an explicit "go ahead".
-- Create a ticket, phase or topic file (that is `/thinkmap-create-tickets`).
+- Create a ticket, phase or topic file (that is `/create-tickets`).
 - Edit another ticket's file or rewrite someone else's Handoff log line.
 - Tick an acceptance criterion that was not verified.
 - `git commit`, `push`, `tag`, `rebase` or `reset`.
