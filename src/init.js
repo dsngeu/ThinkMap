@@ -10,17 +10,52 @@ export const TEMPLATE_VERSION = (() => {
   try { return JSON.parse(fs.readFileSync(path.join(TEMPLATE_DIR, '..', 'package.json'), 'utf8')).version ?? '?'; } catch { return '?'; }
 })();
 
-export const CLAUDE_SNIPPET = `## Planning (Thinkmap)
+// The Planning section `init` adds to the project's CLAUDE.md, so every session knows the
+// format and where each file goes. `planRel` is the plan folder relative to the project root.
+export function claudeSection(planRel = 'docs/plan') {
+  const p = planRel.split(path.sep).join('/').replace(/\/+$/, '');
+  return `## Planning (Thinkmap)
 
-All plans, discussion points and tickets live in \`docs/plan/\` and **must** follow
-@docs/plan/FORMAT.md. The Thinkmap viewer draws them as a live mind map.
+All plans, discussion points and tickets live in \`${p}/\` and **must** follow
+@${p}/FORMAT.md. The Thinkmap viewer draws them as a live mind map.
+
+Where each file goes (the validator reports anything else as an error):
+- \`${p}/project.md\` — the project. Nothing else at the top level except \`FORMAT.md\`.
+- \`${p}/NN-slug/phase.md\` — one folder per phase (\`P1\` → \`01-…\`); add one with \`thinkmap phase P2 <slug>\`.
+- \`${p}/NN-slug/F<nn>-slug.md\` — a topic, directly in its phase folder; its notes go in \`## Points\`.
+- \`${p}/NN-slug/tickets/P<n>-T<nn>-F<nn>-slug.md\` — a ticket, only in its phase's \`tickets/\`.
 
 - Discussing? Write each decision / open question / suggestion / caution into the plan
   files as you go, with \`What:\` and \`Why:\` lines. Don't keep decisions only in chat.
 - Working a ticket? Set it \`in-progress\`, log in its *Handoff log*, set \`done\` when finished.
 - Put the ticket ID in commit messages: \`feat(auth): signup endpoint [P1-T01]\`.
 - Edit only the ticket you own; never delete plan files — mark them \`dropped\`.
+- After editing plan files, run \`thinkmap validate ${p}\` and fix what it reports.
 `;
+}
+export const CLAUDE_SNIPPET = claudeSection();
+
+// Add the Planning section to <root>/CLAUDE.md: create the file if missing, append if the
+// file has no Thinkmap section yet, otherwise leave it alone. Never changes existing text.
+// Returns { action: 'created' | 'appended' | 'kept' | 'outside', file, text }.
+export function addClaudeSection(root, planDir) {
+  const absRoot = path.resolve(root);
+  const rel = path.relative(absRoot, path.resolve(planDir));
+  const text = claudeSection(rel || '.');
+  const file = path.join(absRoot, 'CLAUDE.md');
+  // A plan folder outside the project can't be referenced from its CLAUDE.md.
+  if (!rel || rel.startsWith('..') || path.isAbsolute(rel)) return { action: 'outside', file, text };
+  if (!fs.existsSync(file)) {
+    fs.writeFileSync(file, text);
+    return { action: 'created', file, text };
+  }
+  const current = fs.readFileSync(file, 'utf8');
+  const ref = `@${rel.split(path.sep).join('/')}/FORMAT.md`;
+  if (/^#{1,6} .*Thinkmap/m.test(current) || current.includes(ref)) return { action: 'kept', file, text };
+  const sep = current.endsWith('\n\n') ? '' : current.endsWith('\n') ? '\n' : '\n\n';
+  fs.writeFileSync(file, `${current}${sep}${text}`);
+  return { action: 'appended', file, text };
+}
 
 export function initPlan(target, { name = 'My Project', force = false, today = new Date() } = {}) {
   const abs = path.resolve(target);

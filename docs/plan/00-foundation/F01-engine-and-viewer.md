@@ -5,7 +5,7 @@ title: Format, engine & viewer
 status: auto
 parent: P0
 labels: [core]
-updated: 2026-11-03
+updated: 2026-11-04
 ---
 
 ## Points
@@ -88,6 +88,16 @@ updated: 2026-11-03
   > Why: Pointing `thinkmap serve` at an empty or wrong folder used to crash the layout
   > before the first render, so the page stayed on "connecting…" and looked broken.
   > Built: `renderMap()` empty state in `web/index.html`.
+
+- [decided 2026-11-04 claude] P0-F01-11: `thinkmap init` writes the Planning section into CLAUDE.md itself
+  > What: `init` creates CLAUDE.md at the project root, or appends the section to an existing
+  > one, or leaves it alone if it already has a Thinkmap heading or the `@<plan>/FORMAT.md`
+  > link. The section names where each file goes (project, phase, topic, ticket) and points
+  > at FORMAT.md. `--no-claude-md` opts out and prints the text instead.
+  > Why: Printing the snippet relied on the person pasting it. When they didn't, a new Claude
+  > session never learned that FORMAT.md exists or that tickets live only in `tickets/`.
+  > Expected: The first session after `init` follows the layout without being told.
+  > Built: `claudeSection()` and `addClaudeSection()` in `src/init.js`; test in `test/init.test.js`.
 
 ## Tickets
 

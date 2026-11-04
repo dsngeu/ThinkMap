@@ -57,9 +57,10 @@ npx github:dsngeu/ThinkMap init --name "Your Project"   # creates docs/plan/ wit
 npx github:dsngeu/ThinkMap serve --open                 # opens http://localhost:4400
 ```
 `--name` is the title shown on the map's root card (defaults to the folder name).
-`init` also prints a short **Planning** section — paste it into the project's `CLAUDE.md`
-(or your assistant's instructions file) so every session writes decisions into the plan
-files instead of leaving them in chat.
+`init` also adds a short **Planning** section to the project's `CLAUDE.md` (creating it if
+missing; an existing Thinkmap section is left alone) so every session knows where each file
+goes and writes decisions into the plan files instead of leaving them in chat. Another
+assistant? `--no-claude-md` prints the section instead, for its instructions file.
 
 **Project that already has `docs/plan/`:** skip `init` (it refuses to touch a non-empty
 folder) and just open the map:
@@ -136,7 +137,7 @@ Expected · Discussed · Options · Pending · Built · Risk · Next`. Full spec
 
 | Command | What it does |
 |---|---|
-| `thinkmap init [dir] --name "X" [--force]` | Set up `docs/plan/` from the template |
+| `thinkmap init [dir] --name "X" [--force] [--no-claude-md]` | Set up `docs/plan/` from the template and add the Planning section to `CLAUDE.md` |
 | `thinkmap phase <P2> <slug> [dir] [--title "X"]` | Scaffold one phase: `02-slug/phase.md` with valid front matter and `tickets/.gitkeep`. Re-running adds only what is missing |
 | `thinkmap serve [dir] [--port 4400] [--open] [--restart] [--read-only]` | Web viewer with live reload. If a Thinkmap already serves this plan it is reused (same version) or stopped and replaced (other version, or `--restart`). Servers of other projects are never touched; the next free port is used. `--read-only` hides the Add / Remove buttons on the Tooling tab |
 | `thinkmap status [dir] [P1 \| P1-F02 \| open]` | Terminal summary: phases, in progress, blocked, open questions, next free tickets, and the suggested next step (including "generate tickets" once a phase is fully decided). With a topic ID: that topic's points by kind and its tickets with status and owner |
@@ -221,7 +222,7 @@ npx github:dsngeu/ThinkMap#master update
 1. Keep the map open on a second screen.
 2. Discuss as usual. Say "record that as decided" or "that's still open" — the assistant
    writes the files (the plugin's `thinkmap-format` skill tells it how; without the plugin,
-   the `CLAUDE.md` snippet from `init` does).
+   the Planning section `init` adds to `CLAUDE.md` does).
 3. Hand tickets to separate sessions: `/implement-ticket P1-T03` or just "work on ticket
    P1-T03". Each session edits only its own ticket, logs in the *Handoff log*, and marks
    it `done`. The map turns green.

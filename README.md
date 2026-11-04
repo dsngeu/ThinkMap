@@ -148,6 +148,9 @@ Then start a new Claude session and run `/thinkmap` — it replaces the old dash
 Coming from 0.8 or older? `/thinkmap-create-tickets`, `/thinkmap-implement-ticket` and
 `/thinkmap-status` are now add-ons called `/create-tickets`, `/implement-ticket` and `/plan-status`:
 add the ones you want once per project from the Tooling page.
+New in 0.10: `thinkmap init` writes the **Planning** section into `CLAUDE.md` itself (creates the
+file, or adds the section at the end; an existing section is left alone), so every new session
+knows the format and that tickets go in `tickets/`. `--no-claude-md` skips it.
 If the update says there is nothing new, run `claude plugin marketplace update thinkmap` first.
 
 ## More

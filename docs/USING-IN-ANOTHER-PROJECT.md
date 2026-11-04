@@ -71,9 +71,11 @@ Other ways to run it:
   then `node ~/thinkmap/bin/thinkmap.js serve` inside any project.
 
 ### 2. Tell your assistant about it
-Paste the **Planning** section that `init` prints into the project's `CLAUDE.md`
-(or the equivalent instructions file of your assistant). This is what makes every
-session write decisions into the plan files while you talk.
+`init` already did this: it adds a **Planning** section to the project's `CLAUDE.md`
+(creating the file if missing, never touching existing text). It points at `FORMAT.md` and
+says where each file goes, so every session writes decisions into the plan files while you
+talk and puts tickets in `tickets/`. Using another assistant? Run `init --no-claude-md` and
+paste the printed section into its instructions file instead.
 
 ### 3. Open the map
 ```bash

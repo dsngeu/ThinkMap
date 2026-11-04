@@ -6,7 +6,7 @@ import { execFile } from 'node:child_process';
 import { buildGraph } from '../src/graph.js';
 import { formatStatus, formatIssues } from '../src/status.js';
 import { startServer, exportHtml } from '../src/server.js';
-import { initPlan, scaffoldPhase, CLAUDE_SNIPPET, formatCopyStatus, syncFormatCopy, TEMPLATE_FORMAT, TEMPLATE_VERSION } from '../src/init.js';
+import { initPlan, scaffoldPhase, CLAUDE_SNIPPET, addClaudeSection, formatCopyStatus, syncFormatCopy, TEMPLATE_FORMAT, TEMPLATE_VERSION } from '../src/init.js';
 import { findServers, decide, stopServer } from '../src/handoff.js';
 import { planTicketSync, applyTicketSync } from '../src/tickets.js';
 import { currentVersion, detectInstall, howToUpdate, checkLatest, runUpdate, cliCommand, staleCopies } from '../src/update.js';
@@ -19,7 +19,7 @@ const projectRoot = (planDir) => findRepoRoot(path.resolve(planDir)) || path.res
 const HELP = `Thinkmap — live planning map for docs/plan/*.md
 
 Usage:
-  thinkmap init     [dir] [--name "Project"] [--force]   set up docs/plan/ from the template
+  thinkmap init     [dir] [--name "Project"] [--force] [--no-claude-md]   set up docs/plan/ and add a Planning section to CLAUDE.md
   thinkmap phase    <P2> <slug> [dir] [--title "Name"]   scaffold a phase: 02-slug/phase.md + tickets/.gitkeep
   thinkmap serve    [dir] [--port 4400] [--open] [--restart] [--read-only]   web viewer with live reload; reuses or
                                                    replaces a Thinkmap already serving this plan (--restart always replaces);
@@ -68,7 +68,19 @@ switch (cmd) {
       console.log(`✓ Thinkmap set up in ${r.dir}`);
       for (const f of r.written) console.log(`  + ${f}`);
       for (const f of r.skipped) console.log(`  = ${f} (kept, already existed)`);
-      console.log(`\nNext:\n  1. Add this to your CLAUDE.md so every Claude session follows the format:\n\n${CLAUDE_SNIPPET.replace(/^/gm, '     ')}\n  2. Replace the example topic with real ones (see ${path.join(r.dir, 'FORMAT.md')}); more phases: ${cliCommand()} phase P2 <slug>\n  3. ${cliCommand()} serve --open`);
+      const steps = [];
+      if (flags['no-claude-md']) {
+        steps.push(`Add this to your CLAUDE.md so every Claude session follows the format:\n\n${CLAUDE_SNIPPET.replace(/^/gm, '     ')}`);
+      } else {
+        const c = addClaudeSection(process.cwd(), r.dir);
+        if (c.action === 'created') console.log(`  + CLAUDE.md (Planning section — every Claude session now knows the format)`);
+        else if (c.action === 'appended') console.log(`  ~ CLAUDE.md (Planning section added at the end; nothing else changed)`);
+        else if (c.action === 'kept') console.log(`  = CLAUDE.md (already has a Thinkmap section, left alone)`);
+        else steps.push(`The plan folder is outside this directory, so CLAUDE.md was not touched. Add this to your project's CLAUDE.md:\n\n${c.text.replace(/^/gm, '     ')}`);
+      }
+      steps.push(`Replace the example topic with real ones (see ${path.join(r.dir, 'FORMAT.md')}); more phases: ${cliCommand()} phase P2 <slug>`);
+      steps.push(`${cliCommand()} serve --open`);
+      console.log(`\nNext:\n${steps.map((s, i) => `  ${i + 1}. ${s}`).join('\n')}`);
     } catch (e) {
       console.error(`✗ ${e.message}`);
       process.exit(1);

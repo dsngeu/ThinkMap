@@ -32,8 +32,12 @@ place — they show every note kind — unless the person asks to remove them.
 
 ## 3. Add the Planning section to CLAUDE.md
 
-The exact text is what `init` prints under "Next: 1." (it is also `CLAUDE_SNIPPET` in
-`${CLAUDE_PLUGIN_ROOT}/src/init.js`). Rules:
+If you ran `init` in step 2, it already did this: its output has a `CLAUDE.md` line saying
+created, added or left alone. Report that and move on.
+
+Only when `init` was skipped (the plan folder already existed), add it yourself. The exact
+text is `claudeSection()` in `${CLAUDE_PLUGIN_ROOT}/src/init.js` (with `docs/plan` replaced by
+the plan folder if it differs). Rules:
 
 - If `CLAUDE.md` does not exist at the project root, create it with that section only.
 - If it exists and already contains a heading with "Thinkmap" or `@docs/plan/FORMAT.md`,

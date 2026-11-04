@@ -104,3 +104,40 @@ test('thinkmap phase: scaffolds NN-slug/phase.md + tickets/.gitkeep, valid at on
   assert.match(fs.readFileSync(path.join(dir, '12-reports', 'phase.md'), 'utf8'), /^title: Reports & exports$/m);
   assert.equal(graph().stats.errors, 0);
 });
+
+test('init adds the Planning section to CLAUDE.md: creates, appends once, never edits existing text', async () => {
+  const { addClaudeSection } = await import('../src/init.js');
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'thinkmap-claude-'));
+  const plan = path.join(root, 'docs', 'plan');
+  initPlan(plan, { name: 'C' });
+  const file = path.join(root, 'CLAUDE.md');
+
+  // no CLAUDE.md → created, names the plan folder, FORMAT.md and where tickets go
+  let r = addClaudeSection(root, plan);
+  assert.equal(r.action, 'created');
+  const text = fs.readFileSync(file, 'utf8');
+  assert.match(text, /@docs\/plan\/FORMAT\.md/);
+  assert.match(text, /NN-slug\/tickets\/P<n>-T<nn>-F<nn>-slug\.md/);
+  // running again changes nothing
+  assert.equal(addClaudeSection(root, plan).action, 'kept');
+  assert.equal(fs.readFileSync(file, 'utf8'), text);
+
+  // existing CLAUDE.md without the section → appended after the original text, which stays intact
+  fs.writeFileSync(file, '# My app\n\nUse tabs.');
+  r = addClaudeSection(root, plan);
+  assert.equal(r.action, 'appended');
+  const after = fs.readFileSync(file, 'utf8');
+  assert.ok(after.startsWith('# My app\n\nUse tabs.\n\n## Planning (Thinkmap)'), after);
+  assert.equal(addClaudeSection(root, plan).action, 'kept');
+
+  // a custom plan folder is named in the section
+  const other = fs.mkdtempSync(path.join(os.tmpdir(), 'thinkmap-claude-'));
+  initPlan(path.join(other, 'planning'), { name: 'P' });
+  addClaudeSection(other, path.join(other, 'planning'));
+  assert.match(fs.readFileSync(path.join(other, 'CLAUDE.md'), 'utf8'), /@planning\/FORMAT\.md/);
+
+  // plan folder outside the project → nothing written
+  const outside = fs.mkdtempSync(path.join(os.tmpdir(), 'thinkmap-claude-'));
+  assert.equal(addClaudeSection(outside, plan).action, 'outside');
+  assert.equal(fs.existsSync(path.join(outside, 'CLAUDE.md')), false);
+});
