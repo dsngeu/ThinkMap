@@ -6,7 +6,7 @@ status: auto
 parent: P1
 depends_on: [P1-F01, P1-F02]
 labels: [claude-code, distribution]
-updated: 2026-11-03
+updated: 2026-11-04
 ---
 
 Package everything as one Claude Code plugin and distribute it through a plugin marketplace.
@@ -137,6 +137,15 @@ Package everything as one Claude Code plugin and distribute it through a plugin 
   > Why: 2026-11-03 — the catalogue, Add / Remove and the ticket-skill rename shipped in three
   > commits still at 0.7.0; after updating, the dashboard showed no Add buttons. Fixed by 0.8.0.
   > Risk: Users update, see nothing new, and think the feature is broken.
+
+- [caution 2026-11-04 claude] P1-F03-13: A project-scoped install stays on its own version — updating Thinkmap in one project doesn't update the others
+  > What: `/plugin install` from inside a project records the install for that project only.
+  > On 2026-11-04 `ai-agents-company` still loaded 0.8.0 while this repo ran 0.10.0, so its
+  > briefing refreshed FORMAT.md to the 0.8.0 rules and it had none of the add-ons changes.
+  > Why: Claude Code keeps one install entry per project path, each with its own version.
+  > Risk: Projects quietly run old rules and old skills; a user thinks an update "didn't work".
+  > Next: Have the session briefing say when the loaded Thinkmap is older than the newest
+  > one on disk or on GitHub, and give the update command (`/plugin update thinkmap@thinkmap`).
 
 ## Tickets
 

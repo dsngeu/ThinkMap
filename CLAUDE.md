@@ -21,9 +21,11 @@ A zero-dependency Node tool that turns `docs/plan/*.md` into a live mind map.
 - Keep `web/index.html` working in light and dark mode and at phone width.
 - Every change: `npm test` passes and `node bin/thinkmap.js validate docs/plan` is clean.
 
-## Git rule — humans commit, Claude never does
-Never run `git commit`, `git push`, `git tag`, `git rebase` or `git reset`. Leave changes
-in the working tree and end with the list of changed files and a suggested commit message.
+## Git rule — commit and push only when asked
+Don't commit or push on your own: leave changes in the working tree and end with the list of
+changed files and a suggested commit message. When Deepak says "commit" or "commit and push",
+do it — stage the files from this work, commit with that message, and push the current branch.
+Never run `git tag`, `git rebase`, `git reset` or a force push unless asked for that by name.
 
 ## Planning
 This repo plans itself with Thinkmap: `docs/plan/` follows @template/FORMAT.md.
