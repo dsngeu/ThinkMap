@@ -305,6 +305,45 @@ mark.hl { background: color-mix(in srgb, var(--ask) 30%, transparent); color: in
 .cat .row .ic { width: 14px; height: 14px; }
 .cat .msg { font-size: 12.5px; margin-top: 10px; color: var(--t); overflow-wrap: anywhere; }
 
+/* ---------- home: "how Thinkmap works" flow ---------- */
+/* One 12s loop: the line fills left to right and each step lights up for 2s in turn. */
+.flow { list-style: none; margin: 0; padding: 0; position: relative; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px; }
+.flow::before, .flow::after { content: ""; position: absolute; top: 21px; left: calc((100% - 70px) / 12); right: calc((100% - 70px) / 12); height: 2px; border-radius: 2px; background: var(--line); }
+.flow::after { background: linear-gradient(90deg, var(--accent), var(--accent-2)); transform-origin: left center; animation: flowfill 12s linear infinite; }
+.flow li { position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; min-width: 0; }
+.flow .dot { position: relative; z-index: 1; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--surface); border: 2px solid var(--line); color: var(--muted); animation: flowdot 12s infinite; animation-delay: calc(var(--i) * 2s); }
+.flow .dot .ic { width: 19px; height: 19px; }
+.flow .box { flex: 1; width: 100%; padding: 12px 12px 14px; border-radius: 14px; background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow); animation: flowbox 12s infinite; animation-delay: calc(var(--i) * 2s); }
+.flow .num { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+.flow h3 { font-size: 14px; line-height: 1.3; letter-spacing: -.01em; margin-top: 2px; }
+.flow p { font-size: 12.5px; line-height: 1.45; color: var(--muted); margin-top: 6px; }
+.flow code { display: inline-block; margin-top: 8px; font-size: 11.5px; }
+.flow a { color: var(--accent); font-weight: 600; }
+.flow:hover::after, .flow:hover .dot, .flow:hover .box { animation-play-state: paused; }
+.flowloop { display: flex; align-items: center; gap: 8px; margin-top: 14px; font-size: 13.5px; color: var(--muted); }
+.flowloop .ic { width: 16px; height: 16px; color: var(--accent); }
+@keyframes flowfill { 0% { transform: scale(0, 1); } 83.4%, 100% { transform: scale(1, 1); } }
+@keyframes flowfillv { 0% { transform: scale(1, 0); } 83.4%, 100% { transform: scale(1, 1); } }
+@keyframes flowdot {
+  0%, 19%, 100% { background: var(--surface); border-color: var(--line); color: var(--muted); transform: none; box-shadow: none; }
+  3%, 14% { background: var(--accent); border-color: var(--accent); color: #fff; transform: scale(1.08); box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 18%, transparent); }
+}
+@keyframes flowbox {
+  0%, 19%, 100% { border-color: var(--border); transform: none; }
+  3%, 14% { border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); transform: translateY(-3px); }
+}
+@media (max-width: 900px) {
+  .flow { grid-template-columns: 1fr; gap: 12px; }
+  .flow::before, .flow::after { top: 22px; bottom: 22px; left: 21px; right: auto; width: 2px; height: auto; }
+  .flow::after { transform-origin: center top; animation-name: flowfillv; }
+  .flow li { flex-direction: row; align-items: flex-start; text-align: left; gap: 14px; }
+  .flow .box { padding: 12px 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flow::after, .flow .dot, .flow .box { animation: none; }
+  .flow::after { transform: none; }
+}
+
 /* ---------- mind map (second view) ---------- */
 #stage { position: absolute; inset: 0; overflow: auto; background: radial-gradient(circle at 1px 1px, var(--line) 1px, transparent 0) 0 0 / 22px 22px; }
 #canvas { position: relative; }
@@ -628,7 +667,24 @@ mark.hl { background: color-mix(in srgb, var(--ask) 30%, transparent); color: in
           ${mini('#/tooling', 'tools', 'accent', 'Claude Code tooling', toolingSummary())}
           ${errors || warnings ? mini('#/issues', 'warn', errors ? 'risk' : 'idle', errors ? plural(errors, 'format error') : plural(warnings, 'format warning'), errors ? 'Some plan files break the format' : 'Small fixes; the plan still reads fine') : ''}
         </div></div>
-      </div>`;
+      </div>
+      ${flowSection()}`;
+  }
+
+  // The lifecycle, start to finish. Shown at the bottom of Home so newcomers see the whole path.
+  function flowSection() {
+    const steps = [
+      ['plus', 'Install the plugin', 'Once per machine, in Claude Code.', '/plugin install thinkmap@thinkmap'],
+      ['layers', 'Set up the plan', 'Once per project: creates <code>docs/plan/</code> and the planning rules in CLAUDE.md.', '/thinkmap-init'],
+      ['tools', 'Add the ticket skills', 'On the <a href="#/tooling">Tooling</a> page, tap Add on create-tickets and implement-ticket (and any review agents you want).', ''],
+      ['talk', 'Talk it through with Claude', 'Claude writes each decision, question and caution into the plan files while you talk. You never write them by hand.', ''],
+      ['ticket', 'Create tickets', 'Turns a phase’s decided points into tickets, one unit of work each.', '/create-tickets P1'],
+      ['check', 'Build each ticket', 'A fresh session per ticket. Commit with the ticket ID and the map turns green.', '/implement-ticket P1-T01'],
+    ];
+    return `${sechead('How Thinkmap works', null, 'From install to built, in six steps.')}
+      <ol class="flow">${steps.map(([ic, t, s, cmd], i) => `<li style="--i:${i}"><span class="dot">${icon(ic)}</span><div class="box">
+        <div class="num">Step ${i + 1}</div><h3>${t}</h3><p>${s}</p>${cmd ? `<code>${esc(cmd)}</code>` : ''}</div></li>`).join('')}</ol>
+      <p class="flowloop">${icon('up')}Next phase? Go back to step 4: talk, create tickets, build.</p>`;
   }
 
   function emptyPage() {

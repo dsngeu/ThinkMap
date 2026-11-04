@@ -5,7 +5,7 @@ title: Viewer open questions
 status: auto
 parent: P2
 labels: [viewer]
-updated: 2026-11-03
+updated: 2026-11-04
 ---
 
 ## Points
@@ -62,3 +62,14 @@ updated: 2026-11-03
   > it means something (amber = needs you, green = done/decided, red = take care, blue = building).
   > Discussed: Line icons replace emoji; the Legend is gone because the words say it.
   > Built: `web/index.html` rewritten, still one file with no libraries.
+
+- [decided 2026-11-04] P2-F01-08: Home ends with an animated "How Thinkmap works" strip — the lifecycle in six steps
+  > What: Install the plugin → set up the plan (`/thinkmap-init`) → add the ticket skills on
+  > Tooling → talk it through with Claude → `/create-tickets P1` → `/implement-ticket P1-T01`,
+  > then back to step 4 for the next phase. A line fills left to right and each step lights up
+  > in turn (12 s loop, pauses on hover); vertical at phone width; still under reduced motion.
+  > Why: Deepak asked for the whole flow to be visible on the dashboard. His draft had "create
+  > md file" as a step and no set-up step; Claude writes the plan files while you talk, so that
+  > step became "talk it through", and `/thinkmap-init` was added.
+  > Discussed: Pure CSS animation, no libraries (P0-F01-05).
+  > Built: `flowSection()` and the `.flow` styles in `web/index.html`.
