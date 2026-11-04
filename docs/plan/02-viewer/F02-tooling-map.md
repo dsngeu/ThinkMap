@@ -130,6 +130,9 @@ can see what runs automatically in this repo and tap an item to read what it doe
   > update with Thinkmap, catalogue copies are frozen in the project. One skill per job also
   > avoids two ticket commands side by side. Deepak's call.
   > Built: See P1-F01-09 and P1-F01-10.
+  > Changed by P2-F02-14: still one skill per job, but it now lives in the catalogue. Against the
+  > "frozen copy" worry, the session briefing warns when an added Thinkmap skill is older than
+  > the plugin and says to tap Update.
 
 - [decided 2026-11-03] P2-F02-13: The Tooling page shows three groups — built into Thinkmap, add-ons, this project's own — and has its own top-bar button
   > What: "Built into Thinkmap" lists the plugin's own skills (`/thinkmap`, `/thinkmap-create-tickets`,
@@ -146,6 +149,29 @@ can see what runs automatically in this repo and tap an item to read what it doe
   > plugins, so P2-F02-02 still holds.
   > Built: `scanBuiltin()` in `src/tooling.js` (`builtin` in the graph; empty when the project is
   > Thinkmap itself), `web/index.html` (section, top-bar button, home card); test in `test/catalogue.test.js`.
+  > All cards share one layout: short title, plain description, small kind label. Hooks show the
+  > event as title, "Runs before a tool call for tools matching Read, Edit…" and the script name.
+  > Changed by P2-F02-14: option (b) after all — the ticket and status skills are add-ons now;
+  > "Built into Thinkmap" keeps /thinkmap, /thinkmap-init and the automatic format skill.
+
+- [decided 2026-11-04] P2-F02-14: The ticket and status skills are add-ons, copied into the project's `.claude/skills/` like review-fix-loop
+  > What: `thinkmap-create-tickets`, `thinkmap-implement-ticket` and `thinkmap-status` move from
+  > the plugin's `skills/` to `catalogue/skills/`. A project gets them only when someone taps Add
+  > (or runs `thinkmap add`), and Remove deletes them again. The plugin keeps only what opening
+  > the map and planning need: `/thinkmap`, `/thinkmap-init` and the automatic `thinkmap-format`.
+  > Why: Deepak, after trying Add / Remove: a plugin update put the skills into every project on
+  > its own; he expected to find them in the project's `.claude/` next to review-fix-loop, and to
+  > choose per project. Reverses option (a) of P2-F02-13.
+  > How: a skill in a project has no `${CLAUDE_PLUGIN_ROOT}`, so the add-ons run
+  > `node "$THINKMAP_CLI"`. The SessionStart hook writes `THINKMAP_CLI` (this Thinkmap's
+  > `bin/thinkmap.js`) to `CLAUDE_ENV_FILE` in every session; without the plugin the skills say
+  > to use `npx github:dsngeu/ThinkMap`. They read the rules from the project's
+  > `docs/plan/FORMAT.md` (kept fresh by the briefing's refresh warning). The briefing lists
+  > only the add-ons the project has, and points to the Tooling page for the rest.
+  > Risk: after updating, a project that used /thinkmap-create-tickets has to Add it once; the
+  > briefing says so. Copied skills update through the dashboard's Update button, not the plugin.
+  > Built: `catalogue/skills/thinkmap-*`, `catalogue/catalogue.json`, `hooks/briefing.mjs`
+  > (`exportCli`, `commandsOf`); tests in `test/plugin.test.js` and `test/catalogue.test.js`.
 
 - [caution 2026-11-03 claude] P2-F02-08: A localhost server that writes files is reachable from any web page
   > What: Any site open in the browser can send requests

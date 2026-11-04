@@ -24,9 +24,11 @@ That is all. No `npx`, no copied folders, no CLAUDE.md editing: the plugin carri
 - **`thinkmap-format`** — an automatic skill. Whenever a session discusses, decides, asks or
   warns about something in a project with `docs/plan/`, Claude writes it into the plan
   files in the right format. The rules come from one file, the plugin's `template/FORMAT.md`.
-- **`/thinkmap`**, **`/thinkmap-status [P1|open]`**, **`/thinkmap-implement-ticket <ID>`**,
-  **`/thinkmap-init`** — the commands. Saying "work on ticket P1-T03" triggers the ticket
-  one by itself.
+- **`/thinkmap`** and **`/thinkmap-init`** — open the map, set up `docs/plan/`.
+- **Add-ons you choose per project** — `/thinkmap-create-tickets`, `/thinkmap-implement-ticket`,
+  `/thinkmap-status` and the review agents. Open `/thinkmap` → **Tooling** → **Add**: the skill is
+  copied into the project's `.claude/skills/`; **Remove** deletes it. Once added, saying
+  "work on ticket P1-T03" triggers the ticket skill by itself.
 - **Hooks** — after every edit under `docs/plan/` the validator runs and errors go back to
   Claude; every new session starts with a plan briefing (status, where the rules are, the commands).
 

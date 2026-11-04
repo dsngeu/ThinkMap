@@ -66,7 +66,8 @@ updates live. Works for **any** project that follows the format (`thinkmap init`
 | Piece | Type | Where |
 |---|---|---|
 | `thinkmap-format` — points at `template/FORMAT.md` (one source of truth) and teaches the habit; triggers when planning/discussing | Skill (auto) | `skills/thinkmap-format/` |
-| `/thinkmap-init`, `/thinkmap` (user-only) · `/thinkmap-status`, `/thinkmap-create-tickets <P1\|P1-F02>` (two gates), `/thinkmap-implement-ticket <ID>` (Claude may use them too) | Skills (commands) | `skills/` |
+| `/thinkmap-init`, `/thinkmap` (user-only), `thinkmap-format` (automatic) | Skills built into the plugin | `skills/` |
+| `/thinkmap-status`, `/thinkmap-create-tickets <P1\|P1-F02>` (two gates), `/thinkmap-implement-ticket <ID>` (Claude may use them too) — added per project from the Tooling page, they run `node "$THINKMAP_CLI"` (set by the SessionStart hook) | Add-on skills (P2-F02-14) | `catalogue/skills/` |
 | Validate on save (PostToolUse, exit 2 + errors on stderr) · session briefing (SessionStart, additionalContext) — fail open, < 1 s | Hooks | `hooks/hooks.json`, `hooks/*.mjs` |
 | Plugin manifest + marketplace in this repo: `/plugin marketplace add dsngeu/ThinkMap` → `/plugin install thinkmap@thinkmap` | Plugin | `.claude-plugin/` |
 

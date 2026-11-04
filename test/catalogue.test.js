@@ -180,7 +180,10 @@ test('server: Add needs the page token and the dashboard origin; --read-only ref
 test('graph: lists the skills built into Thinkmap for other projects, not for Thinkmap itself', () => {
   const g = buildGraph(path.join(project(), 'docs', 'plan'));
   const names = g.builtin.map((b) => b.name);
-  for (const n of ['thinkmap', 'thinkmap-create-tickets', 'thinkmap-implement-ticket', 'thinkmap-status']) assert.ok(names.includes(n), n);
-  assert.equal(g.builtin.find((b) => b.name === 'thinkmap-create-tickets').slash, '/thinkmap-create-tickets');
+  assert.deepEqual(names.sort(), ['thinkmap', 'thinkmap-format', 'thinkmap-init']);
+  assert.equal(g.builtin.find((b) => b.name === 'thinkmap').slash, '/thinkmap');
+  // the ticket and status skills are add-ons now (P2-F02-14)
+  const cat = g.catalogue.items.map((i) => i.name);
+  for (const n of ['thinkmap-create-tickets', 'thinkmap-implement-ticket', 'thinkmap-status']) assert.ok(cat.includes(n), n);
   assert.deepEqual(buildGraph(path.join(ROOT, 'docs', 'plan')).builtin, [], 'Thinkmap lists its own skills as plugin tooling already');
 });

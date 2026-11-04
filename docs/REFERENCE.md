@@ -19,15 +19,17 @@ Then, in any project:
 /thinkmap-init        # once: creates docs/plan/ (and a Planning section in CLAUDE.md)
 /thinkmap             # opens the live map
 ```
-What the plugin gives every session in that project, without any CLAUDE.md editing:
+What the plugin gives every session in that project, without any CLAUDE.md editing. Rows marked
+*add-on* are copied into the project's `.claude/skills/` only when you tap **Add** on the map's
+Tooling page (or run `thinkmap add <name>`), and removed again with **Remove**:
 
 | Piece | What it does |
 |---|---|
 | `thinkmap-format` (automatic) | While you discuss or decide, Claude writes decisions, open questions, ideas and cautions into the plan files. The rules come from one file, `template/FORMAT.md`. |
 | `/thinkmap` | Opens the map: starts the viewer, reuses one already showing this plan, or replaces it when it runs an older version (after a plugin update) |
-| `/thinkmap-status [P1 \| P1-F02 \| open]` | Terminal summary — Claude may also run it on its own |
-| `/thinkmap-create-tickets <P1 \| P1-F02>` | Breaks the decided points of a phase (or one topic) into tickets: one table to approve first, files written only after "go ahead". `thinkmap status` suggests it when a phase is fully decided and has no tickets |
-| `/thinkmap-implement-ticket <ID>` | Two gates: first a read-only brief (decisions, cautions, criteria, dependencies, approach, open questions); after "go ahead" it claims the ticket (in-progress, owner, Handoff log), builds it and closes it (criteria ticked, `code:` filled, `done`). Refuses to double-claim. "Work on P1-T03" triggers it too |
+| `/thinkmap-status [P1 \| P1-F02 \| open]` (add-on) | Terminal summary — Claude may also run it on its own |
+| `/thinkmap-create-tickets <P1 \| P1-F02>` (add-on) | Breaks the decided points of a phase (or one topic) into tickets: one table to approve first, files written only after "go ahead". `thinkmap status` suggests it when a phase is fully decided and has no tickets |
+| `/thinkmap-implement-ticket <ID>` (add-on) | Two gates: first a read-only brief (decisions, cautions, criteria, dependencies, approach, open questions); after "go ahead" it claims the ticket (in-progress, owner, Handoff log), builds it and closes it (criteria ticked, `code:` filled, `done`). Refuses to double-claim. "Work on P1-T03" triggers it too |
 | `/thinkmap-init` | Sets up `docs/plan/` in a new project |
 | Hook: validate on save | After any edit under `docs/plan/`, format errors go straight back to Claude |
 | Hook: session briefing | Every new session starts with the plan status and where the rules are |

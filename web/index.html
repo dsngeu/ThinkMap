@@ -290,7 +290,7 @@ mark.hl { background: color-mix(in srgb, var(--ask) 30%, transparent); color: in
 .tools { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
 .tool { padding: 18px; display: flex; gap: 14px; }
 .tool .t { font-weight: 650; font-size: 15px; overflow-wrap: anywhere; }
-.tool .s { font-size: 13.5px; color: var(--muted); margin-top: 3px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.tool .s { font-size: 13.5px; color: var(--muted); margin-top: 3px; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .tool .k { font-size: 12.5px; color: var(--t); margin-top: 8px; overflow-wrap: anywhere; }
 .tool > span:not(.dotic) { min-width: 0; flex: 1; }
 .cat .s { -webkit-line-clamp: 3; }
@@ -757,7 +757,6 @@ mark.hl { background: color-mix(in srgb, var(--ask) 30%, transparent); color: in
   const inboxPage = () => groupedPage(['open', 'suggestion'], 'Needs you', (n) => (n ? `${plural(n, 'decision')} waiting for you` : 'All caught up'), 'Open questions and suggestions across the whole project, grouped by topic. Open one to read the options.', 'ask', 'ask', 'Nothing is waiting for a decision');
   const carePage = () => groupedPage(['caution'], 'Take care', (n) => `${plural(n, 'thing', 'things')} to take care of`, 'Rules and risks recorded across the project. Whoever builds in these topics should keep them in mind.', 'risk', 'risk', 'No cautions recorded');
 
-  const tbadge = (t) => (t.group === 'skill' ? (t.slash ? `${t.slash}${/on its own/.test(t.trigger) ? ' · also automatic' : ''}` : 'automatic') : t.group === 'agent' ? `subagent${t.model ? ` · ${t.model}` : ''}${t.tools?.length ? ` · ${plural(t.tools.length, 'tool')}` : ''}` : `${t.event}${t.matcher ? ` · ${t.matcher}` : ''}${t.hookType === 'prompt' ? ' · prompt' : ''}`);
   // ---------- the Thinkmap catalogue: ready-made agents and skills ----------
   const CAT_STATE = {
     available: { label: 'Not added', tone: 'idle' },
@@ -829,6 +828,20 @@ mark.hl { background: color-mix(in srgb, var(--ask) 30%, transparent); color: in
     const left = c.filter((i) => i.state === 'available').length;
     return [b && `${b} built in`, c.length && (left ? `${left} ready-made to add` : `${c.length} add-ons added`), `${own} of this project’s own`].filter(Boolean).join(' · ');
   }
+  // A project's own agent, skill or hook — same card layout as the built-in and add-on cards.
+  function ownCard(i) {
+    const g = GROUP[i.group];
+    const script = i.command && /([\w.-]+\.(?:mjs|cjs|js|ts|sh|py|rb))\b/.exec(i.command)?.[1];
+    const title = i.group === 'hook' ? i.event : i.group === 'skill' && i.slash ? i.slash : i.name;
+    const desc = i.group === 'hook' ? i.trigger.replace(/"([^"]+)"/, (_, m) => m.split('|').join(', ')) : i.description || 'No description.';
+    const kind = i.group === 'hook' ? `hook${script ? ` · ${script}` : i.hookType === 'prompt' ? ' · prompt' : ''}`
+      : i.group === 'agent' ? `agent${i.model ? ` · ${i.model}` : ''}` : i.slash ? (/on its own/.test(i.trigger) ? 'skill · also automatic' : 'skill') : 'automatic skill';
+    return `<a class="card tool cat" href="${href('tooling', i.id)}">${dotic(g.ic, g.tone)}<span>
+      <div class="t">${esc(title)}</div>
+      <div class="s">${esc(desc)}</div>
+      <div class="row"><span class="k t-${g.tone}" style="margin:0">${esc(kind)}</span></div>
+    </span></a>`;
+  }
   function builtinCard(b) {
     return `<div class="card tool cat">${dotic(GROUP.skill.ic, GROUP.skill.tone)}<span>
       <div class="t">${esc(b.slash || b.name)}</div>
@@ -850,7 +863,7 @@ mark.hl { background: color-mix(in srgb, var(--ask) 30%, transparent); color: in
     const builtSec = builtin.length ? `${sechead('Built into Thinkmap', builtin.length, 'Come with the Thinkmap plugin and work in every project that has it. Nothing to add — type the command in Claude Code. After a Thinkmap update, start a new Claude session to get the newest ones.')}<div class="tools">${builtin.map(builtinCard).join('')}</div>` : '';
     const catSec = cat.items.length ? `${sechead('Add-ons from Thinkmap', `${cat.installed} of ${cat.items.length} added`, `Optional ready-made agents and skills. ${howAdd}`)}<div class="tools">${cat.items.map(catCard).join('')}</div>` : '';
     const ownSec = own.length
-      ? ['agent', 'skill', 'hook'].map((g) => { const l = own.filter((i) => i.group === g); return l.length ? `${sechead(`This project’s own ${GROUP[g].title.toLowerCase()}`, l.length, GROUP[g].hint)}<div class="tools">${l.map((i) => `<a class="card tool" href="${href('tooling', i.id)}">${dotic(GROUP[g].ic, GROUP[g].tone)}<span><div class="t">${esc(i.group === 'skill' && i.slash ? i.slash : i.name)}</div><div class="s">${esc(i.description || 'No description.')}</div><div class="k t-${GROUP[g].tone}">${esc(tbadge(i))}</div></span></a>`).join('')}</div>` : ''; }).join('')
+      ? ['agent', 'skill', 'hook'].map((g) => { const l = own.filter((i) => i.group === g); return l.length ? `${sechead(`This project’s own ${GROUP[g].title.toLowerCase()}`, l.length, GROUP[g].hint)}<div class="tools">${l.map(ownCard).join('')}</div>` : ''; }).join('')
       : `${sechead('This project’s own', 0, '')}<div class="lede">None yet. Thinkmap looks in <code>.claude/agents/</code>, <code>.claude/skills/</code>, <code>.claude/commands/</code> and the <code>hooks</code> block of <code>.claude/settings.json</code> (plus a plugin’s own folders). It never reads your personal <code>~/.claude</code>.</div>`;
     return `${head}<div class="lede">Skills built into Thinkmap, optional add-ons you can add with one click, and this project’s own agents, skills and hooks.</div>${notes}${builtSec}${catSec}${ownSec}`;
   }

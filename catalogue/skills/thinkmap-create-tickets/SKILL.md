@@ -2,10 +2,14 @@
 name: thinkmap-create-tickets
 description: Break the decided points of a whole phase (P1) or one topic (P1-F02) into tickets. Shows the proposed breakdown as one table first and writes the ticket files only after an explicit "go ahead". Use it when `thinkmap status` suggests generating tickets, or when the person asks to create tickets, plan the work, or break a phase down.
 argument-hint: "<P1 | P1-F02> [owner]"
-allowed-tools: Bash(node ${CLAUDE_PLUGIN_ROOT}/bin/thinkmap.js *), Read, Write, Edit, Glob, Grep
+allowed-tools: Bash(node "$THINKMAP_CLI" *), Read, Write, Edit, Glob, Grep
 ---
 
 # /thinkmap-create-tickets — from "decided" to "tickets exist"
+
+> Added to this project from the Thinkmap catalogue (dashboard → Tooling → Add). `$THINKMAP_CLI` is set by the
+> Thinkmap plugin when a session starts. If `echo "$THINKMAP_CLI"` prints nothing, the plugin is not active in
+> this session: run the same commands as `npx github:dsngeu/ThinkMap <command>` instead.
 
 Arguments: `$ARGUMENTS` — a phase ID (`P<n>`: every topic of the phase in one go) or a topic
 ID (`P<n>-F<nn>`: one topic, for additions to a phase that already has tickets), plus an
@@ -16,13 +20,13 @@ Two gates. Nothing is written before the second one.
 ## 1. Load the scope
 
 ```
-node "${CLAUDE_PLUGIN_ROOT}/bin/thinkmap.js" json
+node "$THINKMAP_CLI" json
 ```
 
 From the graph take the phase (or the topic's phase), its topics (`type: feature`), their
 points, and the existing tickets of the phase (`type: ticket`, `id` starting with `P<n>-T`).
 If the ID does not exist, say so and list the phases. Read the format rules first:
-`${CLAUDE_PLUGIN_ROOT}/template/FORMAT.md` (§1 for where files go, §6 for the ticket body).
+`docs/plan/FORMAT.md` (§1 for where files go, §6 for the ticket body).
 
 Points to cover: every `decided` point in scope that no existing ticket lists in
 `implements` (the graph gives `implementedBy` per point). `caution` points are not covered by
@@ -72,7 +76,7 @@ open point during this, record it in its topic as a decided point first, then in
 For each row create `<NN-slug>/tickets/<ID>-<F<nn>>-<slug>.md` inside the phase folder, where
 `F<nn>` is the short ID of the ticket's topic (`P2-T05-F04-sprint-model-api.md` for a ticket of
 `P2-F04`) (the folder
-already has `tickets/`; if it is missing, run `node "${CLAUDE_PLUGIN_ROOT}/bin/thinkmap.js"
+already has `tickets/`; if it is missing, run `node "$THINKMAP_CLI"
 phase P<n> <slug>` rather than making it by hand). Front matter: `id`, `type: ticket`,
 `title`, `status: planned`, `parent: <topic id>`, `implements: [...]`, `depends_on: [...]`
 when any, `owner` when given, `labels` copied from the topic, `updated: <today>`. Body as in
@@ -86,14 +90,14 @@ line if the point has none). Change nothing else in the topic files by hand; wri
 `## Tickets` list with the tool (it also renames older ticket files that lack the topic):
 
 ```
-node "${CLAUDE_PLUGIN_ROOT}/bin/thinkmap.js" tickets --write
+node "$THINKMAP_CLI" tickets --write
 ```
 
 ## 4. Check and report
 
 ```
-node "${CLAUDE_PLUGIN_ROOT}/bin/thinkmap.js" validate
-node "${CLAUDE_PLUGIN_ROOT}/bin/thinkmap.js" status P<n>          # or the topic: status P<n>-F<nn>
+node "$THINKMAP_CLI" validate
+node "$THINKMAP_CLI" status P<n>          # or the topic: status P<n>-F<nn>
 ```
 
 Fix anything the validator reports. Report: the files written, the status output's *NEXT

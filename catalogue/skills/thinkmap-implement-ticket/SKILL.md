@@ -2,10 +2,14 @@
 name: thinkmap-implement-ticket
 description: Work on one Thinkmap ticket in two gates — first a read-only brief (objective, decisions, cautions, acceptance criteria, dependencies, proposed approach, open questions), then, after an explicit "go ahead", claim it (in-progress, owner, Handoff log), build it, and close it (criteria ticked, code filled, done). Use when the person says "work on / take / start / pick up ticket P1-T03".
 argument-hint: "<ticket-id, e.g. P1-T03> [owner]"
-allowed-tools: Bash(node ${CLAUDE_PLUGIN_ROOT}/bin/thinkmap.js *), Read, Edit, Grep, Glob
+allowed-tools: Bash(node "$THINKMAP_CLI" *), Read, Edit, Grep, Glob
 ---
 
 # /thinkmap-implement-ticket — brief first, then claim, build and close one ticket
+
+> Added to this project from the Thinkmap catalogue (dashboard → Tooling → Add). `$THINKMAP_CLI` is set by the
+> Thinkmap plugin when a session starts. If `echo "$THINKMAP_CLI"` prints nothing, the plugin is not active in
+> this session: run the same commands as `npx github:dsngeu/ThinkMap <command>` instead.
 
 Also use this on your own when the person says "work on ticket P1-T03", "take P1-T03" or
 similar — it is the safe way to start work in a session.
@@ -23,7 +27,7 @@ an equally clear yes). Never merge them.
 Get the graph once and read the ticket from it:
 
 ```
-node "${CLAUDE_PLUGIN_ROOT}/bin/thinkmap.js" json
+node "$THINKMAP_CLI" json
 ```
 
 (Nodes have `id`, `type`, `status`, `owner`, `file`, `implements`, `dependsOn`, `sections`.)
@@ -40,7 +44,7 @@ take it over — continue only on a yes.
 - the points it `implements` (title + `What:` / `Why:` / `Expected:` lines) and their topic;
 - every caution point in that topic, whether or not the ticket implements it;
 - every ticket in `depends_on`, with its status;
-- the rules for a session: `${CLAUDE_PLUGIN_ROOT}/template/FORMAT.md` §6–7;
+- the rules for a session: `docs/plan/FORMAT.md` §6–7;
 - the project's `CLAUDE.md` and the docs the ticket touches (architecture, conventions,
   definition of done);
 - the code of related `done` tickets (their `code:` field), if any.
@@ -83,7 +87,7 @@ append one line to its `## Handoff log`:
 Never rewrite earlier Handoff log lines. Then refresh the topic's generated `## Tickets` list:
 
 ```
-node "${CLAUDE_PLUGIN_ROOT}/bin/thinkmap.js" tickets --write
+node "$THINKMAP_CLI" tickets --write
 ```
 
 ### 5. Build
@@ -107,8 +111,8 @@ node "${CLAUDE_PLUGIN_ROOT}/bin/thinkmap.js" tickets --write
 - Run, and fix anything they report:
 
 ```
-node "${CLAUDE_PLUGIN_ROOT}/bin/thinkmap.js" tickets --write
-node "${CLAUDE_PLUGIN_ROOT}/bin/thinkmap.js" validate
+node "$THINKMAP_CLI" tickets --write
+node "$THINKMAP_CLI" validate
 ```
 
 ### 7. Hand back

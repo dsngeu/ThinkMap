@@ -34,11 +34,17 @@ test('marketplace lists this repo root as the thinkmap plugin', () => {
   assert.equal(p.source, './');
 });
 
-test('skills: the six decided ones, each with name + description; format skill points at FORMAT.md and copies nothing', () => {
+// P2-F02-14: the plugin ships only what opening the map and planning need; the ticket and status
+// skills are catalogue add-ons a project adds into its own .claude/skills/.
+const ADDONS = ['thinkmap-create-tickets', 'thinkmap-implement-ticket', 'thinkmap-status'];
+test('skills: three built in, three add-ons, each with name + description; format skill points at FORMAT.md and copies nothing', () => {
   const names = fs.readdirSync(path.join(ROOT, 'skills')).sort();
-  assert.deepEqual(names, ['thinkmap', 'thinkmap-create-tickets', 'thinkmap-format', 'thinkmap-implement-ticket', 'thinkmap-init', 'thinkmap-status']);
-  for (const n of names) {
-    const text = read(`skills/${n}/SKILL.md`);
+  assert.deepEqual(names, ['thinkmap', 'thinkmap-format', 'thinkmap-init']);
+  for (const n of [...names, ...ADDONS]) {
+    const file = ADDONS.includes(n) ? `catalogue/skills/${n}/SKILL.md` : `skills/${n}/SKILL.md`;
+    const text = read(file);
+    // A skill copied into a project has no CLAUDE_PLUGIN_ROOT: it calls the CLI through $THINKMAP_CLI.
+    if (ADDONS.includes(n)) { assert.ok(!text.includes('CLAUDE_PLUGIN_ROOT'), `${n} must not use CLAUDE_PLUGIN_ROOT`); assert.ok(text.includes('node "$THINKMAP_CLI"'), `${n} uses $THINKMAP_CLI`); }
     const fm = /^---\n([\s\S]*?)\n---/.exec(text);
     assert.ok(fm, `${n}: front matter`);
     assert.match(fm[1], new RegExp(`^name: ${n}$`, 'm'));
@@ -53,12 +59,12 @@ test('skills: the six decided ones, each with name + description; format skill p
   // P1-F01-06: no second copy of the format — the point syntax and ID table must not be restated.
   assert.ok(!/\[decided \d{4}/.test(format) && !/P<n>-F<nn>/.test(format), 'format skill must not restate FORMAT.md');
   // P1-F01-08: ticket generation has two gates and takes a phase or a topic.
-  const tickets = read('skills/thinkmap-create-tickets/SKILL.md');
+  const tickets = read('catalogue/skills/thinkmap-create-tickets/SKILL.md');
   assert.match(tickets, /^argument-hint: "<P1 \| P1-F02>/m);
   assert.match(tickets, /Gate 1/);
   assert.match(tickets, /Gate 2/);
   assert.match(tickets, /go ahead/);
-  assert.ok(tickets.includes('${CLAUDE_PLUGIN_ROOT}/template/FORMAT.md'));
+  assert.ok(tickets.includes('docs/plan/FORMAT.md'));
 });
 
 test('hooks.json: PostToolUse validate + SessionStart briefing, both via CLAUDE_PLUGIN_ROOT and existing scripts', () => {
@@ -79,7 +85,7 @@ test('hooks.json: PostToolUse validate + SessionStart briefing, both via CLAUDE_
 test('the repo itself shows its plugin skills and hooks on the Tooling tab', () => {
   const t = scanTooling(ROOT);
   assert.equal(t.isPlugin, true);
-  assert.ok(t.counts.skills >= 5 && t.counts.hooks >= 2);
+  assert.ok(t.counts.skills >= 3 && t.counts.hooks >= 2);
   assert.ok(t.items.some((i) => i.group === 'skill' && i.name === 'thinkmap-format' && i.slash === null));
 });
 
@@ -115,8 +121,14 @@ test('briefing: status + where the rules are when a plan exists; nothing otherwi
   const text = briefing({ projectDir: dir, pluginRoot: '/plug' });
   assert.match(text, /Briefed — plan status/);
   assert.ok(text.includes('/plug/template/FORMAT.md'));
-  assert.match(text, /\/thinkmap-implement-ticket <ID>/);
-  assert.match(text, /\/thinkmap-create-tickets <P1\|P1-F02>/);
+  assert.doesNotMatch(text, /\/thinkmap-implement-ticket <ID>/, 'not added yet');
+  assert.match(text, /can be added from the map's Tooling page/);
+  fs.mkdirSync(path.join(dir, '.claude/skills/thinkmap-implement-ticket'), { recursive: true });
+  fs.writeFileSync(path.join(dir, '.claude/skills/thinkmap-implement-ticket/SKILL.md'), 'x');
+  assert.match(briefing({ projectDir: dir, pluginRoot: '/plug' }), /\/thinkmap-implement-ticket <ID>/, 'listed once added');
+  // an added copy that no longer matches the catalogue and its record → told to tap Update
+  fs.writeFileSync(path.join(dir, '.claude/thinkmap-catalogue.json'), JSON.stringify({ items: { 'thinkmap-implement-ticket': { kind: 'skill', files: ['.claude/skills/thinkmap-implement-ticket/SKILL.md'], hash: 'old' } } }));
+  assert.match(briefing({ projectDir: dir, pluginRoot: '/plug' }), /⚠ \/thinkmap-implement-ticket in this project is older than this Thinkmap/);
   assert.doesNotMatch(text, /format --write/, 'a fresh init needs no refresh');
   // the copy left by an older install (e.g. npx before the plugin) → the session is told to refresh it
   fs.appendFileSync(path.join(dir, 'docs/plan/FORMAT.md'), '\nold rule\n');
@@ -140,7 +152,11 @@ test('hook scripts run as processes: fail open, fast, JSON on stdout for Session
   const none = spawnSync(process.execPath, [path.join(ROOT, 'hooks/briefing.mjs')], { env: { ...process.env, CLAUDE_PROJECT_DIR: tmp() }, encoding: 'utf8' });
   assert.equal(none.status, 0);
   assert.equal(none.stdout, '');
-  assert.ok(Date.now() - t0 < 3000, 'three hook runs well under a second each');
+  // every session, plan or not, gets $THINKMAP_CLI for the add-on skills
+  const envFile = path.join(tmp(), 'env.sh');
+  spawnSync(process.execPath, [path.join(ROOT, 'hooks/briefing.mjs')], { env: { ...process.env, CLAUDE_PROJECT_DIR: tmp(), CLAUDE_ENV_FILE: envFile }, encoding: 'utf8' });
+  assert.equal(fs.readFileSync(envFile, 'utf8'), `export THINKMAP_CLI='${path.join(ROOT, 'bin', 'thinkmap.js')}'\n`);
+  assert.ok(Date.now() - t0 < 4000, 'four hook runs well under a second each');
 });
 
 test('update: a plugin-cache install is recognised and told to use claude plugin update', () => {
