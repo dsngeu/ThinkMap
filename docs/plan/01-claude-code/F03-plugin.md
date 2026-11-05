@@ -6,7 +6,7 @@ status: auto
 parent: P1
 depends_on: [P1-F01, P1-F02]
 labels: [claude-code, distribution]
-updated: 2026-11-04
+updated: 2026-11-05
 ---
 
 Package everything as one Claude Code plugin and distribute it through a plugin marketplace.
@@ -30,14 +30,18 @@ Package everything as one Claude Code plugin and distribute it through a plugin 
   > Built: `.claude-plugin/marketplace.json` in this repo (marketplace name `thinkmap`):
   > `/plugin marketplace add dsngeu/ThinkMap` → `/plugin install thinkmap@thinkmap`. Ticket P1-T03.
 
-- [open 2026-10-29] P1-F03-03: Also publish to npm as `thinkmap`?
-  > What: `npx thinkmap` instead of `npx github:dsngeu/ThinkMap`.
-  > Options: (a) Yes, once the CLI is stable (nicer command, versioned releases).
-  > (b) Stay GitHub-only for now.
-  > Discussed: 2026-10-30 — the npm name `thinkmap` is free (registry returns 404). Publishing
-  > is the single biggest reach step: `npx thinkmap serve` is discoverable, `npx github:…` is not.
-  > Needs `npm login` by Deepak; `update.js` would then prefer the registry over GitHub.
-  > Next: Deepak decides; if yes, `npm publish` from a clean 0.5.0 checkout and a P1 ticket for the update path.
+- [decided 2026-11-05] P1-F03-03: Also publish to npm as `thinkmap`
+  > What: Publish the package to the npm registry as `thinkmap`, so people without Claude
+  > Code run `npx thinkmap init` instead of `npx github:dsngeu/ThinkMap init`. The plugin and
+  > marketplace install stay as they are.
+  > Why: The CLI is stable (0.10), the name is still free (checked 2026-11-05) and could be
+  > taken; a short command that shows up in npm search is the biggest reach step for people
+  > outside Claude Code.
+  > Expected: `npx thinkmap …` runs the latest release; `thinkmap update` and the update
+  > banner check npm and install from it; the GitHub form keeps working.
+  > Discussed: 2026-10-30 — the name was free then too. `npm pack --dry-run` on 0.10.1: 39 files, 322 kB.
+  > Pending: Deepak creates an npm account and runs `npm login` once; Claude can't do that step.
+  > Built: Not yet — ticket P1-T07.
 
 - [decided 2026-10-29] P1-F03-04: The marketplace file lives in this repo for now
   > What: `.claude-plugin/marketplace.json` next to `plugin.json`, listing the repo root (`"./"`)
@@ -153,3 +157,4 @@ Package everything as one Claude Code plugin and distribute it through a plugin 
 - P1-T04 · thinkmap update + update-available banner · done
 - P1-T05 · thinkmap format — detect and refresh the project's FORMAT.md copy · done
 - P1-T06 · serve reuses or replaces a Thinkmap already serving the same plan · done
+- P1-T07 · Publish to npm as thinkmap; update check prefers the registry · planned
