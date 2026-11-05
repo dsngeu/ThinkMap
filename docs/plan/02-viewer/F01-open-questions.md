@@ -5,7 +5,7 @@ title: Viewer open questions
 status: auto
 parent: P2
 labels: [viewer]
-updated: 2026-11-04
+updated: 2026-11-05
 ---
 
 ## Points
@@ -16,10 +16,12 @@ updated: 2026-11-04
   > surprises; the map is a view.
   > Pending: Revisit if users keep asking for click-to-change-status.
 
-- [open 2026-10-29] P2-F01-02: Kanban-style column view for tickets?
+- [dropped 2026-11-05 deepak] P2-F01-02: Kanban-style column view for tickets
   > What: Columns per ticket status (ready / in progress / blocked / done).
-  > Options: (a) Later, once a project has 20+ tickets. (b) Now, as a toggle next to the map.
-  > Next: Wait for a project with enough tickets to need it.
+  > Why: Not needed now — the map and each topic's ticket list already show ticket status.
+  > Discussed: Options were (a) later, once a project has 20+ tickets, or (b) now, as a
+  > toggle next to the map. Deepak: not needed now.
+  > Next: Reopen as a new point if a project's tickets get hard to follow on the map.
 
 - [open 2026-10-29] P2-F01-03: Show which session or agent is active on a ticket right now?
   > What: A live "someone is working on this" indicator.

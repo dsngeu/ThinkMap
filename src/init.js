@@ -24,6 +24,9 @@ Where each file goes (the validator reports anything else as an error):
 - \`${p}/NN-slug/phase.md\` — one folder per phase (\`P1\` → \`01-…\`); add one with \`thinkmap phase P2 <slug>\`.
 - \`${p}/NN-slug/F<nn>-slug.md\` — a topic, directly in its phase folder; its notes go in \`## Points\`.
 - \`${p}/NN-slug/tickets/P<n>-T<nn>-F<nn>-slug.md\` — a ticket, only in its phase's \`tickets/\`.
+- Other documents (setup guide, architecture notes) go outside \`${p}/\`. When one holds
+  decisions or unanswered questions (TODOs), also record them as points in a topic, with a
+  link to the document, so they show on the map.
 
 - Discussing? Write each decision / open question / suggestion / caution into the plan
   files as you go, with \`What:\` and \`Why:\` lines. Don't keep decisions only in chat.

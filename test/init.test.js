@@ -118,6 +118,8 @@ test('init adds the Planning section to CLAUDE.md: creates, appends once, never 
   const text = fs.readFileSync(file, 'utf8');
   assert.match(text, /@docs\/plan\/FORMAT\.md/);
   assert.match(text, /NN-slug\/tickets\/P<n>-T<nn>-F<nn>-slug\.md/);
+  assert.match(text, /Other documents .* go outside `docs\/plan\/`/);
+  assert.match(text, /record them as points in a topic/);
   // running again changes nothing
   assert.equal(addClaudeSection(root, plan).action, 'kept');
   assert.equal(fs.readFileSync(file, 'utf8'), text);

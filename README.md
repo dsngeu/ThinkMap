@@ -151,6 +151,9 @@ add the ones you want once per project from the Tooling page.
 New in 0.10: `thinkmap init` writes the **Planning** section into `CLAUDE.md` itself (creates the
 file, or adds the section at the end; an existing section is left alone), so every new session
 knows the format and that tickets go in `tickets/`. `--no-claude-md` skips it.
+Since 0.10.2 the section also says that guides like `docs/setup.md` stay outside the plan, with
+their decisions and TODOs recorded as points so they show on the map. Projects set up earlier keep
+their section; add that line by hand if you want it.
 If the update says there is nothing new, run `claude plugin marketplace update thinkmap` first.
 
 ## More

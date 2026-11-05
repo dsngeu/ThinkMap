@@ -5,7 +5,7 @@ title: Format, engine & viewer
 status: auto
 parent: P0
 labels: [core]
-updated: 2026-11-04
+updated: 2026-11-05
 ---
 
 ## Points
@@ -98,6 +98,19 @@ updated: 2026-11-04
   > session never learned that FORMAT.md exists or that tickets live only in `tickets/`.
   > Expected: The first session after `init` follows the layout without being told.
   > Built: `claudeSection()` and `addClaudeSection()` in `src/init.js`; test in `test/init.test.js`.
+
+- [decided 2026-11-05] P0-F01-12: The Planning section says where other documents go and to link them from the plan
+  > What: One more line in the CLAUDE.md section: guides and notes (setup, architecture) live
+  > outside the plan folder; when one holds decisions or unanswered questions (TODOs), also
+  > record them as points in a topic, with a link to the document.
+  > Why: In im-mobile a session wrote `docs/setup.md` with several TODOs. Placing it outside
+  > `docs/plan/` was right, but nothing reached the map, so the person thought the map was broken
+  > and the open questions were invisible.
+  > Discussed: A rule that blocks files outside the plan was rejected: the plan is for plan
+  > items only. Existing projects keep their old section (init never rewrites it).
+  > Expected: A session that writes a guide with TODOs also puts them on the map as open points.
+  > Built: `claudeSection()` in `src/init.js` and the `thinkmap-format` skill; test in
+  > `test/init.test.js`; release 0.10.2.
 
 ## Tickets
 

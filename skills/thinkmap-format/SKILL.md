@@ -45,6 +45,9 @@ open question", "note that we must …", that is your cue to edit the topic file
   lists the point IDs it delivers in `implements:`, and has a Handoff log.
 - New phase, topic or ticket: copy the shape of an existing file, keep the ID patterns from
   FORMAT.md, and never reuse an ID.
+- **Other documents** (a setup guide, architecture notes) go outside the plan folder: the map
+  reads only plan files. When one holds decisions or unanswered questions (TODOs), also record
+  them as points in a topic, with a link to the document, so they show on the map.
 
 ## After every edit
 
